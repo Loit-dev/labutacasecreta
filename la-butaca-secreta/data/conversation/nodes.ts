@@ -3,15 +3,10 @@ import { ConversationNode } from "@/lib/conversation/types";
 export const conversationNodes: ConversationNode[] = [
   {
     id: "contentType",
-
     title: "¿Qué te apetece hoy?",
-
     required: true,
-
     informationValue: 100,
-
     next: ["company", "mood"],
-
     options: [
       {
         id: "movie",
@@ -28,15 +23,10 @@ export const conversationNodes: ConversationNode[] = [
 
   {
     id: "company",
-
     title: "¿Con quién vas a verla?",
-
     required: true,
-
     informationValue: 80,
-
-    next: ["mood", "duration"],
-
+    next: ["mood", "restrictions"],
     options: [
       {
         id: "alone",
@@ -44,9 +34,9 @@ export const conversationNodes: ConversationNode[] = [
         value: "alone",
       },
       {
-        id: "couple",
+        id: "partner",
         label: "❤️ En pareja",
-        value: "couple",
+        value: "partner",
       },
       {
         id: "friends",
@@ -63,15 +53,10 @@ export const conversationNodes: ConversationNode[] = [
 
   {
     id: "mood",
-
     title: "¿Qué te apetece sentir hoy?",
-
     required: true,
-
     informationValue: 95,
-
-    next: ["restrictions", "pace", "duration"],
-
+    next: ["restrictions"],
     options: [
       {
         id: "laugh",
@@ -113,29 +98,50 @@ export const conversationNodes: ConversationNode[] = [
 
   {
     id: "restrictions",
-
     title: "¿Hay algo que hoy no te apetezca ver?",
-
     required: true,
-
     informationValue: 90,
-
-    next: ["duration", "freshness"],
-
-    options: [],
+    next: ["duration"],
+    options: [
+      {
+        id: "terror",
+        label: "😱 Terror",
+        value: "terror",
+      },
+      {
+        id: "violence",
+        label: "🩸 Violencia",
+        value: "violence",
+      },
+      {
+        id: "romance",
+        label: "💕 Romance",
+        value: "romance",
+      },
+      {
+        id: "musical",
+        label: "🎵 Musical",
+        value: "musical",
+      },
+      {
+        id: "documentary",
+        label: "🎥 Documental",
+        value: "documentary",
+      },
+      {
+        id: "none",
+        label: "👍 No tengo ninguna preferencia",
+        value: "none",
+      },
+    ],
   },
 
   {
     id: "duration",
-
     title: "¿Cuánto tiempo quieres dedicarle?",
-
     required: false,
-
     informationValue: 30,
-
     next: ["freshness"],
-
     options: [
       {
         id: "short",
@@ -162,15 +168,10 @@ export const conversationNodes: ConversationNode[] = [
 
   {
     id: "freshness",
-
     title: "¿Qué te apetece más?",
-
     required: false,
-
     informationValue: 20,
-
     next: [],
-
     options: [
       {
         id: "new",

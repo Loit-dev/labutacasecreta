@@ -1,11 +1,16 @@
 import { conversationNodes } from "@/data/conversation/nodes";
-import { hasValue } from "./profile";
+import { calculateConfidence } from "./confidence";
+import {
+  getGreeting,
+  getReaction,
+} from "./personality";
+
 import {
   ConversationContext,
+  ConversationMessage,
   ConversationNode,
   UserProfile,
 } from "./types";
-import { calculateConfidence, isConversationReady } from "./confidence";
 
 export class ConversationEngine {
   private context: ConversationContext;
@@ -16,83 +21,136 @@ export class ConversationEngine {
       confidence: 0,
       profile: profile ?? {},
       answeredNodes: [],
+      messages: [],
     };
 
     this.updateState();
   }
 
-  /**
-   * Devuelve todo el contexto.
-   */
+  // ============================
+  // PUBLIC API
+  // ============================
+
   getContext() {
     return this.context;
   }
 
-  /**
-   * Devuelve el perfil actual.
-   */
   getProfile() {
     return this.context.profile;
   }
 
-  /**
-   * Guarda una respuesta.
-   */
-  answer(field: keyof UserProfile, value: unknown) {
+  getMessages() {
+    return this.context.messages;
+  }
+
+  startConversation() {
+    if (this.context.messages.length > 0) return;
+
+    this.addBotMessage(getGreeting());
+
+    this.addBotMessage(
+      "Hoy voy a ayudarte a encontrar algo que realmente te apetezca ver."
+    );
+
+    const firstQuestion = this.getNextNode();
+
+    if (firstQuestion) {
+      this.addBotMessage(firstQuestion.title);
+    }
+  }
+
+  answer(
+    field: keyof UserProfile,
+    value: string,
+    label: string
+  ): ConversationNode | null {
     this.context.profile[field] = value as never;
 
     if (!this.context.answeredNodes.includes(field)) {
       this.context.answeredNodes.push(field);
     }
 
+    this.addUserMessage(label);
+
+    this.addBotMessage(
+      getReaction(field as string, value)
+    );
+
     this.updateState();
+
+    return this.getNextNode();
   }
 
-  /**
-   * Devuelve el siguiente nodo.
-   */
   getNextNode(): ConversationNode | null {
-    if (isConversationReady(this.context.profile)) {
-      return null;
-    }
-
-    const availableNodes = conversationNodes
-      .filter((node) => !this.context.answeredNodes.includes(node.id))
+    const node = conversationNodes
+      .filter(
+        (node) =>
+          !this.context.answeredNodes.includes(node.id)
+      )
       .filter((node) => this.checkConditions(node))
-      .sort((a, b) => b.informationValue - a.informationValue);
+      .sort(
+        (a, b) =>
+          b.informationValue - a.informationValue
+      )[0];
 
-    return availableNodes[0] ?? null;
+    return node ?? null;
   }
 
-  /**
-   * Comprueba condiciones.
-   */
-  private checkConditions(node: ConversationNode): boolean {
+  // ============================
+  // MESSAGE API
+  // ============================
+
+  public addBotMessage(text: string) {
+    this.addMessage("bot", text);
+  }
+
+  public addUserMessage(text: string) {
+    this.addMessage("user", text);
+  }
+
+  // ============================
+  // PRIVATE
+  // ============================
+
+  private addMessage(
+    sender: "bot" | "user",
+    text: string
+  ) {
+    const message: ConversationMessage = {
+      id: crypto.randomUUID(),
+      sender,
+      text,
+    };
+
+    this.context.messages.push(message);
+  }
+
+  private checkConditions(
+    node: ConversationNode
+  ): boolean {
     if (!node.conditions?.length) {
       return true;
     }
 
     return node.conditions.every((condition) => {
-      return this.context.profile[condition.field] === condition.equals;
+      return (
+        this.context.profile[condition.field] ===
+        condition.equals
+      );
     });
   }
 
-  /**
-   * Actualiza estado interno.
-   */
   private updateState() {
-    this.context.confidence = calculateConfidence(this.context.profile);
+    this.context.confidence = calculateConfidence(
+      this.context.profile
+    );
 
     if (this.context.confidence >= 85) {
       this.context.state = "ready";
-      return;
-    }
-
-    if (this.context.confidence >= 45) {
+    } else if (this.context.confidence >= 45) {
       this.context.state = "refining";
-      return;
+    } else {
+      this.context.state = "exploring";
     }
-
-    this.context.state = "exploring";
   }
 }
