@@ -8,6 +8,8 @@ import {
   ConversationNode,
 } from "@/lib/conversation/types";
 
+import { getUserReply } from "@/lib/conversation/userReplies";
+
 export function useConversation() {
   const engine = useMemo(() => new ConversationEngine(), []);
 
@@ -16,7 +18,6 @@ export function useConversation() {
     useState<ConversationNode | null>(null);
 
   const [isThinking, setIsThinking] = useState(false);
-
   const [finished, setFinished] = useState(false);
 
   useEffect(() => {
@@ -34,10 +35,17 @@ export function useConversation() {
 
     setIsThinking(true);
 
-    engine.answer(
+    // Convertimos el botón pulsado en una frase natural
+    const reply = getUserReply(
       currentQuestion.id,
       value,
       label
+    );
+
+    engine.answer(
+      currentQuestion.id,
+      value,
+      reply
     );
 
     await new Promise((resolve) =>
@@ -52,7 +60,6 @@ export function useConversation() {
 
     setMessages([...engine.getMessages()]);
     setCurrentQuestion(next);
-
     setFinished(next === null);
 
     setIsThinking(false);

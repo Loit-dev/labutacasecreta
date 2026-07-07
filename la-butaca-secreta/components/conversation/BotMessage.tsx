@@ -1,18 +1,16 @@
 type Props = {
-  children: React.ReactNode;
+  text: string;
 };
 
-export default function BotMessage({ children }: Props) {
+export default function BotMessage({ text }: Props) {
   return (
-    <div className="flex justify-start">
-      <div className="max-w-[85%] rounded-3xl rounded-bl-md bg-zinc-900 border border-zinc-800 px-5 py-4 shadow-md">
-        <div className="mb-2 text-sm font-semibold text-yellow-400">
-          🎬 La Butaca Secreta
-        </div>
+    <div className="flex items-start gap-3">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-yellow-400 text-xl">
+        🍿
+      </div>
 
-        <div className="text-base leading-7 text-white">
-          {children}
-        </div>
+      <div className="max-w-[80%] rounded-3xl rounded-tl-md bg-zinc-800 px-5 py-4 text-white shadow-md">
+        {text}
       </div>
     </div>
   );
