@@ -11,6 +11,7 @@ import { useConversation } from "@/hooks/useConversation";
 export default function Conversation() {
   const {
     messages,
+    profile,
     currentQuestion,
     answer,
     isThinking,
@@ -41,7 +42,7 @@ export default function Conversation() {
 
         {finished && (
           <div className="mt-10">
-            <Recommendations />
+            <Recommendations profile={profile} />
           </div>
         )}
       </div>

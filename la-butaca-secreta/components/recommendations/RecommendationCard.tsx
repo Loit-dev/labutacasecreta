@@ -6,8 +6,8 @@ type Props = {
   title: string;
   year: number;
   rating: number;
-  runtime: number;
-  genres: string[];
+  runtime?: number;
+  genres?: string[];
   overview: string;
   poster: string;
 };
@@ -19,7 +19,7 @@ export default function RecommendationCard({
   year,
   rating,
   runtime,
-  genres,
+  genres = [],
   overview,
   poster,
 }: Props) {
@@ -50,26 +50,31 @@ export default function RecommendationCard({
 
         <div className="flex flex-wrap gap-4 text-sm text-zinc-400">
           <span>⭐ {rating}</span>
-          <span>{runtime} min</span>
+
+          {runtime ? <span>{runtime} min</span> : null}
+
           <span>{year}</span>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          {genres.map((genre) => (
-            <span
-              key={genre}
-              className="rounded-full bg-zinc-800 px-3 py-1 text-xs text-zinc-300"
-            >
-              {genre}
-            </span>
-          ))}
-        </div>
+        {genres.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {genres.map((genre) => (
+              <span
+                key={genre}
+                className="rounded-full bg-zinc-800 px-3 py-1 text-xs text-zinc-300"
+              >
+                {genre}
+              </span>
+            ))}
+          </div>
+        )}
 
         <p className="leading-relaxed text-zinc-300">
           {overview}
         </p>
 
       </div>
+
     </article>
   );
 }

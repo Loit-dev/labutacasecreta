@@ -2,14 +2,22 @@ export type ContentType = "movie" | "tv";
 
 export interface UserProfile {
   contentType?: ContentType;
+
   company?: string;
+
   mood?: string;
+
   pace?: string;
+
   duration?: string;
+
   freshness?: string;
+
   language?: string;
+
   animation?: string;
-  restrictions?: string[];
+
+  restrictions?: string;
 }
 
 export interface ConversationOption {
