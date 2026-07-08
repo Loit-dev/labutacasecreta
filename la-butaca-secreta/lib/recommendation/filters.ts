@@ -114,34 +114,36 @@ export function buildFilters(
   }
 
   // ============================
-  // Restricción
+  // Restricciones
   // ============================
 
-  switch (profile.restrictions) {
-    case "terror":
-      filters.withoutGenres.push(27);
-      break;
+  profile.restrictions?.forEach((restriction) => {
+    switch (restriction) {
+      case "terror":
+        filters.withoutGenres.push(27);
+        break;
 
-    case "romance":
-      filters.withoutGenres.push(10749);
-      break;
+      case "romance":
+        filters.withoutGenres.push(10749);
+        break;
 
-    case "musical":
-      filters.withoutGenres.push(10402);
-      break;
+      case "musical":
+        filters.withoutGenres.push(10402);
+        break;
 
-    case "documentary":
-      filters.withoutGenres.push(99);
-      break;
+      case "documentary":
+        filters.withoutGenres.push(99);
+        break;
 
-    case "violence":
-      filters.withoutGenres.push(27, 53, 80);
-      break;
+      case "violence":
+        filters.withoutGenres.push(27, 53, 80);
+        break;
 
-    case "none":
-    default:
-      break;
-  }
+      case "none":
+      default:
+        break;
+    }
+  });
 
   // ============================
   // Eliminar duplicados

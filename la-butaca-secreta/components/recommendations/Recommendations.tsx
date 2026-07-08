@@ -75,12 +75,14 @@ export default function Recommendations({
           );
         }
 
-        if (profile.restrictions) {
-          params.set(
+        
+        if (profile.restrictions?.length) {
+            params.set(
             "restrictions",
-            profile.restrictions
-          );
+            profile.restrictions.join(",")
+                      );
         }
+
 
         const response = await fetch(
           `/api/tmdb?${params.toString()}`

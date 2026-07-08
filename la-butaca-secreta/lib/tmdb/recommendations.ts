@@ -1,10 +1,57 @@
-import { discoverMovies } from "./api";
-import { mapMovie } from "./mapper";
+import {
+  getMovieCredits,
+  getMovieDetails,
+  getMovieProviders,
+  getTVCredits,
+  getTVDetails,
+  getTVProviders,
+} from "./api";
 
-export async function getRecommendations() {
-  const movies = await discoverMovies();
+import {
+  mapRecommendation,
+} from "./mapper";
 
-  return movies.results
-    .slice(0, 3)
-    .map(mapMovie);
+import {
+  TMDBMovie,
+} from "./types";
+
+export async function enrichRecommendation(
+  movie: TMDBMovie,
+  type: "movie" | "tv"
+) {
+  if (type === "movie") {
+    const [
+      details,
+      providers,
+      credits,
+    ] = await Promise.all([
+      getMovieDetails(movie.id),
+      getMovieProviders(movie.id),
+      getMovieCredits(movie.id),
+    ]);
+
+    return mapRecommendation(
+      movie,
+      details,
+      providers,
+      credits
+    );
+  }
+
+  const [
+    details,
+    providers,
+    credits,
+  ] = await Promise.all([
+    getTVDetails(movie.id),
+    getTVProviders(movie.id),
+    getTVCredits(movie.id),
+  ]);
+
+  return mapRecommendation(
+    movie,
+    details,
+    providers,
+    credits
+  );
 }

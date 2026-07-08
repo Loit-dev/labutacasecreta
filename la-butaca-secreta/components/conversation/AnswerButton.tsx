@@ -11,31 +11,35 @@ export default function AnswerButton({
     <button
       onClick={onClick}
       className="
-        group
-        w-full
-        rounded-2xl
-        border
-        border-white/10
-        bg-white/5
-        px-6
-        py-5
-        text-left
-        text-lg
-        font-semibold
-        text-white
-        backdrop-blur-sm
-        transition-all
-        duration-200
-        hover:scale-[1.02]
-        hover:border-red-400/60
-        hover:bg-red-500/10
-        hover:shadow-xl
-        active:scale-[0.98]
+      group
+      w-full
+      rounded-2xl
+      border
+      border-zinc-700
+      bg-zinc-900
+      px-6
+      py-5
+      text-left
+      text-lg
+      font-semibold
+      text-white
+      shadow-lg
+      transition-all
+      duration-200
+      hover:-translate-y-1
+      hover:border-indigo-500
+      hover:bg-zinc-800
+      hover:shadow-indigo-500/20
+      active:scale-[0.98]
       "
     >
-      <span className="transition group-hover:translate-x-1 inline-block">
-        {label}
-      </span>
+      <div className="flex items-center justify-between">
+        <span>{label}</span>
+
+        <span className="text-zinc-500 transition group-hover:translate-x-1 group-hover:text-indigo-400">
+          →
+        </span>
+      </div>
     </button>
   );
 }
