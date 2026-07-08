@@ -1,13 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { UserProfile } from "@/lib/conversation/types";
-
 import { RecommendationEngine } from "@/lib/recommendation/engine";
 import { sortByScore } from "@/lib/recommendation/scoring";
 
 import {
   discoverMovies,
   discoverTV,
+  getMovieCredits,
+  getMovieDetails,
+  getMovieProviders,
+  getTVCredits,
+  getTVDetails,
+  getTVProviders,
 } from "@/lib/tmdb/api";
 
 import {
@@ -27,11 +32,9 @@ export async function GET(request: NextRequest) {
 
       mood: params.get("mood") ?? undefined,
 
-      company:
-        params.get("company") ?? undefined,
+      company: params.get("company") ?? undefined,
 
-      duration:
-        params.get("duration") ?? undefined,
+      duration: params.get("duration") ?? undefined,
 
       pace: params.get("pace") ?? undefined,
 
@@ -50,25 +53,24 @@ export async function GET(request: NextRequest) {
         .filter(Boolean),
     };
 
-    const recommendationEngine =
+    const engine =
       new RecommendationEngine(profile);
 
-    const filters =
-      recommendationEngine.build();
+    const filters = engine.build();
 
     // ===========================
-    // Obtener unas 100 recomendaciones
+    // Obtener aproximadamente 100 títulos
     // ===========================
 
     const pages = await Promise.all(
       [1, 2, 3, 4, 5].map((page) =>
-        filters.type === "tv"
-          ? discoverTV(filters, page)
-          : discoverMovies(filters, page)
+        filters.type === "movie"
+          ? discoverMovies(filters, page)
+          : discoverTV(filters, page)
       )
     );
 
-    const tmdbItems = pages.flatMap(
+    const items = pages.flatMap(
       (page) => page.results
     );
 
@@ -78,7 +80,7 @@ export async function GET(request: NextRequest) {
 
     const uniqueItems = Array.from(
       new Map(
-        tmdbItems.map((item) => [
+        items.map((item) => [
           item.id,
           item,
         ])
@@ -86,34 +88,133 @@ export async function GET(request: NextRequest) {
     );
 
     // ===========================
-    // Calcular score
+    // Primer scoring
     // ===========================
 
-    const scoredItems = sortByScore(
+    const scored = sortByScore(
       uniqueItems.map(mapToScoredItem),
       {
         profile,
       }
     );
 
-    // ===========================
-    // Obtener las 3 mejores
-    // ===========================
+    // Nos quedamos con las 10 mejores
 
-    const topIds = scoredItems
-      .slice(0, 3)
-      .map((item) => item.id);
-
-    const recommendations = topIds
-      .map((id) =>
+    const candidates = scored
+      .slice(0, 10)
+      .map((item) =>
         uniqueItems.find(
-          (movie) => movie.id === id
-        )
-      )
-      .filter(Boolean)
-      .map((movie) =>
-        mapRecommendation(movie!)
+          (movie) => movie.id === item.id
+        )!
       );
+
+    // ===========================
+    // Obtener detalles completos
+    // ===========================
+
+    const enriched =
+      await Promise.all(
+        candidates.map(async (movie) => {
+          if (filters.type === "movie") {
+            const [
+              details,
+              providers,
+              credits,
+            ] = await Promise.all([
+              getMovieDetails(movie.id),
+              getMovieProviders(movie.id),
+              getMovieCredits(movie.id),
+            ]);
+
+            return {
+              movie,
+              details,
+              providers,
+              credits,
+            };
+          }
+
+          const [
+            details,
+            providers,
+            credits,
+          ] = await Promise.all([
+            getTVDetails(movie.id),
+            getTVProviders(movie.id),
+            getTVCredits(movie.id),
+          ]);
+
+          return {
+            movie,
+            details,
+            providers,
+            credits,
+          };
+        })
+      );
+
+    // CONTINÚA EN LA SEGUNDA PARTE
+    // ===========================
+    // Segundo scoring (con datos enriquecidos)
+    // ===========================
+
+    const rescored = sortByScore(
+      enriched.map(
+        ({
+          movie,
+          details,
+          providers,
+          credits,
+        }) => ({
+          ...mapToScoredItem(movie),
+
+          runtime:
+            details.runtime ??
+            details.episode_run_time?.[0] ??
+            0,
+
+          providers:
+            providers.results?.ES?.flatrate?.map(
+              (provider) =>
+                provider.provider_name
+            ) ?? [],
+
+          director: credits.crew.find(
+            (person) =>
+              person.job === "Director"
+          )?.name,
+
+          cast:
+            credits.cast
+              .slice(0, 5)
+              .map((actor) => actor.name) ??
+            [],
+        })
+      ),
+      {
+        profile,
+      }
+    );
+
+    // ===========================
+    // Top 3 definitivo
+    // ===========================
+
+    const recommendations = rescored
+      .slice(0, 3)
+      .map((item) => {
+        const data = enriched.find(
+          (entry) =>
+            entry.movie.id === item.id
+        )!;
+
+        return mapRecommendation(
+          data.movie,
+          data.details,
+          data.providers,
+          data.credits
+        );
+      });
 
     return NextResponse.json(
       recommendations

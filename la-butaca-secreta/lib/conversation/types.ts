@@ -17,7 +17,7 @@ export interface UserProfile {
 
   animation?: string;
 
-  restrictions?: string;
+  restrictions?: string[];
 }
 
 export interface ConversationOption {

@@ -19,6 +19,12 @@ export interface ScoredItem {
 
   originalLanguage?: string;
 
+  providers?: string[];
+
+  director?: string;
+
+  cast?: string[];
+
   score: number;
 }
 

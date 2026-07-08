@@ -1,11 +1,11 @@
-import { RecommendationFilters } from "@/lib/recommendation/filters";
-
 import {
-  TMDBMovie,
+  TMDBCredits,
   TMDBMovieDetails,
   TMDBResponse,
   TMDBWatchProviders,
 } from "./types";
+
+import { RecommendationFilters } from "@/lib/recommendation/filters";
 
 const TOKEN = process.env.TMDB_API_TOKEN!;
 const BASE_URL = process.env.TMDB_BASE_URL!;
@@ -22,14 +22,17 @@ async function request<T>(endpoint: string): Promise<T> {
   });
 
   if (!response.ok) {
-    console.error(await response.text());
-    throw new Error("Error al conectar con TMDB");
+    throw new Error(await response.text());
   }
 
-  return response.json();
+  return response.json() as Promise<T>;
 }
 
-function buildQuery(
+// ======================================================
+// DISCOVER
+// ======================================================
+
+function buildDiscoverQuery(
   filters: RecommendationFilters,
   page: number
 ) {
@@ -37,44 +40,23 @@ function buildQuery(
 
   params.set("language", "es-ES");
   params.set("page", page.toString());
+
   params.set("include_adult", "false");
-  params.set("vote_average.gte", "6.5");
+
   params.set("vote_count.gte", "300");
-  params.set("sort_by", "popularity.desc");
+
+  params.set("vote_average.gte", "6.5");
+
+  params.set("sort_by", "vote_average.desc");
 
   const today = new Date()
     .toISOString()
     .split("T")[0];
 
   if (filters.type === "movie") {
-    params.set("include_video", "false");
     params.set("release_date.lte", today);
-
-    if (filters.releaseAfter)
-      params.set(
-        "release_date.gte",
-        filters.releaseAfter
-      );
-
-    if (filters.releaseBefore)
-      params.set(
-        "release_date.lte",
-        filters.releaseBefore
-      );
   } else {
     params.set("first_air_date.lte", today);
-
-    if (filters.releaseAfter)
-      params.set(
-        "first_air_date.gte",
-        filters.releaseAfter
-      );
-
-    if (filters.releaseBefore)
-      params.set(
-        "first_air_date.lte",
-        filters.releaseBefore
-      );
   }
 
   if (filters.withGenres.length) {
@@ -91,24 +73,32 @@ function buildQuery(
     );
   }
 
-  if (
-    filters.type === "movie" &&
-    filters.runtimeGte
-  ) {
-    params.set(
-      "with_runtime.gte",
-      filters.runtimeGte.toString()
-    );
+  if (filters.releaseAfter) {
+    if (filters.type === "movie") {
+      params.set(
+        "release_date.gte",
+        filters.releaseAfter
+      );
+    } else {
+      params.set(
+        "first_air_date.gte",
+        filters.releaseAfter
+      );
+    }
   }
 
-  if (
-    filters.type === "movie" &&
-    filters.runtimeLte
-  ) {
-    params.set(
-      "with_runtime.lte",
-      filters.runtimeLte.toString()
-    );
+  if (filters.releaseBefore) {
+    if (filters.type === "movie") {
+      params.set(
+        "release_date.lte",
+        filters.releaseBefore
+      );
+    } else {
+      params.set(
+        "first_air_date.lte",
+        filters.releaseBefore
+      );
+    }
   }
 
   return params.toString();
@@ -119,7 +109,7 @@ export async function discoverMovies(
   page = 1
 ) {
   return request<TMDBResponse>(
-    `/discover/movie?${buildQuery(
+    `/discover/movie?${buildDiscoverQuery(
       filters,
       page
     )}`
@@ -131,12 +121,16 @@ export async function discoverTV(
   page = 1
 ) {
   return request<TMDBResponse>(
-    `/discover/tv?${buildQuery(
+    `/discover/tv?${buildDiscoverQuery(
       filters,
       page
     )}`
   );
 }
+
+// ======================================================
+// DETAILS
+// ======================================================
 
 export async function getMovieDetails(
   id: number
@@ -154,6 +148,10 @@ export async function getTVDetails(
   );
 }
 
+// ======================================================
+// PROVIDERS
+// ======================================================
+
 export async function getMovieProviders(
   id: number
 ) {
@@ -170,10 +168,14 @@ export async function getTVProviders(
   );
 }
 
+// ======================================================
+// CREDITS
+// ======================================================
+
 export async function getMovieCredits(
   id: number
 ) {
-  return request(
+  return request<TMDBCredits>(
     `/movie/${id}/credits?language=es-ES`
   );
 }
@@ -181,7 +183,7 @@ export async function getMovieCredits(
 export async function getTVCredits(
   id: number
 ) {
-  return request(
+  return request<TMDBCredits>(
     `/tv/${id}/credits?language=es-ES`
   );
 }

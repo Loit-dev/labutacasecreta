@@ -2,25 +2,20 @@ export interface TMDBMovie {
   id: number;
 
   title?: string;
-
   name?: string;
 
   original_title?: string;
-
   original_name?: string;
 
   overview: string;
 
   poster_path: string | null;
-
   backdrop_path: string | null;
 
   release_date?: string;
-
   first_air_date?: string;
 
   vote_average: number;
-
   vote_count: number;
 
   genre_ids: number[];
@@ -44,7 +39,6 @@ export interface TMDBResponse {
 
 export interface TMDBGenre {
   id: number;
-
   name: string;
 }
 
@@ -59,9 +53,9 @@ export interface TMDBMovieDetails {
 
   homepage?: string;
 
-  status: string;
+  status?: string;
 
-  tagline: string;
+  tagline?: string;
 }
 
 export interface TMDBProvider {
@@ -81,6 +75,8 @@ export interface TMDBCountryProviders {
 }
 
 export interface TMDBWatchProviders {
+  id?: number;
+
   results: Record<
     string,
     TMDBCountryProviders
@@ -110,6 +106,8 @@ export interface TMDBCrewMember {
 }
 
 export interface TMDBCredits {
+  id?: number;
+
   cast: TMDBCastMember[];
 
   crew: TMDBCrewMember[];
