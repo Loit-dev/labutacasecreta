@@ -1,5 +1,6 @@
 "use client";
 
+import CinemaBackground from "@/components/layout/CinemaBackground";
 import Header from "./Header";
 import ChatHistory from "./ChatHistory";
 import OptionButtons from "./OptionButtons";
@@ -20,11 +21,11 @@ export default function Conversation() {
 
   return (
     <main className="relative mx-auto flex min-h-screen w-full max-w-7xl items-center justify-center overflow-hidden px-6 py-10">
-      {/* Fondo */}
+      <CinemaBackground />
+
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#7c2d12_0%,transparent_35%),radial-gradient(circle_at_bottom,#1e3a8a_0%,transparent_35%)] opacity-40" />
 
-      <section className="relative w-full max-w-5xl overflow-hidden rounded-3xl border border-white/10 bg-black/40 shadow-2xl backdrop-blur-xl">
-        {/* HERO */}
+      <section className="relative z-30 w-full max-w-5xl overflow-hidden rounded-3xl border border-white/10 bg-black/40 shadow-2xl backdrop-blur-xl">
         <div className="border-b border-white/10 px-8 py-12">
           <Header />
 
@@ -40,7 +41,6 @@ export default function Conversation() {
               apetezca ver esta noche.
             </p>
 
-            {/* Plataformas */}
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               {[
                 "Netflix",
@@ -59,7 +59,6 @@ export default function Conversation() {
               ))}
             </div>
 
-            {/* Tendencias */}
             <div className="mt-10">
               <p className="mb-4 text-sm font-semibold uppercase tracking-wider text-zinc-500">
                 🔥 Tendencias esta semana
@@ -86,7 +85,6 @@ export default function Conversation() {
           </div>
         </div>
 
-        {/* CHAT */}
         <div className="px-8 py-8">
           <ChatHistory messages={messages} />
 
