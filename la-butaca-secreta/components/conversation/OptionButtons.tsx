@@ -15,20 +15,40 @@ export default function OptionButtons({
 }: Props) {
   if (!question) return null;
 
+  const isOdd =
+    question.options.length % 2 !== 0;
+
   return (
-    <div className="mt-8 flex flex-col gap-4">
-      {question.options.map((option) => (
-        <AnswerButton
-          key={option.id}
-          label={option.label}
-          onClick={() =>
-            onSelect(
-              option.value,
-              option.label
-            )
-          }
-        />
-      ))}
+    <div className="mt-8 grid gap-4 md:grid-cols-2">
+      {question.options.map((option, index) => {
+        const isLast =
+          index === question.options.length - 1;
+
+        const centered =
+          isOdd && isLast;
+
+        return (
+          <div
+            key={option.id}
+            className={
+              centered
+                ? "md:col-span-2"
+                : ""
+            }
+          >
+            <AnswerButton
+              label={option.label}
+              centered={centered}
+              onClick={() =>
+                onSelect(
+                  option.value,
+                  option.label
+                )
+              }
+            />
+          </div>
+        );
+      })}
     </div>
   );
 }

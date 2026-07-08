@@ -29,9 +29,7 @@ export function getTitle() {
 =========================== */
 
 const greetings = [
-  "¡Hola! 👋",
-  "Bienvenido. 🍿",
-  "¿Listo para encontrar algo bueno?",
+  "Hoy voy a ayudarte a encontrar algo que realmente te apetezca ver.",
   "Hoy no vas a perder media hora buscando.",
 ];
 

@@ -46,12 +46,10 @@ export class ConversationEngine {
   startConversation() {
     if (this.context.messages.length > 0) return;
 
+    // Mensaje inicial aleatorio
     this.addBotMessage(getGreeting());
 
-    this.addBotMessage(
-      "Hoy voy a ayudarte a encontrar algo que realmente te apetezca ver."
-    );
-
+    // Primera pregunta
     const firstQuestion = this.getNextNode();
 
     if (firstQuestion) {

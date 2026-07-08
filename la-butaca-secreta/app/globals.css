@@ -110,3 +110,6 @@ section {
   position: relative;
   z-index: 2;
 }
+.title-font {
+  font-family: var(--font-manrope);
+}
