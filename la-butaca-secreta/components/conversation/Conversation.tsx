@@ -25,13 +25,11 @@ export default function Conversation() {
       <PosterWall />
 
       <main className="relative flex min-h-screen items-center justify-center px-6 py-10">
-        <section className="relative z-30 w-full max-w-5xl overflow-hidden rounded-3xl border border-white/10 bg-black/30 shadow-2xl backdrop-blur-2xl">
-          {/* HEADER */}
+        <section className="relative z-30 w-full max-w-4xl overflow-hidden rounded-3xl border border-white/10 bg-black/30 shadow-2xl backdrop-blur-2xl">
           <div className="border-b border-white/10 px-8 py-8">
             <Header />
           </div>
 
-          {/* CHAT */}
           <div className="px-8 py-6">
             <ChatHistory messages={messages} />
 
