@@ -12,23 +12,20 @@ const posters = [
 export default function CinemaBackground() {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {/* Posters */}
-      <div className="absolute inset-0 grid grid-cols-3 gap-4 scale-125 opacity-25 blur-3xl">
+      <div className="absolute inset-0 grid grid-cols-3 gap-2 scale-150 opacity-30 blur-3xl">
         {posters.map((poster) => (
           <div
             key={poster}
-            className="relative h-full min-h-[500px] w-full"
+            className="relative h-screen w-full"
           >
             {poster}
           </div>
         ))}
       </div>
 
-      {/* Oscurecer */}
-      <div className="absolute inset-0 bg-black/80" />
+      <div className="absolute inset-0 bg-black/70" />
 
-      {/* Viñeta */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/70" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/80" />
     </div>
   );
 }
