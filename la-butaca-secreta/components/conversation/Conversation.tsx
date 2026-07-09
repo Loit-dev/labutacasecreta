@@ -22,18 +22,32 @@ export default function Conversation() {
     finished,
   } = useConversation();
 
-  const endRef =
-    useRef<HTMLDivElement>(null);
+  const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const scrollToBottom = () => {
       endRef.current?.scrollIntoView({
         behavior: "smooth",
         block: "end",
       });
-    }, 200);
+    };
 
-    return () => clearTimeout(timer);
+    scrollToBottom();
+
+    const timer1 = setTimeout(
+      scrollToBottom,
+      250
+    );
+
+    const timer2 = setTimeout(
+      scrollToBottom,
+      500
+    );
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+    };
   }, [
     messages,
     currentQuestion,
@@ -74,9 +88,10 @@ export default function Conversation() {
   src="/Logo.png"
   alt="La Butaca Secreta"
   className="absolute left-4 top-4 h-9 md:h-12 lg:h-14 w-auto opacity-90"
-/><div className="border-b border-white/10 px-8 pt-8 pb-8">
-  <Header />
-</div>
+/>
+          <div className="border-b border-white/10 px-8 pt-8 pb-8">
+            <Header />
+          </div>
 
           <div className="px-8 py-6">
             <ChatHistory messages={messages} />
@@ -104,7 +119,7 @@ export default function Conversation() {
 
             <div
               ref={endRef}
-              className="h-1"
+              className="h-2"
             />
           </div>
         </section>
