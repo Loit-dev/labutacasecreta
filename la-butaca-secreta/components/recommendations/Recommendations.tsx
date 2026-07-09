@@ -24,14 +24,14 @@ type Props = {
 export default function Recommendations({
   profile,
 }: Props) {
-  const [movies, setMovies] = useState<
-    Recommendation[]
-  >([]);
+  const [movies, setMovies] =
+    useState<Recommendation[]>([]);
 
   const [loading, setLoading] =
     useState(true);
 
-  const [error, setError] = useState("");
+  const [error, setError] =
+    useState("");
 
   useEffect(() => {
     async function load() {
@@ -188,49 +188,78 @@ export default function Recommendations({
   return (
     <section className="space-y-8">
       <div className="text-center">
-        <h1 className="text-4xl font-bold text-white">
+        <h1 className="text-2xl font-bold text-white md:text-3xl">
           🎬 Creo que estas tres
           pueden ser justo lo que
           buscas.
         </h1>
 
-        <p className="mt-4 text-lg text-zinc-400">
+        <p className="mt-3 text-sm text-zinc-400 md:text-base">
           Seleccionadas
           especialmente para ti.
         </p>
       </div>
 
-      {movies.map(
-        (movie, index) => (
-          <RecommendationCard
-            key={movie.id}
-            badge={
-              badges[index]
-                ?.badge ?? "🎬"
-            }
-            badgeTitle={
-              badges[index]
-                ?.badgeTitle ??
-              "Recomendación"
-            }
-            title={movie.title}
-            year={movie.year}
-            rating={movie.rating}
-            runtime={
-              movie.runtime
-            }
-            genres={
-              movie.genres
-            }
-            overview={
-              movie.overview
-            }
-            poster={
-              movie.poster
-            }
-          />
-        )
-      )}
+      <div
+        className="
+          flex
+          snap-x
+          snap-mandatory
+          gap-4
+          overflow-x-auto
+          pb-2
+
+          md:grid
+          md:grid-cols-2
+          md:gap-6
+          md:overflow-visible
+
+          xl:grid-cols-3
+        "
+      >
+        {movies.map(
+          (movie, index) => (
+            <div
+              key={movie.id}
+              className="
+                w-[85vw]
+                shrink-0
+                snap-center
+
+                md:w-auto
+                md:shrink
+              "
+            >
+              <RecommendationCard
+                badge={
+                  badges[index]
+                    ?.badge ?? "🎬"
+                }
+                badgeTitle={
+                  badges[index]
+                    ?.badgeTitle ??
+                  "Recomendación"
+                }
+                title={movie.title}
+                year={movie.year}
+                rating={movie.rating}
+                runtime={
+                  movie.runtime
+                }
+                genres={
+                  movie.genres
+                }
+                overview={
+                  movie.overview
+                }
+                poster={
+                  movie.poster
+                }
+              />
+            </div>
+          )
+        )}
+      </div>
     </section>
   );
 }
