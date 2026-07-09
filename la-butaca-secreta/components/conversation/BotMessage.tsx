@@ -23,7 +23,7 @@ export default function BotMessage({ text }: Props) {
         "
       >
         <Image
-          src="/minilogo.png"
+          src="/logito.png"
           alt="La Butaca Secreta"
           width={28}
           height={28}
