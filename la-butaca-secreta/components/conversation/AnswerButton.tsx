@@ -24,10 +24,10 @@ export default function AnswerButton({
         group
         relative
         w-full
-        min-h-[170px]
+        min-h-[100px]
         overflow-hidden
 
-        rounded-[2rem]
+        rounded-2xl
 
         border
         border-zinc-600/80
@@ -37,33 +37,31 @@ export default function AnswerButton({
         via-black
         to-zinc-950
 
-        p-8
+        p-5
         text-left
 
-        shadow-[0_15px_40px_rgba(0,0,0,0.65)]
+        shadow-[0_10px_30px_rgba(0,0,0,0.55)]
 
         transition-all
         duration-300
 
-        hover:-translate-y-2
+        hover:-translate-y-1
         hover:border-red-500/60
-        hover:shadow-[0_0_40px_rgba(239,68,68,0.25)]
+        hover:shadow-[0_0_25px_rgba(239,68,68,0.20)]
       "
     >
-      {/* Brillo permanente */}
       <div
         className="
           absolute
           inset-0
 
           bg-gradient-to-br
-          from-white/[0.04]
+          from-white/[0.03]
           via-transparent
           to-red-500/[0.02]
         "
       />
 
-      {/* Glow hover */}
       <div
         className="
           absolute
@@ -83,13 +81,12 @@ export default function AnswerButton({
         "
       />
 
-      {/* Ring hover */}
       <div
         className="
           absolute
           inset-0
 
-          rounded-[2rem]
+          rounded-2xl
 
           opacity-0
 
@@ -109,28 +106,28 @@ export default function AnswerButton({
         }`}
       >
         <div
-          className={`flex flex-1 items-center gap-5 ${
+          className={`flex flex-1 items-center gap-3 ${
             centered ? "justify-center text-center" : ""
           }`}
         >
           {isMovie && (
-            <span className="shrink-0 text-5xl">
+            <span className="shrink-0 text-3xl">
               🎬
             </span>
           )}
 
           {isSeries && (
-            <span className="shrink-0 text-5xl">
+            <span className="shrink-0 text-3xl">
               📺
             </span>
           )}
 
-          <div className="flex min-h-[88px] items-center">
+          <div className="flex items-center">
             <h3
               className="
-                text-3xl
+                text-lg
                 font-semibold
-                leading-tight
+                leading-snug
                 tracking-tight
                 text-white
               "
@@ -148,16 +145,16 @@ export default function AnswerButton({
         {!centered && (
           <span
             className="
-              ml-6
+              ml-4
               shrink-0
 
-              text-5xl
+              text-2xl
               text-zinc-500
 
               transition-all
               duration-300
 
-              group-hover:translate-x-3
+              group-hover:translate-x-2
               group-hover:text-red-400
             "
           >

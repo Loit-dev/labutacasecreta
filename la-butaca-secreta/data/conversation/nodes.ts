@@ -101,7 +101,7 @@ export const conversationNodes: ConversationNode[] = [
     title: "¿Hay algo que hoy no te apetezca ver?",
     required: true,
     informationValue: 90,
-    next: ["duration"],
+    next: ["freshness"],
     options: [
       {
         id: "terror",
@@ -132,36 +132,6 @@ export const conversationNodes: ConversationNode[] = [
         id: "none",
         label: "👍 No tengo ninguna preferencia",
         value: "none",
-      },
-    ],
-  },
-
-  {
-    id: "duration",
-    title: "¿Cuánto tiempo quieres dedicarle?",
-    required: false,
-    informationValue: 30,
-    next: ["freshness"],
-    options: [
-      {
-        id: "short",
-        label: "⏱️ Menos de 90 minutos",
-        value: "short",
-      },
-      {
-        id: "normal",
-        label: "🍿 Una duración normal",
-        value: "normal",
-      },
-      {
-        id: "long",
-        label: "🎬 Hoy tengo tiempo",
-        value: "long",
-      },
-      {
-        id: "any",
-        label: "🤷 Me da igual",
-        value: "any",
       },
     ],
   },
