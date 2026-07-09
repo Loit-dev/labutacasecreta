@@ -31,6 +31,9 @@ export default function Recommendations({
   useEffect(() => {
     async function load() {
       try {
+        setLoading(true);
+        setError("");
+
         const params = new URLSearchParams();
 
         params.set(
@@ -75,14 +78,13 @@ export default function Recommendations({
           );
         }
 
-        
-        if (profile.restrictions?.length) {
-            params.set(
+        // V1: restrictions es un string
+        if (profile.restrictions) {
+          params.set(
             "restrictions",
-            profile.restrictions.join(",")
-                      );
+            profile.restrictions
+          );
         }
-
 
         const response = await fetch(
           `/api/tmdb?${params.toString()}`
@@ -92,11 +94,13 @@ export default function Recommendations({
           throw new Error(await response.text());
         }
 
-        const data = await response.json();
+        const data: Recommendation[] =
+          await response.json();
 
         setMovies(data);
       } catch (err) {
         console.error(err);
+
         setError(
           "No se pudieron cargar las recomendaciones."
         );
@@ -135,7 +139,8 @@ export default function Recommendations({
     },
     {
       badge: "🥉",
-      badgeTitle: "Una sorpresa que merece una oportunidad",
+      badgeTitle:
+        "Una sorpresa que merece una oportunidad",
     },
   ];
 
@@ -154,7 +159,9 @@ export default function Recommendations({
       {movies.map((movie, index) => (
         <RecommendationCard
           key={movie.id}
-          badge={badges[index]?.badge ?? "🎬"}
+          badge={
+            badges[index]?.badge ?? "🎬"
+          }
           badgeTitle={
             badges[index]?.badgeTitle ??
             "Recomendación"
