@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 import { ConversationMessage } from "@/lib/conversation/types";
 
 type Props = {
@@ -19,25 +21,62 @@ export default function ChatHistory({
               isBot ? "justify-start" : "justify-end"
             }`}
           >
-            <div className="flex max-w-[85%] items-end gap-3">
+            <div className="flex max-w-[85%] items-end gap-4">
               {isBot && (
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-600 text-lg shadow-lg">
-                  🎬
+                <div
+                  className="
+                    flex
+                    h-12
+                    w-12
+                    shrink-0
+                    items-center
+                    justify-center
+                    overflow-hidden
+                    rounded-full
+                    border
+                    border-zinc-700
+                    bg-black
+                    shadow-lg
+                  "
+                >
+                  <Image
+                    src="/minilogo.png"
+                    alt="La Butaca Secreta"
+                    width={42}
+                    height={42}
+                    className="object-contain scale-110"
+                    priority
+                  />
                 </div>
               )}
 
               <div
                 className={`rounded-3xl px-5 py-4 leading-7 shadow-lg transition-all ${
                   isBot
-                    ? "rounded-bl-md border border-white/10 bg-zinc-800 text-white"
-                    : "rounded-br-md bg-gradient-to-r from-indigo-600 to-violet-600 text-white"
+                    ? "rounded-bl-md border border-zinc-700 bg-zinc-800 text-white"
+                    : "rounded-br-md bg-gradient-to-r from-red-600 to-red-500 text-white"
                 }`}
               >
                 {message.text}
               </div>
 
               {!isBot && (
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-700 text-lg shadow-lg">
+                <div
+                  className="
+                    flex
+                    h-12
+                    w-12
+                    shrink-0
+                    items-center
+                    justify-center
+                    rounded-full
+                    border
+                    border-zinc-700
+                    bg-zinc-900
+                    text-xl
+                    shadow-lg
+                  "
+                >
                   👤
                 </div>
               )}

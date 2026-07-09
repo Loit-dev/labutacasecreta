@@ -26,7 +26,12 @@ export default function Conversation() {
 
       <main className="relative flex min-h-screen items-center justify-center px-6 py-10">
         <section className="relative z-30 w-full max-w-4xl overflow-hidden rounded-3xl border border-white/10 bg-black/30 shadow-2xl backdrop-blur-2xl">
-          <div className="border-b border-white/10 px-8 py-8">
+        <img
+         src="/Logo.png"
+         alt="La Butaca Secreta"
+         className="absolute left-4 top-4 hidden lg:block h-14 w-auto opacity-90"
+        />
+          <div className="border-b border-white/10 px-8 pt-8 pb-8">
             <Header />
           </div>
 
