@@ -33,6 +33,76 @@ export default function Recommendations({
   const [error, setError] =
     useState("");
 
+  const [activeIndex, setActiveIndex] =
+    useState(0);
+
+  const [touchStart, setTouchStart] =
+    useState<number | null>(null);
+
+  const [touchEnd, setTouchEnd] =
+    useState<number | null>(null);
+
+  const nextMovie = () => {
+    setActiveIndex((current) =>
+      current >= movies.length - 1
+        ? 0
+        : current + 1
+    );
+  };
+
+  const prevMovie = () => {
+    setActiveIndex((current) =>
+      current <= 0
+        ? movies.length - 1
+        : current - 1
+    );
+  };
+
+  const minSwipeDistance = 50;
+
+  const handleTouchStart = (
+    e: React.TouchEvent
+  ) => {
+    setTouchEnd(null);
+    setTouchStart(
+      e.targetTouches[0].clientX
+    );
+  };
+
+  const handleTouchMove = (
+    e: React.TouchEvent
+  ) => {
+    setTouchEnd(
+      e.targetTouches[0].clientX
+    );
+  };
+
+  const handleTouchEnd = () => {
+    if (
+      touchStart === null ||
+      touchEnd === null
+    ) {
+      return;
+    }
+
+    const distance =
+      touchStart - touchEnd;
+
+    if (
+      distance >
+      minSwipeDistance
+    ) {
+      nextMovie();
+    }
+
+    if (
+      distance <
+      -minSwipeDistance
+    ) {
+      prevMovie();
+    }
+  };
+
   useEffect(() => {
     async function load() {
       try {
@@ -83,9 +153,7 @@ export default function Recommendations({
           );
         }
 
-        if (
-          profile.discoveryMode
-        ) {
+        if (profile.discoveryMode) {
           params.set(
             "discoveryMode",
             profile.discoveryMode
@@ -110,14 +178,11 @@ export default function Recommendations({
           Array.isArray(
             profile.restrictions
           ) &&
-          profile.restrictions.length >
-            0
+          profile.restrictions.length > 0
         ) {
           params.set(
             "restrictions",
-            profile.restrictions.join(
-              ","
-            )
+            profile.restrictions.join(",")
           );
         }
 
@@ -153,8 +218,7 @@ export default function Recommendations({
   if (loading) {
     return (
       <p className="text-center text-zinc-400">
-        🎬 Buscando las mejores
-        recomendaciones...
+        🎬 Buscando las mejores recomendaciones...
       </p>
     );
   }
@@ -189,74 +253,123 @@ export default function Recommendations({
     <section className="space-y-8">
       <div className="text-center">
         <h1 className="text-2xl font-bold text-white md:text-3xl">
-          🎬 Creo que estas tres
-          pueden ser justo lo que
-          buscas.
+          🎬 Creo que estas tres pueden ser justo lo que buscas.
         </h1>
 
         <p className="mt-3 text-sm text-zinc-400 md:text-base">
-          Seleccionadas
-          especialmente para ti.
+          Seleccionadas especialmente para ti.
         </p>
       </div>
 
+      {/* MOBILE */}
       <div
-        className="
-          flex
-          snap-x
-          snap-mandatory
-          gap-4
-          overflow-x-auto
-          pb-2
-
-          md:grid
-          md:grid-cols-2
-          md:gap-6
-          md:overflow-visible
-
-          xl:grid-cols-3
-        "
+        className="md:hidden"
+        onTouchStart={
+          handleTouchStart
+        }
+        onTouchMove={
+          handleTouchMove
+        }
+        onTouchEnd={
+          handleTouchEnd
+        }
       >
+        {movies[activeIndex] && (
+          <RecommendationCard
+            badge={
+              badges[activeIndex]
+                ?.badge ?? "🎬"
+            }
+            badgeTitle={
+              badges[activeIndex]
+                ?.badgeTitle ??
+              "Recomendación"
+            }
+            title={
+              movies[activeIndex].title
+            }
+            year={
+              movies[activeIndex].year
+            }
+            rating={
+              movies[activeIndex].rating
+            }
+            runtime={
+              movies[activeIndex].runtime
+            }
+            genres={
+              movies[activeIndex].genres
+            }
+            overview={
+              movies[activeIndex].overview
+            }
+            poster={
+              movies[activeIndex].poster
+            }
+          />
+        )}
+
+        <div className="mt-4 flex items-center justify-center gap-6">
+          <button
+            onClick={prevMovie}
+            className="rounded-full bg-zinc-800 px-4 py-2 text-white"
+          >
+            ←
+          </button>
+
+          <button
+            onClick={nextMovie}
+            className="rounded-full bg-zinc-800 px-4 py-2 text-white"
+          >
+            →
+          </button>
+        </div>
+
+        <div className="mt-4 flex justify-center gap-2">
+          {movies.map((_, index) => (
+            <div
+              key={index}
+              className={
+                index === activeIndex
+                  ? "h-2 w-2 rounded-full bg-red-500"
+                  : "h-2 w-2 rounded-full bg-zinc-600"
+              }
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* DESKTOP */}
+      <div className="hidden gap-6 md:grid md:grid-cols-2 xl:grid-cols-3">
         {movies.map(
           (movie, index) => (
-            <div
+            <RecommendationCard
               key={movie.id}
-              className="
-                w-[85vw]
-                shrink-0
-                snap-center
-
-                md:w-auto
-                md:shrink
-              "
-            >
-              <RecommendationCard
-                badge={
-                  badges[index]
-                    ?.badge ?? "🎬"
-                }
-                badgeTitle={
-                  badges[index]
-                    ?.badgeTitle ??
-                  "Recomendación"
-                }
-                title={movie.title}
-                year={movie.year}
-                rating={movie.rating}
-                runtime={
-                  movie.runtime
-                }
-                genres={
-                  movie.genres
-                }
-                overview={
-                  movie.overview
-                }
-                poster={
-                  movie.poster
-                }
-              />
-            </div>
+              badge={
+                badges[index]
+                  ?.badge ?? "🎬"
+              }
+              badgeTitle={
+                badges[index]
+                  ?.badgeTitle ??
+                "Recomendación"
+              }
+              title={movie.title}
+              year={movie.year}
+              rating={movie.rating}
+              runtime={
+                movie.runtime
+              }
+              genres={
+                movie.genres
+              }
+              overview={
+                movie.overview
+              }
+              poster={
+                movie.poster
+              }
+            />
           )
         )}
       </div>
