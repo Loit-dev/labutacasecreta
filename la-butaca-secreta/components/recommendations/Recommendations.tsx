@@ -81,8 +81,8 @@ export default function Recommendations({
         // V1: restrictions es un string
         if (profile.restrictions) {
           params.set(
-            "restrictions",
-            profile.restrictions
+           "restrictions",
+           profile.restrictions.join(",")
           );
         }
 
