@@ -25,7 +25,7 @@ export default function RecommendationCard({
 }: Props) {
   return (
     <article className="flex h-full flex-col overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900 shadow-xl">
-       <div className="relative h-64 w-full">
+       <div className="relative h-56 w-full">
         <Image
   src={poster}
   alt={title}

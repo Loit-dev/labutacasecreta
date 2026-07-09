@@ -261,83 +261,108 @@ export default function Recommendations({
         </p>
       </div>
 
-      {/* MOBILE */}
+{/* MOBILE */}
+<div
+  className="md:hidden"
+  onTouchStart={
+    handleTouchStart
+  }
+  onTouchMove={
+    handleTouchMove
+  }
+  onTouchEnd={
+    handleTouchEnd
+  }
+>
+  {movies[activeIndex] && (
+    <div
+      key={movies[activeIndex].id}
+      className="animate-fade-in"
+    >
+      <RecommendationCard
+        badge={
+          badges[activeIndex]
+            ?.badge ?? "🎬"
+        }
+        badgeTitle={
+          badges[activeIndex]
+            ?.badgeTitle ??
+          "Recomendación"
+        }
+        title={
+          movies[activeIndex].title
+        }
+        year={
+          movies[activeIndex].year
+        }
+        rating={
+          movies[activeIndex].rating
+        }
+        runtime={
+          movies[activeIndex].runtime
+        }
+        genres={
+          movies[activeIndex].genres
+        }
+        overview={
+          movies[activeIndex].overview
+        }
+        poster={
+          movies[activeIndex].poster
+        }
+      />
+    </div>
+  )}
+
+  <div className="mt-4 flex items-center justify-center gap-6">
+    <button
+      onClick={prevMovie}
+      className="
+        rounded-full
+        bg-zinc-800
+        px-4
+        py-2
+        text-white
+        transition-all
+        hover:bg-zinc-700
+      "
+    >
+      ←
+    </button>
+
+    <div className="text-sm font-medium text-zinc-400">
+      {activeIndex + 1} / {movies.length}
+    </div>
+
+    <button
+      onClick={nextMovie}
+      className="
+        rounded-full
+        bg-zinc-800
+        px-4
+        py-2
+        text-white
+        transition-all
+        hover:bg-zinc-700
+      "
+    >
+      →
+    </button>
+  </div>
+
+  <div className="mt-4 flex justify-center gap-2">
+    {movies.map((_, index) => (
       <div
-        className="md:hidden"
-        onTouchStart={
-          handleTouchStart
+        key={index}
+        className={
+          index === activeIndex
+            ? "h-2 w-2 rounded-full bg-red-500"
+            : "h-2 w-2 rounded-full bg-zinc-600"
         }
-        onTouchMove={
-          handleTouchMove
-        }
-        onTouchEnd={
-          handleTouchEnd
-        }
-      >
-        {movies[activeIndex] && (
-          <RecommendationCard
-            badge={
-              badges[activeIndex]
-                ?.badge ?? "🎬"
-            }
-            badgeTitle={
-              badges[activeIndex]
-                ?.badgeTitle ??
-              "Recomendación"
-            }
-            title={
-              movies[activeIndex].title
-            }
-            year={
-              movies[activeIndex].year
-            }
-            rating={
-              movies[activeIndex].rating
-            }
-            runtime={
-              movies[activeIndex].runtime
-            }
-            genres={
-              movies[activeIndex].genres
-            }
-            overview={
-              movies[activeIndex].overview
-            }
-            poster={
-              movies[activeIndex].poster
-            }
-          />
-        )}
-
-        <div className="mt-4 flex items-center justify-center gap-6">
-          <button
-            onClick={prevMovie}
-            className="rounded-full bg-zinc-800 px-4 py-2 text-white"
-          >
-            ←
-          </button>
-
-          <button
-            onClick={nextMovie}
-            className="rounded-full bg-zinc-800 px-4 py-2 text-white"
-          >
-            →
-          </button>
-        </div>
-
-        <div className="mt-4 flex justify-center gap-2">
-          {movies.map((_, index) => (
-            <div
-              key={index}
-              className={
-                index === activeIndex
-                  ? "h-2 w-2 rounded-full bg-red-500"
-                  : "h-2 w-2 rounded-full bg-zinc-600"
-              }
-            />
-          ))}
-        </div>
-      </div>
+      />
+    ))}
+  </div>
+</div>
 
       {/* DESKTOP */}
       <div className="hidden gap-6 md:grid md:grid-cols-2 xl:grid-cols-3">
