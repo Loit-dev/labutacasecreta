@@ -50,7 +50,10 @@ export default function Recommendations({
         }
 
         if (profile.duration) {
-          params.set("duration", profile.duration);
+          params.set(
+            "duration",
+            profile.duration
+          );
         }
 
         if (profile.pace) {
@@ -61,6 +64,13 @@ export default function Recommendations({
           params.set(
             "freshness",
             profile.freshness
+          );
+        }
+
+        if (profile.discoveryMode) {
+          params.set(
+            "discoveryMode",
+            profile.discoveryMode
           );
         }
 
@@ -78,11 +88,13 @@ export default function Recommendations({
           );
         }
 
-        // V1: restrictions es un string
-        if (profile.restrictions) {
+        if (
+          Array.isArray(profile.restrictions) &&
+          profile.restrictions.length > 0
+        ) {
           params.set(
-           "restrictions",
-           profile.restrictions.join(",")
+            "restrictions",
+            profile.restrictions.join(",")
           );
         }
 
@@ -91,7 +103,9 @@ export default function Recommendations({
         );
 
         if (!response.ok) {
-          throw new Error(await response.text());
+          throw new Error(
+            await response.text()
+          );
         }
 
         const data: Recommendation[] =
@@ -135,7 +149,8 @@ export default function Recommendations({
     },
     {
       badge: "🥈",
-      badgeTitle: "Otra que creo que disfrutarás",
+      badgeTitle:
+        "Otra que creo que disfrutarás",
     },
     {
       badge: "🥉",

@@ -1,5 +1,9 @@
 import { UserProfile } from "@/lib/conversation/types";
 
+export interface ScoreContext {
+  profile: UserProfile;
+}
+
 export interface ScoredItem {
   id: number;
 
@@ -13,7 +17,7 @@ export interface ScoredItem {
 
   popularity: number;
 
-  runtime?: number;
+  runtime: number;
 
   releaseDate?: string;
 
@@ -26,8 +30,4 @@ export interface ScoredItem {
   cast?: string[];
 
   score: number;
-}
-
-export interface ScoreContext {
-  profile: UserProfile;
 }

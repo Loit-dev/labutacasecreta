@@ -1,11 +1,19 @@
 export type ContentType = "movie" | "tv";
 
+export type DiscoveryMode =
+  | "impact"
+  | "relax"
+  | "hidden-gem"
+  | "surprise";
+
 export interface UserProfile {
   contentType?: ContentType;
 
   company?: string;
 
   mood?: string;
+
+  discoveryMode?: DiscoveryMode;
 
   pace?: string;
 

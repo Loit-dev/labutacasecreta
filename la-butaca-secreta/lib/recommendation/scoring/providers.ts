@@ -1,12 +1,46 @@
 import { ScoreContext, ScoredItem } from "./types";
 
+const STREAMING_PROVIDERS = [
+  "Netflix",
+  "Prime Video",
+  "Amazon Prime Video",
+  "Disney Plus",
+  "Disney+",
+  "Max",
+  "HBO Max",
+  "Apple TV+",
+  "Apple TV Plus",
+  "Movistar Plus+",
+  "Filmin",
+  "SkyShowtime",
+];
+
 export function scoreProviders(
-  _item: ScoredItem,
+  item: ScoredItem,
   _context: ScoreContext
 ): number {
-  // Más adelante utilizaremos este módulo para puntuar
-  // según las plataformas elegidas por el usuario
-  // (Netflix, Prime Video, Disney+, Max, Apple TV+, etc.)
+  if (!item.providers?.length) {
+    return -100;
+  }
 
-  return 0;
+  let score = 0;
+
+  for (const provider of item.providers) {
+    if (
+      STREAMING_PROVIDERS.includes(provider)
+    ) {
+      score += 15;
+    }
+  }
+
+  // Bonus por estar disponible en varias plataformas
+  if (item.providers.length >= 2) {
+    score += 10;
+  }
+
+  if (item.providers.length >= 3) {
+    score += 5;
+  }
+
+  return score;
 }

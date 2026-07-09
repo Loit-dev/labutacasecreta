@@ -170,8 +170,8 @@ export const conversationNodes: ConversationNode[] = [
     id: "freshness",
     title: "¿Qué te apetece más?",
     required: false,
-    informationValue: 20,
-    next: [],
+    informationValue: 25,
+    next: ["discoveryMode"],
     options: [
       {
         id: "new",
@@ -187,6 +187,36 @@ export const conversationNodes: ConversationNode[] = [
         id: "any",
         label: "🎲 Me da igual",
         value: "any",
+      },
+    ],
+  },
+
+  {
+    id: "discoveryMode",
+    title: "¿Qué buscas hoy?",
+    required: false,
+    informationValue: 60,
+    next: [],
+    options: [
+      {
+        id: "impact",
+        label: "🧠 Algo que me marque",
+        value: "impact",
+      },
+      {
+        id: "relax",
+        label: "😌 Desconectar y disfrutar",
+        value: "relax",
+      },
+      {
+        id: "hidden-gem",
+        label: "💎 Descubrir una joya oculta",
+        value: "hidden-gem",
+      },
+      {
+        id: "surprise",
+        label: "🎲 Sorpréndeme",
+        value: "surprise",
       },
     ],
   },

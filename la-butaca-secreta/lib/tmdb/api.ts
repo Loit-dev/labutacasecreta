@@ -10,16 +10,21 @@ import { RecommendationFilters } from "@/lib/recommendation/filters";
 const TOKEN = process.env.TMDB_API_TOKEN!;
 const BASE_URL = process.env.TMDB_BASE_URL!;
 
-async function request<T>(endpoint: string): Promise<T> {
-  const response = await fetch(`${BASE_URL}${endpoint}`, {
-    headers: {
-      Authorization: `Bearer ${TOKEN}`,
-      Accept: "application/json",
-    },
-    next: {
-      revalidate: 3600,
-    },
-  });
+async function request<T>(
+  endpoint: string
+): Promise<T> {
+  const response = await fetch(
+    `${BASE_URL}${endpoint}`,
+    {
+      headers: {
+        Authorization: `Bearer ${TOKEN}`,
+        Accept: "application/json",
+      },
+      next: {
+        revalidate: 3600,
+      },
+    }
+  );
 
   if (!response.ok) {
     throw new Error(await response.text());
@@ -47,16 +52,32 @@ function buildDiscoverQuery(
 
   params.set("vote_average.gte", "6.5");
 
-  params.set("sort_by", "vote_average.desc");
+  if (filters.releaseAfter) {
+    params.set(
+      "sort_by",
+      "popularity.desc"
+    );
+  } else {
+    params.set(
+      "sort_by",
+      "vote_average.desc"
+    );
+  }
 
   const today = new Date()
     .toISOString()
     .split("T")[0];
 
   if (filters.type === "movie") {
-    params.set("release_date.lte", today);
+    params.set(
+      "primary_release_date.lte",
+      today
+    );
   } else {
-    params.set("first_air_date.lte", today);
+    params.set(
+      "first_air_date.lte",
+      today
+    );
   }
 
   if (filters.withGenres.length) {
@@ -76,7 +97,7 @@ function buildDiscoverQuery(
   if (filters.releaseAfter) {
     if (filters.type === "movie") {
       params.set(
-        "release_date.gte",
+        "primary_release_date.gte",
         filters.releaseAfter
       );
     } else {
@@ -90,7 +111,7 @@ function buildDiscoverQuery(
   if (filters.releaseBefore) {
     if (filters.type === "movie") {
       params.set(
-        "release_date.lte",
+        "primary_release_date.lte",
         filters.releaseBefore
       );
     } else {
@@ -101,18 +122,23 @@ function buildDiscoverQuery(
     }
   }
 
-  return params.toString();
+  const query = params.toString();
+
+  return query;
 }
 
 export async function discoverMovies(
   filters: RecommendationFilters,
   page = 1
 ) {
-  return request<TMDBResponse>(
+  const endpoint =
     `/discover/movie?${buildDiscoverQuery(
       filters,
       page
-    )}`
+    )}`;
+
+  return request<TMDBResponse>(
+    endpoint
   );
 }
 
@@ -120,11 +146,14 @@ export async function discoverTV(
   filters: RecommendationFilters,
   page = 1
 ) {
-  return request<TMDBResponse>(
+  const endpoint =
     `/discover/tv?${buildDiscoverQuery(
       filters,
       page
-    )}`
+    )}`;
+
+  return request<TMDBResponse>(
+    endpoint
   );
 }
 

@@ -41,6 +41,13 @@ export async function GET(request: NextRequest) {
       freshness:
         params.get("freshness") ?? undefined,
 
+      discoveryMode:
+        (params.get("discoveryMode") as
+          | "impact"
+          | "relax"
+          | "hidden-gem"
+          | "surprise") ?? undefined,
+
       language:
         params.get("language") ?? undefined,
 
@@ -53,17 +60,15 @@ export async function GET(request: NextRequest) {
         .filter(Boolean),
     };
 
+
     const engine =
       new RecommendationEngine(profile);
 
     const filters = engine.build();
 
-    // ===========================
-    // Obtener aproximadamente 100 títulos
-    // ===========================
 
     const pages = await Promise.all(
-      [1, 2, 3, 4, 5].map((page) =>
+      [1, 2, 3, 4, 5, 6, 7].map((page) =>
         filters.type === "movie"
           ? discoverMovies(filters, page)
           : discoverTV(filters, page)
@@ -74,9 +79,6 @@ export async function GET(request: NextRequest) {
       (page) => page.results
     );
 
-    // ===========================
-    // Eliminar duplicados
-    // ===========================
 
     const uniqueItems = Array.from(
       new Map(
@@ -87,10 +89,6 @@ export async function GET(request: NextRequest) {
       ).values()
     );
 
-    // ===========================
-    // Primer scoring
-    // ===========================
-
     const scored = sortByScore(
       uniqueItems.map(mapToScoredItem),
       {
@@ -98,50 +96,27 @@ export async function GET(request: NextRequest) {
       }
     );
 
-    // Nos quedamos con las 10 mejores
-
     const candidates = scored
-      .slice(0, 10)
-      .map((item) =>
-        uniqueItems.find(
-          (movie) => movie.id === item.id
-        )!
+      .slice(0, 20)
+      .map(
+        (item) =>
+          uniqueItems.find(
+            (movie) =>
+              movie.id === item.id
+          )!
       );
 
-    // ===========================
-    // Obtener detalles completos
-    // ===========================
-
-    const enriched =
-      await Promise.all(
-        candidates.map(async (movie) => {
-          if (filters.type === "movie") {
-            const [
-              details,
-              providers,
-              credits,
-            ] = await Promise.all([
-              getMovieDetails(movie.id),
-              getMovieProviders(movie.id),
-              getMovieCredits(movie.id),
-            ]);
-
-            return {
-              movie,
-              details,
-              providers,
-              credits,
-            };
-          }
-
+    const enriched = await Promise.all(
+      candidates.map(async (movie) => {
+        if (filters.type === "movie") {
           const [
             details,
             providers,
             credits,
           ] = await Promise.all([
-            getTVDetails(movie.id),
-            getTVProviders(movie.id),
-            getTVCredits(movie.id),
+            getMovieDetails(movie.id),
+            getMovieProviders(movie.id),
+            getMovieCredits(movie.id),
           ]);
 
           return {
@@ -150,16 +125,45 @@ export async function GET(request: NextRequest) {
             providers,
             credits,
           };
-        })
-      );
+        }
 
-    // CONTINÚA EN LA SEGUNDA PARTE
-    // ===========================
-    // Segundo scoring (con datos enriquecidos)
-    // ===========================
+        const [
+          details,
+          providers,
+          credits,
+        ] = await Promise.all([
+          getTVDetails(movie.id),
+          getTVProviders(movie.id),
+          getTVCredits(movie.id),
+        ]);
+
+        return {
+          movie,
+          details,
+          providers,
+          credits,
+        };
+      })
+    );
+
+    const finalPool = enriched.filter(
+      (item) => {
+        const providers =
+          item.providers.results?.ES?.flatrate;
+
+        return (
+          Array.isArray(providers) &&
+          providers.length > 0
+        );
+      }
+    );
+
+    if (finalPool.length === 0) {
+      return NextResponse.json([]);
+    }
 
     const rescored = sortByScore(
-      enriched.map(
+      finalPool.map(
         ({
           movie,
           details,
@@ -196,14 +200,10 @@ export async function GET(request: NextRequest) {
       }
     );
 
-    // ===========================
-    // Top 3 definitivo
-    // ===========================
-
     const recommendations = rescored
       .slice(0, 3)
       .map((item) => {
-        const data = enriched.find(
+        const data = finalPool.find(
           (entry) =>
             entry.movie.id === item.id
         )!;
@@ -215,6 +215,21 @@ export async function GET(request: NextRequest) {
           data.credits
         );
       });
+
+    if (recommendations.length === 0) {
+      const fallback = finalPool
+        .slice(0, 3)
+        .map((data) =>
+          mapRecommendation(
+            data.movie,
+            data.details,
+            data.providers,
+            data.credits
+          )
+        );
+
+      return NextResponse.json(fallback);
+    }
 
     return NextResponse.json(
       recommendations

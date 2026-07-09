@@ -4,8 +4,9 @@ import { scoreMood } from "./mood";
 import { scoreCompany } from "./company";
 import { scoreDuration } from "./duration";
 import { scorePopularity } from "./popularity";
-import { scoreFreshness } from "./freshness";
 import { scoreProviders } from "./providers";
+import { scoreDiscoveryMode } from "./discoveryMode";
+import { scoreFreshness } from "./freshness";
 
 export function scoreItem(
   item: ScoredItem,
@@ -13,17 +14,41 @@ export function scoreItem(
 ): number {
   let score = 0;
 
-  score += scoreMood(item, context);
+  // Qué quiere sentir
+  score += scoreMood(item, context) * 3;
 
-  score += scoreCompany(item, context);
+  // Qué busca hoy
+  score += scoreDiscoveryMode(
+    item,
+    context
+  ) * 5;
 
-  score += scoreDuration(item, context);
+  // Con quién va a verlo
+  score += scoreCompany(item, context) * 2;
 
-  score += scorePopularity(item, context);
+  // Disponible en streaming
+  score += scoreProviders(
+    item,
+    context
+  ) * 3;
 
-  score += scoreFreshness(item, context);
+  // Duración
+  score += scoreDuration(
+    item,
+    context
+  );
 
-  score += scoreProviders(item, context);
+  // Nuevo o clásico
+  score += scoreFreshness(
+    item,
+    context
+  );
+
+  // Calidad general
+  score += scorePopularity(
+    item,
+    context
+  );
 
   return score;
 }

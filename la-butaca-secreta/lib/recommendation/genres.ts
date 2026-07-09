@@ -14,7 +14,7 @@ export interface MoodProfile {
 
 export const MoodGenres: Record<Mood, MoodProfile> = {
   laugh: {
-    genres: [35],
+    genres: [35, 10751],
     excludedGenres: [27],
   },
 
@@ -23,19 +23,19 @@ export const MoodGenres: Record<Mood, MoodProfile> = {
   },
 
   tension: {
-    genres: [53, 9648, 80],
+    genres: [53, 9648, 80, 18],
   },
 
   think: {
-    genres: [878, 18, 9648],
+    genres: [878, 9648, 18],
   },
 
   adventure: {
-    genres: [12, 14, 28],
+    genres: [12, 14, 28, 878],
   },
 
   surprise: {
-    genres: [53, 9648, 878],
+    genres: [53, 9648, 878, 80],
   },
 
   anything: {

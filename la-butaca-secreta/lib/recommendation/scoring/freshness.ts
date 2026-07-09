@@ -18,16 +18,16 @@ export function scoreFreshness(
 
   switch (context.profile.freshness) {
     case "new":
-      if (year >= 2024) return 25;
-      if (year >= 2022) return 18;
-      if (year >= 2020) return 10;
-      return -10;
+      if (year >= 2024) return 20;
+      if (year >= 2022) return 15;
+      if (year >= 2020) return 8;
+      return 0;
 
     case "classic":
-      if (year <= 1990) return 25;
-      if (year <= 2005) return 18;
+      if (year <= 1990) return 20;
+      if (year <= 2005) return 15;
       if (year <= 2015) return 8;
-      return -10;
+      return 0;
 
     case "any":
     default:

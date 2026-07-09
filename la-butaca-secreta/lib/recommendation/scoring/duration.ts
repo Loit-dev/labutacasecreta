@@ -14,8 +14,12 @@ export function scoreDuration(
         return 20;
       }
 
-      if (item.runtime > 120) {
-        return -20;
+      if (item.runtime <= 110) {
+        return 10;
+      }
+
+      if (item.runtime > 140) {
+        return -10;
       }
 
       return 0;
@@ -35,8 +39,12 @@ export function scoreDuration(
         return 20;
       }
 
+      if (item.runtime >= 120) {
+        return 10;
+      }
+
       if (item.runtime < 90) {
-        return -10;
+        return -5;
       }
 
       return 0;

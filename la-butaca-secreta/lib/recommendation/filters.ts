@@ -30,21 +30,47 @@ export function buildFilters(
 
   // ============================
   // Estado de ánimo
+  // Usamos SOLO el género principal
+  // para no restringir demasiado TMDB
   // ============================
 
   if (profile.mood) {
-    const mood =
-      MoodGenres[
-        profile.mood as keyof typeof MoodGenres
-      ];
+    switch (profile.mood) {
+      case "tension":
+        filters.withGenres.push(53); // Thriller
+        break;
 
-    if (mood) {
-      filters.withGenres.push(...mood.genres);
+      case "risas":
+        filters.withGenres.push(35); // Comedia
+        break;
 
-      if (mood.excludedGenres) {
-        filters.withoutGenres.push(
-          ...mood.excludedGenres
-        );
+      case "emocion":
+        filters.withGenres.push(28); // Acción
+        break;
+
+      case "ternura":
+        filters.withGenres.push(10749); // Romance
+        break;
+
+      case "miedo":
+        filters.withGenres.push(27); // Terror
+        break;
+
+      case "fantasia":
+        filters.withGenres.push(14); // Fantasía
+        break;
+
+      default: {
+        const mood =
+          MoodGenres[
+            profile.mood as keyof typeof MoodGenres
+          ];
+
+        if (mood) {
+          filters.withGenres.push(
+            mood.genres[0]
+          );
+        }
       }
     }
   }
@@ -60,7 +86,6 @@ export function buildFilters(
       break;
 
     case "partner":
-      filters.withGenres.push(10749);
       break;
 
     case "friends":
@@ -100,7 +125,7 @@ export function buildFilters(
   }
 
   // ============================
-  // Antigüedad
+  // Nuevo / Clásico
   // ============================
 
   switch (profile.freshness) {
@@ -117,37 +142,39 @@ export function buildFilters(
   // Restricciones
   // ============================
 
-  profile.restrictions?.forEach((restriction) => {
-    switch (restriction) {
-      case "terror":
-        filters.withoutGenres.push(27);
-        break;
+  profile.restrictions?.forEach(
+    (restriction) => {
+      switch (restriction) {
+        case "terror":
+          filters.withoutGenres.push(27);
+          break;
 
-      case "romance":
-        filters.withoutGenres.push(10749);
-        break;
+        case "romance":
+          filters.withoutGenres.push(10749);
+          break;
 
-      case "musical":
-        filters.withoutGenres.push(10402);
-        break;
+        case "musical":
+          filters.withoutGenres.push(10402);
+          break;
 
-      case "documentary":
-        filters.withoutGenres.push(99);
-        break;
+        case "documentary":
+          filters.withoutGenres.push(99);
+          break;
 
-      case "violence":
-        filters.withoutGenres.push(27, 53, 80);
-        break;
+        case "violence":
+          filters.withoutGenres.push(
+            27,
+            53,
+            80
+          );
+          break;
 
-      case "none":
-      default:
-        break;
+        case "none":
+        default:
+          break;
+      }
     }
-  });
-
-  // ============================
-  // Eliminar duplicados
-  // ============================
+  );
 
   filters.withGenres = [
     ...new Set(filters.withGenres),
@@ -161,6 +188,8 @@ export function buildFilters(
     filters.withoutGenres.filter(
       (id) => !filters.withGenres.includes(id)
     );
+
+  console.log("FILTERS:", filters);
 
   return filters;
 }
