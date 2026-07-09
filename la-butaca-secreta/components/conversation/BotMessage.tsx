@@ -25,8 +25,8 @@ export default function BotMessage({ text }: Props) {
         <Image
           src="/logito.png"
           alt="La Butaca Secreta"
-          width={28}
-          height={28}
+          width={24}
+          height={24}
           className="object-contain"
           priority
         />

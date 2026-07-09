@@ -18,10 +18,10 @@ export default function TypingIndicator() {
         "
       >
         <Image
-          src="/minilogo.png"
+          src="/logito.png"
           alt="La Butaca Secreta"
-          width={28}
-          height={28}
+          width={26}
+          height={26}
           className="object-contain"
           priority
         />
