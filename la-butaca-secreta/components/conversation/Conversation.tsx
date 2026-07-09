@@ -22,16 +22,16 @@ export default function Conversation() {
     finished,
   } = useConversation();
 
-  const bottomRef =
+  const endRef =
     useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      bottomRef.current?.scrollIntoView({
+      endRef.current?.scrollIntoView({
         behavior: "smooth",
         block: "end",
       });
-    }, 150);
+    }, 200);
 
     return () => clearTimeout(timer);
   }, [
@@ -46,11 +46,37 @@ export default function Conversation() {
       <PosterWall />
 
       <main className="relative flex min-h-screen items-center justify-center px-6 py-10">
-        <section className="relative z-30 w-full max-w-4xl overflow-hidden rounded-3xl border border-white/10 bg-black/30 shadow-2xl backdrop-blur-2xl">
-         <img src="/Logo.png" alt="La Butaca Secreta" className="absolute left-4 top-4 h-9 md:h-12 lg:h-14 w-auto opacity-90" />
-          <div className="border-b border-white/10 px-8 pt-8 pb-8">
-            <Header />
-          </div>
+        <section
+          className="
+            relative
+            z-30
+            w-full
+            max-w-4xl
+            overflow-hidden
+
+            rounded-3xl
+
+            border
+            border-white/20
+
+            bg-black/5
+            md:bg-black/15
+            lg:bg-black/30
+
+            shadow-2xl
+
+            backdrop-blur-sm
+            md:backdrop-blur-xl
+            lg:backdrop-blur-2xl
+          "
+        >
+          <img
+  src="/Logo.png"
+  alt="La Butaca Secreta"
+  className="absolute left-4 top-4 h-9 md:h-12 lg:h-14 w-auto opacity-90"
+/><div className="border-b border-white/10 px-8 pt-8 pb-8">
+  <Header />
+</div>
 
           <div className="px-8 py-6">
             <ChatHistory messages={messages} />
@@ -76,7 +102,10 @@ export default function Conversation() {
               </div>
             )}
 
-            <div ref={bottomRef} />
+            <div
+              ref={endRef}
+              className="h-1"
+            />
           </div>
         </section>
       </main>

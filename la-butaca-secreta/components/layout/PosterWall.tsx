@@ -58,40 +58,40 @@ export default function PosterWall() {
         </div>
       </div>
 
-      {/* MÓVIL Y TABLET */}
-      <div className="fixed inset-0 lg:hidden overflow-hidden pointer-events-none">
-        <div
-          className="absolute left-[-120px] top-0 h-[420px] w-[280px] rotate-[-15deg] rounded-2xl bg-cover bg-center opacity-20 blur-[2px]"
-          style={{
-            backgroundImage:
-              "url('/posters/dune.jpg')",
-          }}
-        />
+{/* MÓVIL Y TABLET */}
+<div className="fixed inset-0 lg:hidden overflow-hidden pointer-events-none">
+  <div
+    className="absolute left-[-120px] top-0 h-[420px] w-[280px] rotate-[-15deg] rounded-2xl bg-cover bg-center opacity-35 blur-[1px]"
+    style={{
+      backgroundImage:
+        "url('/posters/dune.jpg')",
+    }}
+  />
 
-        <div
-          className="absolute right-[-120px] top-[80px] h-[420px] w-[280px] rotate-[15deg] rounded-2xl bg-cover bg-center opacity-20 blur-[2px]"
-          style={{
-            backgroundImage:
-              "url('/posters/interstellar.jpg')",
-          }}
-        />
+  <div
+    className="absolute right-[-120px] top-[80px] h-[420px] w-[280px] rotate-[15deg] rounded-2xl bg-cover bg-center opacity-35 blur-[1px]"
+    style={{
+      backgroundImage:
+        "url('/posters/interstellar.jpg')",
+    }}
+  />
 
-        <div
-          className="absolute left-[-80px] bottom-[120px] h-[380px] w-[260px] rotate-[12deg] rounded-2xl bg-cover bg-center opacity-15 blur-[3px]"
-          style={{
-            backgroundImage:
-              "url('/posters/shogun.jpg')",
-          }}
-        />
+  <div
+    className="absolute left-[-80px] bottom-[120px] h-[380px] w-[260px] rotate-[12deg] rounded-2xl bg-cover bg-center opacity-30 blur-[1px]"
+    style={{
+      backgroundImage:
+        "url('/posters/shogun.jpg')",
+    }}
+  />
 
-        <div
-          className="absolute right-[-80px] bottom-0 h-[380px] w-[260px] rotate-[-12deg] rounded-2xl bg-cover bg-center opacity-15 blur-[3px]"
-          style={{
-            backgroundImage:
-              "url('/posters/thebear.jpg')",
-          }}
-        />
-      </div>
+  <div
+    className="absolute right-[-80px] bottom-0 h-[380px] w-[260px] rotate-[-12deg] rounded-2xl bg-cover bg-center opacity-30 blur-[1px]"
+    style={{
+      backgroundImage:
+        "url('/posters/thebear.jpg')",
+    }}
+  />
+</div>
 
       {/* Glow cinematográfico */}
       <div className="pointer-events-none fixed inset-0 bg-black/20" />
