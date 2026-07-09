@@ -24,8 +24,13 @@ type Props = {
 export default function Recommendations({
   profile,
 }: Props) {
-  const [movies, setMovies] = useState<Recommendation[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [movies, setMovies] = useState<
+    Recommendation[]
+  >([]);
+
+  const [loading, setLoading] =
+    useState(true);
+
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -34,19 +39,27 @@ export default function Recommendations({
         setLoading(true);
         setError("");
 
-        const params = new URLSearchParams();
+        const params =
+          new URLSearchParams();
 
         params.set(
           "type",
-          profile.contentType ?? "movie"
+          profile.contentType ??
+            "movie"
         );
 
         if (profile.mood) {
-          params.set("mood", profile.mood);
+          params.set(
+            "mood",
+            profile.mood
+          );
         }
 
         if (profile.company) {
-          params.set("company", profile.company);
+          params.set(
+            "company",
+            profile.company
+          );
         }
 
         if (profile.duration) {
@@ -57,7 +70,10 @@ export default function Recommendations({
         }
 
         if (profile.pace) {
-          params.set("pace", profile.pace);
+          params.set(
+            "pace",
+            profile.pace
+          );
         }
 
         if (profile.freshness) {
@@ -67,7 +83,9 @@ export default function Recommendations({
           );
         }
 
-        if (profile.discoveryMode) {
+        if (
+          profile.discoveryMode
+        ) {
           params.set(
             "discoveryMode",
             profile.discoveryMode
@@ -89,18 +107,24 @@ export default function Recommendations({
         }
 
         if (
-          Array.isArray(profile.restrictions) &&
-          profile.restrictions.length > 0
+          Array.isArray(
+            profile.restrictions
+          ) &&
+          profile.restrictions.length >
+            0
         ) {
           params.set(
             "restrictions",
-            profile.restrictions.join(",")
+            profile.restrictions.join(
+              ","
+            )
           );
         }
 
-        const response = await fetch(
-          `/api/tmdb?${params.toString()}`
-        );
+        const response =
+          await fetch(
+            `/api/tmdb?${params.toString()}`
+          );
 
         if (!response.ok) {
           throw new Error(
@@ -129,7 +153,8 @@ export default function Recommendations({
   if (loading) {
     return (
       <p className="text-center text-zinc-400">
-        🎬 Buscando las mejores recomendaciones...
+        🎬 Buscando las mejores
+        recomendaciones...
       </p>
     );
   }
@@ -145,7 +170,8 @@ export default function Recommendations({
   const badges = [
     {
       badge: "🥇",
-      badgeTitle: "Mi apuesta para ti",
+      badgeTitle:
+        "Mi apuesta para ti",
     },
     {
       badge: "🥈",
@@ -163,33 +189,48 @@ export default function Recommendations({
     <section className="space-y-8">
       <div className="text-center">
         <h1 className="text-4xl font-bold text-white">
-          🎬 Creo que estas tres pueden ser justo lo que buscas.
+          🎬 Creo que estas tres
+          pueden ser justo lo que
+          buscas.
         </h1>
 
         <p className="mt-4 text-lg text-zinc-400">
-          Seleccionadas especialmente para ti.
+          Seleccionadas
+          especialmente para ti.
         </p>
       </div>
 
-      {movies.map((movie, index) => (
-        <RecommendationCard
-          key={movie.id}
-          badge={
-            badges[index]?.badge ?? "🎬"
-          }
-          badgeTitle={
-            badges[index]?.badgeTitle ??
-            "Recomendación"
-          }
-          title={movie.title}
-          year={movie.year}
-          rating={movie.rating}
-          runtime={movie.runtime}
-          genres={movie.genres}
-          overview={movie.overview}
-          poster={movie.poster}
-        />
-      ))}
+      {movies.map(
+        (movie, index) => (
+          <RecommendationCard
+            key={movie.id}
+            badge={
+              badges[index]
+                ?.badge ?? "🎬"
+            }
+            badgeTitle={
+              badges[index]
+                ?.badgeTitle ??
+              "Recomendación"
+            }
+            title={movie.title}
+            year={movie.year}
+            rating={movie.rating}
+            runtime={
+              movie.runtime
+            }
+            genres={
+              movie.genres
+            }
+            overview={
+              movie.overview
+            }
+            poster={
+              movie.poster
+            }
+          />
+        )
+      )}
     </section>
   );
 }

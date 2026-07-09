@@ -66,18 +66,66 @@ export async function GET(request: NextRequest) {
 
     const filters = engine.build();
 
+async function fetchPages(
+  currentFilters: typeof filters
+) {
+  return Promise.all(
+    [1, 2, 3, 4, 5, 6, 7].map((page) =>
+      currentFilters.type === "movie"
+        ? discoverMovies(
+            currentFilters,
+            page
+          )
+        : discoverTV(
+            currentFilters,
+            page
+          )
+    )
+  );
+}
 
-    const pages = await Promise.all(
-      [1, 2, 3, 4, 5, 6, 7].map((page) =>
-        filters.type === "movie"
-          ? discoverMovies(filters, page)
-          : discoverTV(filters, page)
-      )
-    );
+let pages = await fetchPages(
+  filters
+);
 
-    const items = pages.flatMap(
-      (page) => page.results
-    );
+let items = pages.flatMap(
+  (page) => page.results
+);
+
+// Ampliar automáticamente el rango temporal
+// si hay pocos resultados
+
+if (
+  items.length < 30 &&
+  filters.releaseAfter ===
+    "2022-01-01"
+) {
+  pages = await fetchPages({
+    ...filters,
+    releaseAfter:
+      "2020-01-01",
+  });
+
+  items = pages.flatMap(
+    (page) => page.results
+  );
+}
+
+if (
+  items.length < 30 &&
+  filters.releaseAfter ===
+    "2022-01-01"
+) {
+  pages = await fetchPages({
+    ...filters,
+    releaseAfter:
+      "2018-01-01",
+  });
+
+  items = pages.flatMap(
+    (page) => page.results
+  );
+}
 
 
     const uniqueItems = Array.from(
@@ -200,21 +248,39 @@ export async function GET(request: NextRequest) {
       }
     );
 
-    const recommendations = rescored
-      .slice(0, 3)
-      .map((item) => {
-        const data = finalPool.find(
-          (entry) =>
-            entry.movie.id === item.id
-        )!;
+    const topPool = rescored.slice(
+  0,
+  Math.min(10, rescored.length)
+);
 
-        return mapRecommendation(
-          data.movie,
-          data.details,
-          data.providers,
-          data.credits
-        );
-      });
+const shuffled = [...topPool].sort(
+  () => Math.random() - 0.5
+);
+
+const selected = [
+  topPool[0],
+  ...shuffled
+    .filter(
+      (item) =>
+        item.id !== topPool[0].id
+    )
+    .slice(0, 2),
+];
+
+const recommendations =
+  selected.map((item) => {
+    const data = finalPool.find(
+      (entry) =>
+        entry.movie.id === item.id
+    )!;
+
+    return mapRecommendation(
+      data.movie,
+      data.details,
+      data.providers,
+      data.credits
+    );
+  });
 
     if (recommendations.length === 0) {
       const fallback = finalPool

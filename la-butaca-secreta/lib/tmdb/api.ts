@@ -48,7 +48,7 @@ function buildDiscoverQuery(
 
   params.set("include_adult", "false");
 
-  params.set("vote_count.gte", "300");
+  params.set("vote_count.gte", "100");
 
   params.set("vote_average.gte", "6.5");
 

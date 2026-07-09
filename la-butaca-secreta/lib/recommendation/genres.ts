@@ -12,9 +12,14 @@ export interface MoodProfile {
   excludedGenres?: number[];
 }
 
-export const MoodGenres: Record<Mood, MoodProfile> = {
+export const MoodGenres: Record<
+  Mood,
+  MoodProfile
+> = {
   laugh: {
-    genres: [35, 10751],
+    // Comedia principal
+    // Romance y Acción como secundarios
+    genres: [35, 10749, 28],
     excludedGenres: [27],
   },
 
@@ -23,19 +28,19 @@ export const MoodGenres: Record<Mood, MoodProfile> = {
   },
 
   tension: {
-    genres: [53, 9648, 80, 18],
+    genres: [53, 9648],
   },
 
   think: {
-    genres: [878, 9648, 18],
+    genres: [878, 9648],
   },
 
   adventure: {
-    genres: [12, 14, 28, 878],
+    genres: [12, 28],
   },
 
   surprise: {
-    genres: [53, 9648, 878, 80],
+    genres: [53, 878],
   },
 
   anything: {
@@ -43,7 +48,10 @@ export const MoodGenres: Record<Mood, MoodProfile> = {
   },
 };
 
-export const GenreNames: Record<number, string> = {
+export const GenreNames: Record<
+  number,
+  string
+> = {
   12: "Aventura",
   14: "Fantasía",
   16: "Animación",

@@ -28,61 +28,59 @@ export function scoreDiscoveryMode(
       return 0;
 
     case "relax": {
-      let score = 0;
+  let score = 0;
 
-      // Premiar géneros ligeros
+  // Entretenidas
 
-      if (item.genres.includes(35)) {
-        score += 40;
-      }
+  if (item.genres.includes(35)) {
+    score += 25;
+  }
 
-      if (item.genres.includes(12)) {
-        score += 25;
-      }
+  if (item.genres.includes(28)) {
+    score += 20;
+  }
 
-      if (item.genres.includes(28)) {
-        score += 20;
-      }
+  if (item.genres.includes(12)) {
+    score += 15;
+  }
 
-      if (item.genres.includes(10751)) {
-        score += 20;
-      }
+  if (item.genres.includes(878)) {
+    score += 10;
+  }
 
-      // Penalizar géneros densos
+  // Ya no premiamos Familia
 
-      if (item.genres.includes(18)) {
-        score -= 20;
-      }
+  // Géneros más densos
 
-      if (item.genres.includes(80)) {
-        score -= 15;
-      }
+  if (item.genres.includes(18)) {
+    score -= 15;
+  }
 
-      if (item.genres.includes(9648)) {
-        score -= 15;
-      }
+  if (item.genres.includes(9648)) {
+    score -= 10;
+  }
 
-      if (item.genres.includes(53)) {
-        score -= 10;
-      }
+  if (item.genres.includes(27)) {
+    score -= 25;
+  }
 
-      return score;
-    }
+  return score;
+}
 
     case "hidden-gem":
       if (
         item.voteAverage >= 7.5 &&
-        item.voteCount >= 300 &&
+        item.voteCount >= 100 &&
         item.voteCount <= 5000
       ) {
-        return 40;
+        return 45;
       }
 
       return 0;
 
     case "surprise":
       return Math.floor(
-        Math.random() * 25
+        Math.random() * 40
       );
 
     default:

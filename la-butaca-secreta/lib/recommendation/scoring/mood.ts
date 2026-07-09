@@ -23,32 +23,50 @@ export function scoreMood(
 
   let score = 0;
 
-  // Géneros deseados
-  const matchingGenres =
-    config.genres.filter((genre) =>
-      item.genres.includes(genre)
-    ).length;
+  const primaryGenre =
+    config.genres[0];
 
-  score += matchingGenres * 15;
+  // Género principal
 
-  // Bonus si coincide con varios géneros
-  if (matchingGenres >= 2) {
-    score += 15;
+  if (
+    primaryGenre &&
+    item.genres.includes(
+      primaryGenre
+    )
+  ) {
+    score += 50;
   }
 
-  if (matchingGenres >= 3) {
-    score += 10;
-  }
+  // Géneros secundarios
 
-  // Géneros no deseados
-  if (config.excludedGenres) {
-    const excludedMatches =
-      config.excludedGenres.filter(
-        (genre) =>
-          item.genres.includes(genre)
-      ).length;
+  config.genres
+    .slice(1)
+    .forEach((genre) => {
+      if (
+        item.genres.includes(
+          genre
+        )
+      ) {
+        score += 10;
+      }
+    });
 
-    score -= excludedMatches * 15;
+  // Penalizaciones
+
+  if (
+    config.excludedGenres
+  ) {
+    config.excludedGenres.forEach(
+      (genre) => {
+        if (
+          item.genres.includes(
+            genre
+          )
+        ) {
+          score -= 25;
+        }
+      }
+    );
   }
 
   return score;

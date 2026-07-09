@@ -7,6 +7,7 @@ import { scorePopularity } from "./popularity";
 import { scoreProviders } from "./providers";
 import { scoreDiscoveryMode } from "./discoveryMode";
 import { scoreFreshness } from "./freshness";
+import { scoreAudience } from "./audience";
 
 export function scoreItem(
   item: ScoredItem,
@@ -14,41 +15,71 @@ export function scoreItem(
 ): number {
   let score = 0;
 
-  // Qué quiere sentir
-  score += scoreMood(item, context) * 3;
+  // Estado de ánimo
+  // Sigue siendo lo más importante,
+  // pero sin aplastar el resto.
+
+  score +=
+    scoreMood(
+      item,
+      context
+    ) * 2;
 
   // Qué busca hoy
-  score += scoreDiscoveryMode(
-    item,
-    context
-  ) * 5;
 
-  // Con quién va a verlo
-  score += scoreCompany(item, context) * 2;
+  score +=
+    scoreDiscoveryMode(
+      item,
+      context
+    ) * 3;
 
-  // Disponible en streaming
-  score += scoreProviders(
-    item,
-    context
-  ) * 3;
+  // Con quién lo ve
+
+  score +=
+    scoreCompany(
+      item,
+      context
+    ) * 2;
+
+  // Público objetivo
+
+  score +=
+    scoreAudience(
+      item,
+      context
+    );
+
+  // Servicios de streaming
+
+  score +=
+    scoreProviders(
+      item,
+      context
+    );
 
   // Duración
-  score += scoreDuration(
-    item,
-    context
-  );
+
+  score +=
+    scoreDuration(
+      item,
+      context
+    );
 
   // Nuevo o clásico
-  score += scoreFreshness(
-    item,
-    context
-  );
+
+  score +=
+    scoreFreshness(
+      item,
+      context
+    ) * 2;
 
   // Calidad general
-  score += scorePopularity(
-    item,
-    context
-  );
+
+  score +=
+    scorePopularity(
+      item,
+      context
+    );
 
   return score;
 }
@@ -60,7 +91,12 @@ export function sortByScore(
   return items
     .map((item) => ({
       ...item,
-      score: scoreItem(item, context),
+      score: scoreItem(
+        item,
+        context
+      ),
     }))
-    .sort((a, b) => b.score - a.score);
+    .sort(
+      (a, b) => b.score - a.score
+    );
 }

@@ -4,97 +4,74 @@ export function scoreCompany(
   item: ScoredItem,
   context: ScoreContext
 ): number {
+  const company =
+    context.profile.company;
+
+  if (!company) {
+    return 0;
+  }
+
   let score = 0;
 
-  switch (context.profile.company) {
+  switch (company) {
     case "family":
-      // Familiar
-      if (item.genres.includes(10751)) {
-        score += 25;
-      }
+      if (item.genres.includes(10751)) score += 30;
+      if (item.genres.includes(16)) score += 20;
+      if (item.genres.includes(12)) score += 15;
+      if (item.genres.includes(35)) score += 10;
 
-      // Animación
-      if (item.genres.includes(16)) {
-        score += 20;
-      }
-
-      // Comedia
-      if (item.genres.includes(35)) {
-        score += 10;
-      }
-
-      // Terror
-      if (item.genres.includes(27)) {
-        score -= 40;
-      }
-
-      // Thriller
-      if (item.genres.includes(53)) {
-        score -= 20;
-      }
+      if (item.genres.includes(27)) score -= 50;
+      if (item.genres.includes(53)) score -= 25;
+      if (item.genres.includes(80)) score -= 25;
 
       break;
 
     case "partner":
-      // Drama
-      if (item.genres.includes(18)) {
+      if (item.genres.includes(10749))
+        score += 25;
+
+      if (item.genres.includes(35))
         score += 15;
-      }
 
-      // Thriller
-      if (item.genres.includes(53)) {
+      if (item.voteAverage >= 7.5)
         score += 15;
-      }
 
-      // Misterio
-      if (item.genres.includes(9648)) {
-        score += 12;
-      }
-
-      // Romance
-      if (item.genres.includes(10749)) {
+      if (item.voteAverage >= 8)
         score += 10;
-      }
+
+      if (item.genres.includes(10751))
+        score -= 10;
 
       break;
 
     case "friends":
-      // Acción
-      if (item.genres.includes(28)) {
+      if (item.genres.includes(35))
         score += 20;
-      }
 
-      // Comedia
-      if (item.genres.includes(35)) {
+      if (item.genres.includes(28))
         score += 15;
-      }
 
-      // Aventura
-      if (item.genres.includes(12)) {
-        score += 10;
-      }
+      if (item.genres.includes(12))
+        score += 15;
+
+      if (item.genres.includes(878))
+        score += 5;
 
       break;
 
     case "alone":
-      // Ciencia ficción
-      if (item.genres.includes(878)) {
-        score += 10;
-      }
+      if (item.genres.includes(53))
+        score += 20;
 
-      // Misterio
-      if (item.genres.includes(9648)) {
-        score += 10;
-      }
+      if (item.genres.includes(9648))
+        score += 20;
 
-      // Thriller
-      if (item.genres.includes(53)) {
-        score += 10;
-      }
+      if (item.genres.includes(878))
+        score += 15;
 
-      break;
+      if (item.genres.includes(18))
+        score += 5;
 
-    default:
       break;
   }
 

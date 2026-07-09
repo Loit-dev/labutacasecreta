@@ -30,66 +30,54 @@ export function buildFilters(
 
   // ============================
   // Estado de ánimo
-  // Usamos SOLO el género principal
-  // para no restringir demasiado TMDB
   // ============================
 
   if (profile.mood) {
-    switch (profile.mood) {
-      case "tension":
-        filters.withGenres.push(53); // Thriller
-        break;
+    const mood =
+      MoodGenres[
+        profile.mood as keyof typeof MoodGenres
+      ];
 
-      case "risas":
-        filters.withGenres.push(35); // Comedia
-        break;
+    if (mood) {
+      // Estos moods representan
+      // una sensación más que un género.
+      // Dejamos que el scoring decida.
 
-      case "emocion":
-        filters.withGenres.push(28); // Acción
-        break;
+      const scoringOnlyMoods = [
+        "laugh",
+        "adventure",
+      ];
 
-      case "ternura":
-        filters.withGenres.push(10749); // Romance
-        break;
+      if (
+        !scoringOnlyMoods.includes(
+          profile.mood
+        ) &&
+        mood.genres.length > 0
+      ) {
+        filters.withGenres.push(
+          mood.genres[0]
+        );
+      }
 
-      case "miedo":
-        filters.withGenres.push(27); // Terror
-        break;
-
-      case "fantasia":
-        filters.withGenres.push(14); // Fantasía
-        break;
-
-      default: {
-        const mood =
-          MoodGenres[
-            profile.mood as keyof typeof MoodGenres
-          ];
-
-        if (mood) {
-          filters.withGenres.push(
-            mood.genres[0]
-          );
-        }
+      if (mood.excludedGenres) {
+        filters.withoutGenres.push(
+          ...mood.excludedGenres
+        );
       }
     }
   }
 
   // ============================
   // Compañía
+  // Se gestiona mediante scoring
   // ============================
 
   switch (profile.company) {
-    case "family":
-      filters.withGenres.push(10751);
-      filters.withoutGenres.push(27, 53);
-      break;
-
+    case "alone":
     case "partner":
-      break;
-
     case "friends":
-      filters.withGenres.push(35, 28);
+    case "family":
+    default:
       break;
   }
 
@@ -130,11 +118,13 @@ export function buildFilters(
 
   switch (profile.freshness) {
     case "new":
-      filters.releaseAfter = "2022-01-01";
+      filters.releaseAfter =
+        "2022-01-01";
       break;
 
     case "classic":
-      filters.releaseBefore = "2005-12-31";
+      filters.releaseBefore =
+        "2005-12-31";
       break;
   }
 
@@ -146,19 +136,27 @@ export function buildFilters(
     (restriction) => {
       switch (restriction) {
         case "terror":
-          filters.withoutGenres.push(27);
+          filters.withoutGenres.push(
+            27
+          );
           break;
 
         case "romance":
-          filters.withoutGenres.push(10749);
+          filters.withoutGenres.push(
+            10749
+          );
           break;
 
         case "musical":
-          filters.withoutGenres.push(10402);
+          filters.withoutGenres.push(
+            10402
+          );
           break;
 
         case "documentary":
-          filters.withoutGenres.push(99);
+          filters.withoutGenres.push(
+            99
+          );
           break;
 
         case "violence":
@@ -186,10 +184,14 @@ export function buildFilters(
 
   filters.withoutGenres =
     filters.withoutGenres.filter(
-      (id) => !filters.withGenres.includes(id)
+      (id) =>
+        !filters.withGenres.includes(id)
     );
 
-  console.log("FILTERS:", filters);
+  console.log(
+    "FILTERS:",
+    filters
+  );
 
   return filters;
 }
