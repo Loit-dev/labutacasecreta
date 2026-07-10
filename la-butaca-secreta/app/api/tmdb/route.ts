@@ -248,24 +248,10 @@ if (
       }
     );
 
-    const topPool = rescored.slice(
+    const selected = rescored.slice(
   0,
-  Math.min(10, rescored.length)
+  Math.min(12, rescored.length)
 );
-
-const shuffled = [...topPool].sort(
-  () => Math.random() - 0.5
-);
-
-const selected = [
-  topPool[0],
-  ...shuffled
-    .filter(
-      (item) =>
-        item.id !== topPool[0].id
-    )
-    .slice(0, 2),
-];
 
 const recommendations =
   selected.map((item) => {
@@ -282,24 +268,24 @@ const recommendations =
     );
   });
 
-    if (recommendations.length === 0) {
-      const fallback = finalPool
-        .slice(0, 3)
-        .map((data) =>
-          mapRecommendation(
-            data.movie,
-            data.details,
-            data.providers,
-            data.credits
-          )
-        );
-
-      return NextResponse.json(fallback);
-    }
-
-    return NextResponse.json(
-      recommendations
+if (recommendations.length === 0) {
+  const fallback = finalPool
+    .slice(0, 12)
+    .map((data) =>
+      mapRecommendation(
+        data.movie,
+        data.details,
+        data.providers,
+        data.credits
+      )
     );
+
+  return NextResponse.json(fallback);
+}
+
+return NextResponse.json(
+  recommendations
+);
   } catch (error) {
     console.error(error);
 

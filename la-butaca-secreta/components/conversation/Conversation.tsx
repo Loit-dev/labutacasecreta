@@ -24,36 +24,59 @@ export default function Conversation() {
 
   const endRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const scrollToBottom = () => {
-      endRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "end",
-      });
-    };
+ useEffect(() => {
+  const scrollToBottom = () => {
+    endRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "end",
+    });
+  };
 
-    scrollToBottom();
-
+  if (finished) {
     const timer1 = setTimeout(
       scrollToBottom,
-      250
+      500
     );
 
     const timer2 = setTimeout(
       scrollToBottom,
-      500
+      1500
+    );
+
+    const timer3 = setTimeout(
+      scrollToBottom,
+      2500
     );
 
     return () => {
       clearTimeout(timer1);
       clearTimeout(timer2);
+      clearTimeout(timer3);
     };
-  }, [
-    messages,
-    currentQuestion,
-    isThinking,
-    finished,
-  ]);
+  }
+
+  scrollToBottom();
+
+  const timer1 = setTimeout(
+    scrollToBottom,
+    250
+  );
+
+  const timer2 = setTimeout(
+    scrollToBottom,
+    500
+  );
+
+  return () => {
+    clearTimeout(timer1);
+    clearTimeout(timer2);
+  };
+}, [
+  messages,
+  currentQuestion,
+  isThinking,
+  finished,
+]);
 
   return (
     <>
@@ -87,7 +110,7 @@ export default function Conversation() {
           <img
   src="/Logo.png"
   alt="La Butaca Secreta"
-  className="absolute left-4 top-4 h-9 md:h-12 lg:h-14 w-auto opacity-90"
+  className="absolute left-4 top-4 hidden md:block md:h-12 lg:h-14 w-auto opacity-90"
 />
           <div className="border-b border-white/10 px-8 pt-8 pb-8">
             <Header />
@@ -111,11 +134,11 @@ export default function Conversation() {
               </div>
             )}
 
-            {finished && (
-              <div className="mt-10">
-                <Recommendations profile={profile} />
-              </div>
-            )}
+           {finished && (
+  <div className="mt-10">
+    <Recommendations profile={profile} />
+  </div>
+)}
 
             <div
               ref={endRef}

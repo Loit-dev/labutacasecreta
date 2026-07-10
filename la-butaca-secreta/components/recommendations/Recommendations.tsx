@@ -24,27 +24,19 @@ type Props = {
 export default function Recommendations({
   profile,
 }: Props) {
-  const [movies, setMovies] =
-    useState<Recommendation[]>([]);
+  const [movies, setMovies] = useState<Recommendation[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const [loading, setLoading] =
-    useState(true);
-
-  const [error, setError] =
-    useState("");
-
-  const [activeIndex, setActiveIndex] =
-    useState(0);
-
-  const [touchStart, setTouchStart] =
-    useState<number | null>(null);
-
-  const [touchEnd, setTouchEnd] =
-    useState<number | null>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [page, setPage] = useState(0);
+  const visibleMovies = movies.slice(page*3, page*3+3);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
   const nextMovie = () => {
     setActiveIndex((current) =>
-      current >= movies.length - 1
+      current >= visibleMovies.length - 1
         ? 0
         : current + 1
     );
@@ -53,11 +45,21 @@ export default function Recommendations({
   const prevMovie = () => {
     setActiveIndex((current) =>
       current <= 0
-        ? movies.length - 1
+        ? visibleMovies.length - 1
         : current - 1
     );
   };
+ const nextBatch = () => {
+  const maxPage = Math.floor(
+    (movies.length - 1) / 3
+  );
 
+  const newPage =
+    page >= maxPage ? 0 : page + 1;
+
+  setPage(newPage);
+  setActiveIndex(0);
+};
   const minSwipeDistance = 50;
 
   const handleTouchStart = (
@@ -88,17 +90,11 @@ export default function Recommendations({
     const distance =
       touchStart - touchEnd;
 
-    if (
-      distance >
-      minSwipeDistance
-    ) {
+    if (distance > minSwipeDistance) {
       nextMovie();
     }
 
-    if (
-      distance <
-      -minSwipeDistance
-    ) {
+    if (distance < -minSwipeDistance) {
       prevMovie();
     }
   };
@@ -114,15 +110,11 @@ export default function Recommendations({
 
         params.set(
           "type",
-          profile.contentType ??
-            "movie"
+          profile.contentType ?? "movie"
         );
 
         if (profile.mood) {
-          params.set(
-            "mood",
-            profile.mood
-          );
+          params.set("mood", profile.mood);
         }
 
         if (profile.company) {
@@ -232,6 +224,7 @@ export default function Recommendations({
   }
 
   const badges = [
+    
     {
       badge: "🥇",
       badgeTitle:
@@ -250,7 +243,7 @@ export default function Recommendations({
   ];
 
   return (
-    <section className="space-y-8">
+    <section  id="recommendations"  className="space-y-8">
       <div className="text-center">
         <h1 className="text-2xl font-bold text-white md:text-3xl">
           🎬 Creo que estas tres pueden ser justo lo que buscas.
@@ -261,143 +254,139 @@ export default function Recommendations({
         </p>
       </div>
 
-{/* MOBILE */}
-<div
-  className="md:hidden"
-  onTouchStart={
-    handleTouchStart
-  }
-  onTouchMove={
-    handleTouchMove
-  }
-  onTouchEnd={
-    handleTouchEnd
-  }
->
-  {movies[activeIndex] && (
-    <div
-      key={movies[activeIndex].id}
-      className="animate-fade-in"
-    >
-      <RecommendationCard
-        badge={
-          badges[activeIndex]
-            ?.badge ?? "🎬"
-        }
-        badgeTitle={
-          badges[activeIndex]
-            ?.badgeTitle ??
-          "Recomendación"
-        }
-        title={
-          movies[activeIndex].title
-        }
-        year={
-          movies[activeIndex].year
-        }
-        rating={
-          movies[activeIndex].rating
-        }
-        runtime={
-          movies[activeIndex].runtime
-        }
-        genres={
-          movies[activeIndex].genres
-        }
-        overview={
-          movies[activeIndex].overview
-        }
-        poster={
-          movies[activeIndex].poster
-        }
-      />
-    </div>
-  )}
-
-  <div className="mt-4 flex items-center justify-center gap-6">
-    <button
-      onClick={prevMovie}
-      className="
-        rounded-full
-        bg-zinc-800
-        px-4
-        py-2
-        text-white
-        transition-all
-        hover:bg-zinc-700
-      "
-    >
-      ←
-    </button>
-
-    <div className="text-sm font-medium text-zinc-400">
-      {activeIndex + 1} / {movies.length}
-    </div>
-
-    <button
-      onClick={nextMovie}
-      className="
-        rounded-full
-        bg-zinc-800
-        px-4
-        py-2
-        text-white
-        transition-all
-        hover:bg-zinc-700
-      "
-    >
-      →
-    </button>
-  </div>
-
-  <div className="mt-4 flex justify-center gap-2">
-    {movies.map((_, index) => (
+      {/* MOBILE */}
       <div
-        key={index}
-        className={
-          index === activeIndex
-            ? "h-2 w-2 rounded-full bg-red-500"
-            : "h-2 w-2 rounded-full bg-zinc-600"
-        }
-      />
-    ))}
-  </div>
-</div>
+        className="md:hidden"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        {visibleMovies[activeIndex] && (
+          <div
+            key={visibleMovies[activeIndex].id}
+            className="animate-fade-in relative"
+          >
+            <RecommendationCard
+              badge={
+                badges[activeIndex]
+                  ?.badge ?? "🎬"
+              }
+              badgeTitle={
+                badges[activeIndex]
+                  ?.badgeTitle ??
+                "Recomendación"
+              }
+              title={
+               visibleMovies[activeIndex].title
+              }
+              year={
+                visibleMovies[activeIndex].year
+              }
+              rating={
+               visibleMovies[activeIndex].rating
+              }
+              runtime={
+                visibleMovies[activeIndex].runtime
+              }
+              genres={
+                visibleMovies[activeIndex].genres
+              }
+              overview={
+                visibleMovies[activeIndex].overview
+              }
+              poster={
+                visibleMovies[activeIndex].poster
+              }
+            />
+
+            <button
+              onClick={prevMovie}
+              className="absolute left-3 top-3 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-black/70 text-white backdrop-blur"
+            >
+              ←
+            </button>
+
+            <button
+              onClick={nextMovie}
+              className="absolute right-3 top-3 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-black/70 text-white backdrop-blur"
+            >
+              →
+            </button>
+          </div>
+        )}
+
+        {visibleMovies.length > 1 && (
+          <div className="mt-4 flex justify-center gap-2">
+            {visibleMovies.map((_, index) => (
+              <div
+                key={index}
+                className={
+                  index === activeIndex
+                    ? "h-2 w-6 rounded-full bg-red-500 transition-all duration-300"
+                    : "h-2 w-2 rounded-full bg-zinc-600 transition-all duration-300"
+                }
+              />
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* DESKTOP */}
       <div className="hidden gap-6 md:grid md:grid-cols-2 xl:grid-cols-3">
-        {movies.map(
+        {visibleMovies.map(
           (movie, index) => (
             <RecommendationCard
               key={movie.id}
               badge={
-                badges[index]
+                badges[index % 3]
                   ?.badge ?? "🎬"
               }
               badgeTitle={
-                badges[index]
+                badges[index % 3]
                   ?.badgeTitle ??
                 "Recomendación"
               }
               title={movie.title}
               year={movie.year}
               rating={movie.rating}
-              runtime={
-                movie.runtime
-              }
-              genres={
-                movie.genres
-              }
-              overview={
-                movie.overview
-              }
-              poster={
-                movie.poster
-              }
+              runtime={movie.runtime}
+              genres={movie.genres}
+              overview={movie.overview}
+              poster={movie.poster}
             />
           )
         )}
       </div>
+      {movies.length > 3 && (
+  <button
+    onClick={nextBatch}
+    className="
+      mx-auto
+      mt-6
+      block
+
+      rounded-xl
+      border
+      border-zinc-700
+
+      bg-zinc-900/80
+
+      px-5
+      py-3
+
+      text-sm
+      font-medium
+      text-white
+
+      transition-all
+
+      hover:border-red-500/50
+      hover:bg-zinc-800
+    "
+  >
+    🔄 Dame otras 3 recomendaciones
+  </button>
+)}
     </section>
   );
 }

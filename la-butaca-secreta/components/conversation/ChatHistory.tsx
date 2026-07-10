@@ -42,8 +42,8 @@ export default function ChatHistory({
                   <Image
                     src="/logito.png"
                     alt="La Butaca Secreta"
-                    width={38}
-                    height={38}
+                    width={40}
+                    height={40}
                     className="object-contain scale-110"
                     priority
                   />

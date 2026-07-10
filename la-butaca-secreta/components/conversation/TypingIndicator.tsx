@@ -6,46 +6,43 @@ export default function TypingIndicator() {
       <div
         className="
           flex
-          h-11
-          w-11
+          h-12
+          w-12
           items-center
           justify-center
-          rounded-xl
+          overflow-hidden
+          rounded-full
           border
           border-zinc-700
-          bg-zinc-900
+          bg-black
           shadow-lg
         "
       >
-        <Image
+              <Image
           src="/logito.png"
           alt="La Butaca Secreta"
-          width={26}
-          height={26}
-          className="object-contain"
+          width={40}
+          height={40}
+          className="object-contain scale-110"
           priority
         />
       </div>
 
-      <div className="rounded-3xl rounded-bl-md border border-zinc-700 bg-zinc-800 px-5 py-4 shadow-lg">
-        <div className="flex gap-2">
-          <span
-            className="h-2.5 w-2.5 animate-bounce rounded-full bg-red-500"
-            style={{ animationDelay: "0ms" }}
-          />
-          <span
-            className="h-2.5 w-2.5 animate-bounce rounded-full bg-red-500"
-            style={{ animationDelay: "150ms" }}
-          />
-          <span
-            className="h-2.5 w-2.5 animate-bounce rounded-full bg-red-500"
-            style={{ animationDelay: "300ms" }}
-          />
+      <div
+        className="
+          rounded-2xl
+          border
+          border-zinc-800
+          bg-zinc-900/80
+          px-4
+          py-3
+        "
+      >
+        <div className="flex gap-1">
+          <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-white/50 [animation-delay:-0.3s]" />
+          <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-white/50 [animation-delay:-0.15s]" />
+          <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-white/50" />
         </div>
-
-        <p className="mt-3 text-sm text-zinc-400">
-          Buscando la mejor opción para ti...
-        </p>
       </div>
     </div>
   );

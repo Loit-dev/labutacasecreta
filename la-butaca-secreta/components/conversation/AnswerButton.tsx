@@ -24,30 +24,32 @@ export default function AnswerButton({
         group
         relative
         w-full
-        min-h-[100px]
+        min-h-[72px]
         overflow-hidden
 
         rounded-2xl
 
         border
-        border-zinc-600/80
+        border-zinc-700/80
 
         bg-gradient-to-br
         from-zinc-900
         via-black
         to-zinc-950
 
-        p-5
+        px-4
+        py-3
+
         text-left
 
-        shadow-[0_10px_30px_rgba(0,0,0,0.55)]
+        shadow-[0_8px_20px_rgba(0,0,0,0.45)]
 
         transition-all
         duration-300
 
-        hover:-translate-y-1
+        hover:-translate-y-0.5
         hover:border-red-500/60
-        hover:shadow-[0_0_25px_rgba(239,68,68,0.20)]
+        hover:shadow-[0_0_20px_rgba(239,68,68,0.15)]
       "
     >
       <div
@@ -70,7 +72,7 @@ export default function AnswerButton({
           opacity-0
 
           bg-gradient-to-br
-          from-red-500/15
+          from-red-500/10
           via-transparent
           to-red-500/5
 
@@ -82,79 +84,76 @@ export default function AnswerButton({
       />
 
       <div
-        className="
-          absolute
-          inset-0
-
-          rounded-2xl
-
-          opacity-0
-
-          ring-1
-          ring-red-500/40
-
-          transition-all
-          duration-300
-
-          group-hover:opacity-100
-        "
-      />
-
-      <div
-        className={`relative flex h-full items-center ${
-          centered ? "justify-center" : "justify-between"
-        }`}
+        className={`
+          relative
+          flex
+          h-full
+          items-center
+          ${
+            centered
+              ? "justify-center"
+              : "justify-between"
+          }
+        `}
       >
         <div
-          className={`flex flex-1 items-center gap-3 ${
-            centered ? "justify-center text-center" : ""
-          }`}
+          className={`
+            flex
+            flex-1
+            items-center
+            gap-3
+
+            ${
+              centered
+                ? "justify-center text-center"
+                : ""
+            }
+          `}
         >
           {isMovie && (
-            <span className="shrink-0 text-3xl">
+            <span className="shrink-0 text-2xl">
               🎬
             </span>
           )}
 
           {isSeries && (
-            <span className="shrink-0 text-3xl">
+            <span className="shrink-0 text-2xl">
               📺
             </span>
           )}
 
-          <div className="flex items-center">
-            <h3
-              className="
-                text-lg
-                font-semibold
-                leading-snug
-                tracking-tight
-                text-white
-              "
-              style={{
-                fontFamily: "var(--font-manrope)",
-              }}
-            >
-              {label
-                .replace("🎬 ", "")
-                .replace("📺 ", "")}
-            </h3>
-          </div>
+          <h3
+            className="
+              text-base
+              font-semibold
+              leading-snug
+              tracking-tight
+              text-white
+            "
+            style={{
+              fontFamily:
+                "var(--font-manrope)",
+            }}
+          >
+            {label
+              .replace("🎬 ", "")
+              .replace("📺 ", "")}
+          </h3>
         </div>
 
         {!centered && (
           <span
             className="
-              ml-4
+              ml-3
               shrink-0
 
-              text-2xl
+              text-lg
               text-zinc-500
 
               transition-all
               duration-300
 
-              group-hover:translate-x-2
+              group-hover:translate-x-1
               group-hover:text-red-400
             "
           >
