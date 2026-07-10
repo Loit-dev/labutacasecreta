@@ -153,7 +153,7 @@ console.log("Unique:", uniqueItems.length);
     );
 
     const candidates = scored
-      .slice(0, 80)
+      .slice(0, 60)
       .map(
         (item) =>
           uniqueItems.find(
