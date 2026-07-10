@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { UserProfile } from "@/lib/conversation/types";
 import { RecommendationEngine } from "@/lib/recommendation/engine";
 import { sortByScore } from "@/lib/recommendation/scoring";
-
+import { diversify } from "@/lib/recommendation/diversity";
 import {
   discoverMovies,
   discoverTV,
@@ -139,6 +139,12 @@ if (
       ).values()
     );
 
+
+
+console.log("Unique:", uniqueItems.length);
+
+
+
     const scored = sortByScore(
       uniqueItems.map(mapToScoredItem),
       {
@@ -147,7 +153,7 @@ if (
     );
 
     const candidates = scored
-      .slice(0, 20)
+      .slice(0, 80)
       .map(
         (item) =>
           uniqueItems.find(
@@ -208,6 +214,13 @@ if (
       }
     );
 
+
+
+console.log("FinalPool:", finalPool.length);
+
+
+
+
     if (finalPool.length === 0) {
       return NextResponse.json([]);
     }
@@ -250,10 +263,27 @@ if (
       }
     );
 
-    const selected = rescored.slice(
-  0,
-  Math.min(12, rescored.length)
+
+
+
+console.log("Rescored:", rescored.length);
+
+
+
+
+
+const selected = diversify(
+  rescored,
+  12
 );
+
+
+
+console.log("Selected:", selected.length);
+
+
+
+
 
 const recommendations =
   selected.map((item) => {
@@ -261,6 +291,18 @@ const recommendations =
       (entry) =>
         entry.movie.id === item.id
     )!;
+
+
+
+console.log(
+  data.providers.results?.ES?.flatrate?.map(p => ({
+    id: p.provider_id,
+    name: p.provider_name
+  }))
+);
+
+
+
 
     return mapRecommendation(
       data.movie,

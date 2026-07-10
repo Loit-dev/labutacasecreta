@@ -10,6 +10,7 @@ type Props = {
   genres?: string[];
   overview: string;
   poster: string;
+  providers?: {name: string; logo: string;}[];
 };
 
 export default function RecommendationCard({
@@ -22,17 +23,45 @@ export default function RecommendationCard({
   genres = [],
   overview,
   poster,
+  providers = [],
 }: Props) {
   return (
     <article className="flex h-full flex-col overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900 shadow-xl">
-       <div className="relative h-58 w-full">
-        <Image
-  src={poster}
-  alt={title}
-  fill
-  className="object-contain bg-black"
-  sizes="(max-width: 768px) 100vw, 33vw"
-/>
+       <div className="relative h-58 w-full overflow-hidden">
+        <Image src={poster} alt={title} fill className="object-contain bg-black" sizes="(max-width: 768px) 100vw, 33vw" />
+        {providers.length > 0 && (
+  <div
+    className="
+      absolute
+      bottom-3
+      left-3
+      flex
+      items-center
+      gap-2
+
+      rounded-full
+
+      bg-black/60
+
+      px-3
+      py-2
+
+      backdrop-blur-md
+      shadow-lg
+    "
+  >
+    {providers.slice(0, 3).map((provider) => (
+      <Image
+        key={provider.name}
+        src={provider.logo}
+        alt={provider.name}
+        width={26}
+        height={26}
+        className="rounded-full"
+      />
+    ))}
+  </div>
+)}
       </div>
 
       <div className="flex flex-1 flex-col space-y-3 p-4">

@@ -15,6 +15,7 @@ type Recommendation = {
   genres: string[];
   overview: string;
   poster: string;
+  providers: { name: string; logo: string;}[];
 };
 
 type Props = {
@@ -304,6 +305,9 @@ if (profile.preferredGenre) {
               poster={
                 visibleMovies[activeIndex].poster
               }
+              providers={
+                visibleMovies[activeIndex].providers
+              }
             />
 
             <button
@@ -360,6 +364,7 @@ if (profile.preferredGenre) {
               genres={movie.genres}
               overview={movie.overview}
               poster={movie.poster}
+              providers={movie.providers}
             />
           )
         )}

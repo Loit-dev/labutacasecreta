@@ -17,7 +17,7 @@ export default function Header() {
           fontFamily: "var(--font-manrope)",
         }}
       >
-        Descubre historias increíbles
+        Descubre historias
         <br />
         <span className="text-white">
           hechas{" "}

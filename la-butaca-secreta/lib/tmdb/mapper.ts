@@ -46,7 +46,7 @@ export interface Recommendation {
 
   poster: string;
 
-  providers: string[];
+   providers: {id: number; name: string; logo: string; }[];
 
   director?: string;
 
@@ -138,9 +138,40 @@ export function mapRecommendation(
       ? `${IMAGE_URL}${item.poster_path}`
       : "/placeholder-poster.jpg",
 
-    providers: esProviders.map(
-      (provider) => provider.provider_name
-    ),
+ providers: Array.from(
+  new Map(
+    esProviders.map((provider) => {
+      let name = provider.provider_name;
+
+      switch (name) {
+        case "Amazon Prime Video":
+          name = "Prime Video";
+          break;
+
+        case "Apple TV Plus":
+          name = "Apple TV+";
+          break;
+
+        case "Disney Plus":
+          name = "Disney+";
+          break;
+
+        case "MovistarPlus":
+          name = "Movistar+";
+          break;
+      }
+
+      return [
+        name,
+        {
+          id: provider.provider_id,
+          name,
+          logo: `${IMAGE_URL}${provider.logo_path}`,
+        },
+      ];
+    })
+  ).values()
+),
 
     director: director?.name,
 
