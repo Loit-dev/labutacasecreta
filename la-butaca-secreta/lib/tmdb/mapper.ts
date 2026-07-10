@@ -89,6 +89,11 @@ function normalizeProviderName(providerName: string) {
   ) {
     return "FlixOlé";
   }
+  if (
+  name.includes("Crunchyroll")
+) {
+  return "Crunchyroll";
+}
 
   return providerName.trim();
 }
