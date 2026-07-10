@@ -4,6 +4,7 @@ import {
   Geist_Mono,
   Manrope,
 } from "next/font/google";
+import { Analytics } from '@vercel/analytics/next';
 
 import "./globals.css";
 
@@ -46,6 +47,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         {children}
+        <Analytics />
       </body>
     </html>
   );
