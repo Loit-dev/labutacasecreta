@@ -25,12 +25,15 @@ export async function GET(request: NextRequest) {
     const params = request.nextUrl.searchParams;
 
     const profile: UserProfile = {
+      
       contentType:
         params.get("type") === "tv"
           ? "tv"
           : "movie",
 
       mood: params.get("mood") ?? undefined,
+
+      preferredGenre: params.get("preferredGenre") ?? undefined,
 
       company: params.get("company") ?? undefined,
 
@@ -59,8 +62,7 @@ export async function GET(request: NextRequest) {
         ?.split(",")
         .filter(Boolean),
     };
-
-
+console.log(profile);
     const engine =
       new RecommendationEngine(profile);
 

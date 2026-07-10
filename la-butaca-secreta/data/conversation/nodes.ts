@@ -6,7 +6,7 @@ export const conversationNodes: ConversationNode[] = [
     title: "¿Qué te apetece hoy?",
     required: true,
     informationValue: 100,
-    next: ["company", "mood"],
+    next: ["mood"],
     options: [
       {
         id: "movie",
@@ -26,7 +26,7 @@ export const conversationNodes: ConversationNode[] = [
     title: "¿Con quién vas a verla?",
     required: true,
     informationValue: 80,
-    next: ["mood", "restrictions"],
+    next: ["discoveryMode"],
     options: [
       {
         id: "alone",
@@ -56,7 +56,7 @@ export const conversationNodes: ConversationNode[] = [
     title: "¿Qué te apetece sentir hoy?",
     required: true,
     informationValue: 95,
-    next: ["restrictions"],
+    next: ["preferredGenre"],
     options: [
       {
         id: "laugh",
@@ -97,35 +97,85 @@ export const conversationNodes: ConversationNode[] = [
   },
 
   {
+  id: "preferredGenre",
+  title: "¿Qué te apetece ver?",
+  required: true,
+  informationValue: 90,
+  next: ["company"],
+  options: [
+    {
+      id: "scifi",
+      label: "🚀 Ciencia ficción",
+      value: "scifi",
+    },
+    {
+      id: "action",
+      label: "🔫 Acción",
+      value: "action",
+    },
+    {
+      id: "thriller",
+      label: "🕵️ Thriller",
+      value: "thriller",
+    },
+    {
+      id: "comedy",
+      label: "😂 Comedia",
+      value: "comedy",
+    },
+    {
+      id: "horror",
+      label: "😱 Terror",
+      value: "horror",
+    },
+    {
+      id: "drama",
+      label: "🎭 Drama",
+      value: "drama",
+    },
+    {
+      id: "romance",
+      label: "❤️ Romance",
+      value: "romance",
+    },
+    {
+      id: "adventure",
+      label: "⚔️ Aventuras",
+      value: "adventure",
+    },
+  ],
+},
+
+  {
     id: "restrictions",
-    title: "¿Hay algo que hoy no te apetezca ver?",
+    title: "🚫 Antes de terminar, ¿hay algo que quieras evitar?",
     required: true,
-    informationValue: 90,
+    informationValue: 10,
     next: ["freshness"],
     options: [
       {
         id: "terror",
-        label: "😱 Terror",
+        label: "🚫 Nada de terror",
         value: "terror",
       },
       {
         id: "violence",
-        label: "🩸 Violencia",
+        label: "🚫 Nada violento",
         value: "violence",
       },
       {
         id: "romance",
-        label: "💕 Romance",
+        label: "🚫 Nada romántico",
         value: "romance",
       },
       {
         id: "musical",
-        label: "🎵 Musical",
+        label: "🚫 Nada musical",
         value: "musical",
       },
       {
         id: "documentary",
-        label: "🎥 Documental",
+        label: "🚫 Nada documental",
         value: "documentary",
       },
       {
@@ -140,8 +190,8 @@ export const conversationNodes: ConversationNode[] = [
     id: "freshness",
     title: "¿Qué te apetece más?",
     required: false,
-    informationValue: 25,
-    next: ["discoveryMode"],
+    informationValue: 60,
+    next: ["restrictions"],
     options: [
       {
         id: "new",
@@ -165,8 +215,8 @@ export const conversationNodes: ConversationNode[] = [
     id: "discoveryMode",
     title: "¿Qué buscas hoy?",
     required: false,
-    informationValue: 60,
-    next: [],
+    informationValue: 70,
+    next: ["freshness"],
     options: [
       {
         id: "impact",

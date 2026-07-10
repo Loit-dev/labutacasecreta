@@ -1,5 +1,4 @@
 import { ScoreContext, ScoredItem } from "./types";
-
 import { scoreMood } from "./mood";
 import { scoreCompany } from "./company";
 import { scoreDuration } from "./duration";
@@ -8,6 +7,7 @@ import { scoreProviders } from "./providers";
 import { scoreDiscoveryMode } from "./discoveryMode";
 import { scoreFreshness } from "./freshness";
 import { scoreAudience } from "./audience";
+import { scoreGenre } from "./genre";
 
 export function scoreItem(
   item: ScoredItem,
@@ -25,6 +25,11 @@ export function scoreItem(
       context
     ) * 2;
 
+    score +=
+  scoreGenre(
+    item,
+    context
+  ) * 2;
   // Qué busca hoy
 
   score +=

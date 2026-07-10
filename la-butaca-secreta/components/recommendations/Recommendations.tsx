@@ -117,6 +117,13 @@ export default function Recommendations({
           params.set("mood", profile.mood);
         }
 
+if (profile.preferredGenre) {
+  params.set(
+    "preferredGenre",
+    profile.preferredGenre
+  );
+}
+
         if (profile.company) {
           params.set(
             "company",

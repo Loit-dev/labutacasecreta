@@ -13,6 +13,8 @@ export interface UserProfile {
 
   mood?: string;
 
+  preferredGenre?: string;
+  
   discoveryMode?: DiscoveryMode;
 
   pace?: string;
