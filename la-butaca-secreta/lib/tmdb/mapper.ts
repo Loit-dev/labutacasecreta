@@ -29,29 +29,88 @@ const GENRES: Record<number, string> = {
   10752: "Bélica",
 };
 
+function normalizeProviderName(providerName: string) {
+  const name = providerName
+    .trim()
+    .toLowerCase();
+
+  if (
+    name.includes("amazon") ||
+    name.includes("prime")
+  ) {
+    return "Prime Video";
+  }
+
+  if (
+    name.includes("netflix")
+  ) {
+    return "Netflix";
+  }
+
+  if (
+    name.includes("disney")
+  ) {
+    return "Disney+";
+  }
+
+  if (
+    name.includes("hbo") ||
+    name.includes("max")
+  ) {
+    return "Max";
+  }
+
+  if (
+    name.includes("apple")
+  ) {
+    return "Apple TV+";
+  }
+
+  if (
+    name.includes("movistar")
+  ) {
+    return "Movistar+";
+  }
+
+  if (
+    name.includes("mubi")
+  ) {
+    return "MUBI";
+  }
+
+  if (
+    name.includes("filmin")
+  ) {
+    return "Filmin";
+  }
+
+  if (
+    name.includes("flixole")
+  ) {
+    return "FlixOlé";
+  }
+
+  return providerName.trim();
+}
+
 export interface Recommendation {
   id: number;
-
   title: string;
-
   year: number;
-
   rating: number;
-
   runtime: number;
-
   genres: string[];
-
   overview: string;
-
   poster: string;
-
-   providers: {id: number; name: string; logo: string; }[];
-
+  providers: {
+    id: number;
+    name: string;
+    logo: string;
+  }[];
   director?: string;
-
   cast: string[];
 }
+
 
 export function mapToScoredItem(
   item: TMDBMovie
@@ -93,6 +152,16 @@ export function mapRecommendation(
 ): Recommendation {
   const esProviders =
     providers?.results?.ES?.flatrate ?? [];
+
+
+console.log(
+  "PROVIDERS TMDB:",
+  esProviders.map(p => p.provider_name)
+);
+
+
+
+
 
   const director = credits?.crew.find(
     (person) => person.job === "Director"
@@ -138,28 +207,12 @@ export function mapRecommendation(
       ? `${IMAGE_URL}${item.poster_path}`
       : "/placeholder-poster.jpg",
 
- providers: Array.from(
+providers: Array.from(
   new Map(
     esProviders.map((provider) => {
-      let name = provider.provider_name;
-
-      switch (name) {
-        case "Amazon Prime Video":
-          name = "Prime Video";
-          break;
-
-        case "Apple TV Plus":
-          name = "Apple TV+";
-          break;
-
-        case "Disney Plus":
-          name = "Disney+";
-          break;
-
-        case "MovistarPlus":
-          name = "Movistar+";
-          break;
-      }
+      const name = normalizeProviderName(
+        provider.provider_name
+      );
 
       return [
         name,
@@ -171,7 +224,7 @@ export function mapRecommendation(
       ];
     })
   ).values()
-),
+).slice(0, 3),
 
     director: director?.name,
 
