@@ -10,9 +10,9 @@ import { RecommendationFilters } from "@/lib/recommendation/filters";
 const TOKEN = process.env.TMDB_API_TOKEN!;
 const BASE_URL = process.env.TMDB_BASE_URL!;
 
-// IDs de proveedores: Netflix (8), Prime Video (119), Disney+ (337), Max (1899)
-const STREAMING_PROVIDERS = "8|119|337|1899";
-const WATCH_REGION = "ES"; // Cambia a "US", "MX", etc. según la región objetivo
+// IDs oficiales de TMDB: Netflix (8), Prime Video (119), Disney+ (337), Max (1899 y 384)
+const STREAMING_PROVIDERS = "8|119|337|1899|384";
+const WATCH_REGION = "ES"; // Cambia a "US", "MX", "AR", etc. según tu región objetivo
 
 async function request<T>(
   endpoint: string
@@ -24,9 +24,8 @@ async function request<T>(
         Authorization: `Bearer ${TOKEN}`,
         Accept: "application/json",
       },
-      next: {
-        revalidate: 3600,
-      },
+      // 'no-store' para forzar la actualización limpia sin caché vieja
+      cache: "no-store",
     }
   );
 
@@ -51,16 +50,16 @@ function buildDiscoverQuery(
   params.set("page", page.toString());
   params.set("include_adult", "false");
 
-  // Filtros de calidad y volumen de votos
+  // Filtros de calidad y puntuaciones
   params.set("vote_count.gte", "50");
   params.set("vote_average.gte", "6.0");
 
-  // Restricción estricta a plataformas seleccionadas
+  // Filtro estricto por plataformas en suscripción activa (flatrate)
   params.set("watch_region", WATCH_REGION);
   params.set("with_watch_providers", STREAMING_PROVIDERS);
   params.set("with_watch_monetization_types", "flatrate");
 
-  // Ordenamos por popularidad para equilibrar tendencias/estrenos y clásicos
+  // Orden por popularidad descendente para mezclar estrenos recientes y populares
   params.set("sort_by", "popularity.desc");
 
   const today = new Date()
