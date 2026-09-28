@@ -10,6 +10,10 @@ import { RecommendationFilters } from "@/lib/recommendation/filters";
 const TOKEN = process.env.TMDB_API_TOKEN!;
 const BASE_URL = process.env.TMDB_BASE_URL!;
 
+// IDs de proveedores: Netflix (8), Prime Video (119), Disney+ (337), Max (1899)
+const STREAMING_PROVIDERS = "8|119|337|1899";
+const WATCH_REGION = "ES"; // Cambia a "US", "MX", etc. según la región objetivo
+
 async function request<T>(
   endpoint: string
 ): Promise<T> {
@@ -45,24 +49,19 @@ function buildDiscoverQuery(
 
   params.set("language", "es-ES");
   params.set("page", page.toString());
-
   params.set("include_adult", "false");
 
-  params.set("vote_count.gte", "100");
+  // Filtros de calidad y volumen de votos
+  params.set("vote_count.gte", "50");
+  params.set("vote_average.gte", "6.0");
 
-  params.set("vote_average.gte", "6.5");
+  // Restricción estricta a plataformas seleccionadas
+  params.set("watch_region", WATCH_REGION);
+  params.set("with_watch_providers", STREAMING_PROVIDERS);
+  params.set("with_watch_monetization_types", "flatrate");
 
-  if (filters.releaseAfter) {
-    params.set(
-      "sort_by",
-      "popularity.desc"
-    );
-  } else {
-    params.set(
-      "sort_by",
-      "vote_average.desc"
-    );
-  }
+  // Ordenamos por popularidad para equilibrar tendencias/estrenos y clásicos
+  params.set("sort_by", "popularity.desc");
 
   const today = new Date()
     .toISOString()
@@ -80,14 +79,14 @@ function buildDiscoverQuery(
     );
   }
 
-  if (filters.withGenres.length) {
+  if (filters.withGenres?.length) {
     params.set(
       "with_genres",
       filters.withGenres.join(",")
     );
   }
 
-  if (filters.withoutGenres.length) {
+  if (filters.withoutGenres?.length) {
     params.set(
       "without_genres",
       filters.withoutGenres.join(",")
@@ -122,9 +121,7 @@ function buildDiscoverQuery(
     }
   }
 
-  const query = params.toString();
-
-  return query;
+  return params.toString();
 }
 
 export async function discoverMovies(
