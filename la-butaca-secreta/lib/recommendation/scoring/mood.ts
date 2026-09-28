@@ -1,6 +1,9 @@
 import { MoodGenres } from "../genres";
 
-import { ScoreContext, ScoredItem } from "./types";
+import {
+  ScoreContext,
+  ScoredItem,
+} from "./types";
 
 export function scoreMood(
   item: ScoredItem,
@@ -23,50 +26,32 @@ export function scoreMood(
 
   let score = 0;
 
-  const primaryGenre =
-    config.genres[0];
-
-  // Género principal
+  // Género principal asociado al mood
+  const primaryGenre = config.genres[0];
 
   if (
     primaryGenre &&
-    item.genres.includes(
-      primaryGenre
-    )
+    item.genres.includes(primaryGenre)
   ) {
-    score += 50;
+    score += 30;
   }
 
   // Géneros secundarios
-
   config.genres
     .slice(1)
     .forEach((genre) => {
-      if (
-        item.genres.includes(
-          genre
-        )
-      ) {
-        score += 10;
+      if (item.genres.includes(genre)) {
+        score += 8;
       }
     });
 
-  // Penalizaciones
-
-  if (
-    config.excludedGenres
-  ) {
-    config.excludedGenres.forEach(
-      (genre) => {
-        if (
-          item.genres.includes(
-            genre
-          )
-        ) {
-          score -= 25;
-        }
+  // Penalizaciones del mood
+  if (config.excludedGenres) {
+    config.excludedGenres.forEach((genre) => {
+      if (item.genres.includes(genre)) {
+        score -= 20;
       }
-    );
+    });
   }
 
   return score;

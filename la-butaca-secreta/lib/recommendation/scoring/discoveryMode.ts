@@ -1,4 +1,7 @@
-import { ScoreContext, ScoredItem } from "./types";
+import {
+  ScoreContext,
+  ScoredItem,
+} from "./types";
 
 export function scoreDiscoveryMode(
   item: ScoredItem,
@@ -13,6 +16,7 @@ export function scoreDiscoveryMode(
 
   switch (mode) {
     case "impact":
+      // Busca títulos especialmente bien valorados.
       if (item.voteAverage >= 8.5) {
         return 40;
       }
@@ -22,50 +26,39 @@ export function scoreDiscoveryMode(
       }
 
       if (item.voteAverage >= 7.5) {
-        return 20;
+        return 15;
       }
 
       return 0;
 
-    case "relax": {
-  let score = 0;
+    case "relax":
+      // Experiencia ligera y fácil de consumir.
+      if (item.genres.includes(35)) {
+        return 20;
+      }
 
-  // Entretenidas
+      if (item.genres.includes(12)) {
+        return 10;
+      }
 
-  if (item.genres.includes(35)) {
-    score += 25;
-  }
+      if (item.genres.includes(28)) {
+        return 5;
+      }
 
-  if (item.genres.includes(28)) {
-    score += 20;
-  }
+      // Penalizamos experiencias más densas.
+      if (item.genres.includes(18)) {
+        return -10;
+      }
 
-  if (item.genres.includes(12)) {
-    score += 15;
-  }
+      if (item.genres.includes(9648)) {
+        return -8;
+      }
 
-  if (item.genres.includes(878)) {
-    score += 10;
-  }
+      if (item.genres.includes(27)) {
+        return -15;
+      }
 
-  // Ya no premiamos Familia
-
-  // Géneros más densos
-
-  if (item.genres.includes(18)) {
-    score -= 15;
-  }
-
-  if (item.genres.includes(9648)) {
-    score -= 10;
-  }
-
-  if (item.genres.includes(27)) {
-    score -= 25;
-  }
-
-  return score;
-}
+      return 0;
 
     case "hidden-gem":
       if (
@@ -73,15 +66,15 @@ export function scoreDiscoveryMode(
         item.voteCount >= 100 &&
         item.voteCount <= 5000
       ) {
-        return 45;
+        return 40;
       }
 
       return 0;
 
     case "surprise":
-      return Math.floor(
-        Math.random() * 40
-      );
+      // No queremos que la aleatoriedad destruya
+      // la relevancia del resto del scoring.
+      return Math.floor(Math.random() * 15);
 
     default:
       return 0;

@@ -51,15 +51,21 @@ export function scoreGenre(
 
   let score = 0;
 
-  targetGenres.forEach((genreId) => {
-    if (
-      item.genres.includes(
-        genreId
-      )
-    ) {
-      score += 10;
+  targetGenres.forEach(
+    (genreId, index) => {
+      if (!item.genres.includes(genreId)) {
+        return;
+      }
+
+      // Primera coincidencia = género principal
+      if (index === 0) {
+        score += 35;
+      } else {
+        // Coincidencias relacionadas
+        score += 8;
+      }
     }
-  });
+  );
 
   return score;
 }

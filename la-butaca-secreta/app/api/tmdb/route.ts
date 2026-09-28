@@ -20,12 +20,14 @@ import {
   mapToScoredItem,
 } from "@/lib/tmdb/mapper";
 
+// IDs permitidos estrictamente: Netflix (8), Prime (119), Disney+ (337), Max (1899, 384)
+const ALLOWED_PROVIDER_IDS = [8, 119, 337, 1899, 384];
+
 export async function GET(request: NextRequest) {
   try {
     const params = request.nextUrl.searchParams;
 
     const profile: UserProfile = {
-      
       contentType:
         params.get("type") === "tv"
           ? "tv"
@@ -62,73 +64,68 @@ export async function GET(request: NextRequest) {
         ?.split(",")
         .filter(Boolean),
     };
-console.log(profile);
+
+    console.log(profile);
+
     const engine =
       new RecommendationEngine(profile);
 
     const filters = engine.build();
 
-async function fetchPages(
-  currentFilters: typeof filters
-) {
-  return Promise.all(
-    [1, 2, 3, 4, 5, 6, 7].map((page) =>
-      currentFilters.type === "movie"
-        ? discoverMovies(
-            currentFilters,
-            page
-          )
-        : discoverTV(
-            currentFilters,
-            page
-          )
-    )
-  );
-}
+    async function fetchPages(
+      currentFilters: typeof filters
+    ) {
+      return Promise.all(
+        [1, 2, 3, 4, 5, 6, 7].map((page) =>
+          currentFilters.type === "movie"
+            ? discoverMovies(
+                currentFilters,
+                page
+              )
+            : discoverTV(
+                currentFilters,
+                page
+              )
+        )
+      );
+    }
 
-let pages = await fetchPages(
-  filters
-);
+    let pages = await fetchPages(
+      filters
+    );
 
-let items = pages.flatMap(
-  (page) => page.results
-);
+    let items = pages.flatMap(
+      (page) => page.results
+    );
 
-// Ampliar automáticamente el rango temporal
-// si hay pocos resultados
+    // Ampliar automáticamente el rango temporal si hay pocos resultados
+    if (
+      items.length < 30 &&
+      filters.releaseAfter === "2022-01-01"
+    ) {
+      pages = await fetchPages({
+        ...filters,
+        releaseAfter: "2020-01-01",
+      });
 
-if (
-  items.length < 30 &&
-  filters.releaseAfter ===
-    "2022-01-01"
-) {
-  pages = await fetchPages({
-    ...filters,
-    releaseAfter:
-      "2020-01-01",
-  });
+      items = pages.flatMap(
+        (page) => page.results
+      );
+    }
 
-  items = pages.flatMap(
-    (page) => page.results
-  );
-}
+    if (
+      items.length < 30 &&
+      filters.releaseAfter === "2022-01-01"
+    ) {
+      pages = await fetchPages({
+        ...filters,
+        releaseAfter: "2018-01-01",
+      });
 
-if (
-  items.length < 30 &&
-  filters.releaseAfter ===
-    "2022-01-01"
-) {
-  pages = await fetchPages({
-    ...filters,
-    releaseAfter:
-      "2018-01-01",
-  });
-
-  items = pages.flatMap(
-    (page) => page.results
-  );
-}
-
+      items = pages.flatMap(
+        (page) => page.results
+      );
+    }
 
     const uniqueItems = Array.from(
       new Map(
@@ -139,11 +136,7 @@ if (
       ).values()
     );
 
-
-
-console.log("Unique:", uniqueItems.length);
-
-
+    console.log("Unique:", uniqueItems.length);
 
     const scored = sortByScore(
       uniqueItems.map(mapToScoredItem),
@@ -202,24 +195,23 @@ console.log("Unique:", uniqueItems.length);
       })
     );
 
+    // FILTRO ESTRICTO: Solo permite elementos que estén disponibles en Netflix, Prime, Disney+ o Max
     const finalPool = enriched.filter(
       (item) => {
         const providers =
           item.providers.results?.ES?.flatrate;
 
-        return (
-          Array.isArray(providers) &&
-          providers.length > 0
+        if (!Array.isArray(providers) || providers.length === 0) {
+          return false;
+        }
+
+        return providers.some((p) =>
+          ALLOWED_PROVIDER_IDS.includes(p.provider_id)
         );
       }
     );
 
-
-
-console.log("FinalPool:", finalPool.length);
-
-
-
+    console.log("FinalPool:", finalPool.length);
 
     if (finalPool.length === 0) {
       return NextResponse.json([]);
@@ -263,73 +255,51 @@ console.log("FinalPool:", finalPool.length);
       }
     );
 
+    console.log("Rescored:", rescored.length);
 
-
-
-console.log("Rescored:", rescored.length);
-
-
-
-
-
-const selected = diversify(
-  rescored,
-  12
-);
-
-
-
-console.log("Selected:", selected.length);
-
-
-
-
-
-const recommendations =
-  selected.map((item) => {
-    const data = finalPool.find(
-      (entry) =>
-        entry.movie.id === item.id
-    )!;
-
-
-
-console.log(
-  data.providers.results?.ES?.flatrate?.map(p => ({
-    id: p.provider_id,
-    name: p.provider_name
-  }))
-);
-
-
-
-
-    return mapRecommendation(
-      data.movie,
-      data.details,
-      data.providers,
-      data.credits
-    );
-  });
-
-if (recommendations.length === 0) {
-  const fallback = finalPool
-    .slice(0, 12)
-    .map((data) =>
-      mapRecommendation(
-        data.movie,
-        data.details,
-        data.providers,
-        data.credits
-      )
+    const selected = diversify(
+      rescored,
+      12
     );
 
-  return NextResponse.json(fallback);
-}
+    console.log("Selected:", selected.length);
 
-return NextResponse.json(
-  recommendations
-);
+    let recommendations =
+      selected.map((item) => {
+        const data = finalPool.find(
+          (entry) =>
+            entry.movie.id === item.id
+        )!;
+
+        return mapRecommendation(
+          data.movie,
+          data.details,
+          data.providers,
+          data.credits
+        );
+      });
+
+    // Fallback en caso de que la diversificación no devuelva elementos
+    if (recommendations.length === 0) {
+      recommendations = finalPool
+        .slice(0, 12)
+        .map((data) =>
+          mapRecommendation(
+            data.movie,
+            data.details,
+            data.providers,
+            data.credits
+          )
+        );
+    }
+
+    // AJUSTE A MÚLTIPLOS DE 3: Recorta el array para que la longitud sea 3, 6, 9 o 12
+    const remainder = recommendations.length % 3;
+    if (remainder !== 0) {
+      recommendations = recommendations.slice(0, recommendations.length - remainder);
+    }
+
+    return NextResponse.json(recommendations);
   } catch (error) {
     console.error(error);
 

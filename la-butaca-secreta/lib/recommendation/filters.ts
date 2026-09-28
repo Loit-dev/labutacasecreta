@@ -17,6 +17,27 @@ export interface RecommendationFilters {
   releaseBefore?: string;
 }
 
+const PreferredGenreMap: Record<
+  string,
+  number[]
+> = {
+  scifi: [878],
+
+  action: [28],
+
+  thriller: [53],
+
+  comedy: [35],
+
+  horror: [27],
+
+  drama: [18],
+
+  romance: [10749],
+
+  adventure: [12],
+};
+
 export function buildFilters(
   profile: UserProfile
 ): RecommendationFilters {
@@ -29,7 +50,28 @@ export function buildFilters(
   };
 
   // ============================
+  // Género elegido por el usuario
+  // ============================
+
+  if (profile.preferredGenre) {
+    const genres =
+      PreferredGenreMap[
+        profile.preferredGenre
+      ];
+
+    if (genres) {
+      filters.withGenres.push(
+        ...genres
+      );
+    }
+  }
+
+  // ============================
   // Estado de ánimo
+  //
+  // El mood NO filtra.
+  // El scoring decide qué títulos
+  // encajan mejor con la sensación.
   // ============================
 
   if (profile.mood) {
@@ -38,32 +80,10 @@ export function buildFilters(
         profile.mood as keyof typeof MoodGenres
       ];
 
-    if (mood) {
-      // Estos moods representan
-      // una sensación más que un género.
-      // Dejamos que el scoring decida.
-
-      const scoringOnlyMoods = [
-        "laugh",
-        "adventure",
-      ];
-
-      if (
-        !scoringOnlyMoods.includes(
-          profile.mood
-        ) &&
-        mood.genres.length > 0
-      ) {
-        filters.withGenres.push(
-          mood.genres[0]
-        );
-      }
-
-      if (mood.excludedGenres) {
-        filters.withoutGenres.push(
-          ...mood.excludedGenres
-        );
-      }
+    if (mood?.excludedGenres) {
+      filters.withoutGenres.push(
+        ...mood.excludedGenres
+      );
     }
   }
 
@@ -71,15 +91,6 @@ export function buildFilters(
   // Compañía
   // Se gestiona mediante scoring
   // ============================
-
-  switch (profile.company) {
-    case "alone":
-    case "partner":
-    case "friends":
-    case "family":
-    default:
-      break;
-  }
 
   // ============================
   // Animación
@@ -136,27 +147,19 @@ export function buildFilters(
     (restriction) => {
       switch (restriction) {
         case "terror":
-          filters.withoutGenres.push(
-            27
-          );
+          filters.withoutGenres.push(27);
           break;
 
         case "romance":
-          filters.withoutGenres.push(
-            10749
-          );
+          filters.withoutGenres.push(10749);
           break;
 
         case "musical":
-          filters.withoutGenres.push(
-            10402
-          );
+          filters.withoutGenres.push(10402);
           break;
 
         case "documentary":
-          filters.withoutGenres.push(
-            99
-          );
+          filters.withoutGenres.push(99);
           break;
 
         case "violence":
@@ -174,6 +177,10 @@ export function buildFilters(
     }
   );
 
+  // ============================
+  // Limpiar duplicados
+  // ============================
+
   filters.withGenres = [
     ...new Set(filters.withGenres),
   ];
@@ -182,6 +189,8 @@ export function buildFilters(
     ...new Set(filters.withoutGenres),
   ];
 
+  // Una exclusión nunca puede ganar
+  // a una selección explícita.
   filters.withoutGenres =
     filters.withoutGenres.filter(
       (id) =>

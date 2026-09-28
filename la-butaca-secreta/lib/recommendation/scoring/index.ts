@@ -15,76 +15,43 @@ export function scoreItem(
 ): number {
   let score = 0;
 
-  // Estado de ánimo
-  // Sigue siendo lo más importante,
-  // pero sin aplastar el resto.
+  /**
+   * PESOS DEL MOTOR
+   *
+   * La idea es que las respuestas del usuario
+   * tengan mucho más peso que la popularidad
+   * general de TMDB.
+   */
 
-  score +=
-    scoreMood(
-      item,
-      context
-    ) * 2;
+  // 😊 Estado de ánimo
+  score += scoreMood(item, context) * 2;
 
-    score +=
-  scoreGenre(
-    item,
-    context
-  ) * 2;
-  // Qué busca hoy
+  // 🎭 Género/preferencia explícita
+  score += scoreGenre(item, context) * 3;
 
-  score +=
-    scoreDiscoveryMode(
-      item,
-      context
-    ) * 3;
+  // 🧠 Qué busca hoy
+  score += scoreDiscoveryMode(item, context) * 2;
 
-  // Con quién lo ve
+  // ❤️ Con quién lo ve
+  score += scoreCompany(item, context) * 2;
 
-  score +=
-    scoreCompany(
-      item,
-      context
-    ) * 2;
+  // 👥 Público objetivo
+  score += scoreAudience(item, context);
 
-  // Público objetivo
+  // 📺 Servicios disponibles
+  score += scoreProviders(item, context);
 
-  score +=
-    scoreAudience(
-      item,
-      context
-    );
+  // ⏱️ Duración
+  score += scoreDuration(item, context);
 
-  // Servicios de streaming
+  // ⭐ Nuevo / clásico
+  score += scoreFreshness(item, context) * 2;
 
-  score +=
-    scoreProviders(
-      item,
-      context
-    );
-
-  // Duración
-
-  score +=
-    scoreDuration(
-      item,
-      context
-    );
-
-  // Nuevo o clásico
-
-  score +=
-    scoreFreshness(
-      item,
-      context
-    ) * 2;
-
-  // Calidad general
-
-  score +=
-    scorePopularity(
-      item,
-      context
-    );
+  // 📈 Calidad/popularidad general
+  // Tiene peso deliberadamente bajo:
+  // una película popular no debe ganar simplemente
+  // por ser popular si encaja peor con el usuario.
+  score += scorePopularity(item, context);
 
   return score;
 }
@@ -96,12 +63,7 @@ export function sortByScore(
   return items
     .map((item) => ({
       ...item,
-      score: scoreItem(
-        item,
-        context
-      ),
+      score: scoreItem(item, context),
     }))
-    .sort(
-      (a, b) => b.score - a.score
-    );
+    .sort((a, b) => b.score - a.score);
 }
