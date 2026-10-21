@@ -16,6 +16,10 @@ export function scorePopularity(
     score += 10;
   } else if (item.voteAverage >= 7) {
     score += 5;
+  } else if (item.voteAverage < 6.5) {
+    // Notas flojas: TMDb deja pasar desde 6.0 y no queremos que
+    // un 6.1 empate con un 6.9 solo por encajar un poco mejor.
+    score -= 10;
   }
 
   // Confianza en la nota

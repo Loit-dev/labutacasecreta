@@ -1,6 +1,5 @@
 import { ConversationNode } from "@/lib/conversation/types";
 import AnswerButton from "./AnswerButton";
-import { useEffect, useRef } from "react";
 
 type Props = {
   question: ConversationNode | null;

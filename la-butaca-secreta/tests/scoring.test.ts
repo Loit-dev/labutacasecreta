@@ -206,3 +206,13 @@ describe("scoreFeedback (aprender de lo rechazado)", () => {
     );
   });
 });
+
+describe("calidad", () => {
+  test("una nota floja puntúa menos que una aceptable", () => {
+    const ctx = { profile: {} };
+    const flojo = sortByScore([make({ id: 1, voteAverage: 6.1 })], ctx)[0];
+    const bueno = sortByScore([make({ id: 2, voteAverage: 6.9 })], ctx)[0];
+
+    assert.ok(bueno.score > flojo.score);
+  });
+});
