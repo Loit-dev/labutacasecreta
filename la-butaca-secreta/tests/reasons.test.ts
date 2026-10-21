@@ -87,4 +87,23 @@ describe("buildRecommendationReason", () => {
       1
     );
   });
+
+  test("«infantil y familiar» dice que es apta para familia, aunque vayan en pareja", () => {
+    const reason = buildRecommendationReason(
+      { preferredGenre: "family", company: "partner" },
+      item([16, 10751, 35])
+    );
+
+    assert.ok(reason.includes("en familia"), reason);
+    assert.ok(!reason.includes("en pareja"), reason);
+  });
+
+  test("en pareja normal sigue diciendo que va bien en pareja", () => {
+    const reason = buildRecommendationReason(
+      { preferredGenre: "comedy", company: "partner" },
+      item([35, 10749])
+    );
+
+    assert.ok(reason.includes("en pareja"), reason);
+  });
 });

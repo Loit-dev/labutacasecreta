@@ -1,4 +1,5 @@
 import { UserProfile } from "@/lib/conversation/types";
+import { effectiveCompany } from "./scoring/company";
 
 /**
  * Explica de forma sencilla por qué se recomienda un título
@@ -113,8 +114,11 @@ export function buildRecommendationReason(
     reasons.push(mood.text);
   }
 
-  const company = profile.company
-    ? COMPANY_REASONS[profile.company]
+  // Quien pide «infantil y familiar» lo ve con niños, vaya con quien vaya
+  const withWhom = effectiveCompany(profile);
+
+  const company = withWhom
+    ? COMPANY_REASONS[withWhom]
     : undefined;
 
   if (

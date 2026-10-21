@@ -151,6 +151,39 @@ describe("buildTrios", () => {
   });
 });
 
+describe("variedad de épocas", () => {
+  test("las dos principales de una tanda son de épocas distintas si se puede", () => {
+    const [first, second] = buildTrios(
+      [
+        item(1, [18], 8, 20000, 1972, 100),
+        item(2, [35], 7.9, 20000, 1975, 95),
+        item(3, [53], 7.8, 20000, 2021, 90),
+        item(4, [28], 7.7, 20000, 1960, 80),
+        item(5, [12], 7.6, 20000, 1990, 70),
+      ],
+      1
+    );
+
+    assert.equal(first.item.id, 1);
+    assert.equal(second.item.id, 3);
+  });
+
+  test("si todas son de la misma época, no se queda sin segunda principal", () => {
+    const [first, second] = buildTrios(
+      [
+        item(1, [18], 8, 20000, 1972, 100),
+        item(2, [35], 7.9, 20000, 1975, 95),
+        item(3, [53], 7.8, 20000, 1978, 90),
+        item(4, [28], 7.7, 20000, 1971, 80),
+      ],
+      1
+    );
+
+    assert.equal(first.item.id, 1);
+    assert.equal(second.item.id, 2);
+  });
+});
+
 describe("buildSurpriseReason", () => {
   test("empieza por «Mi sorpresa» y cuenta algo verificable", () => {
     const [, , surprise] = buildTrios(
@@ -167,5 +200,36 @@ describe("buildSurpriseReason", () => {
     assert.ok(reason.startsWith("Mi sorpresa:"));
     assert.ok(reason.includes("7.9"));
     assert.ok(reason.includes("thriller"));
+  });
+
+  test("una sorpresa reciente no «viene de otra época»", () => {
+    const [, , surprise] = buildTrios(
+      [
+        item(1, [28], 7.5, 20000, 1993, 100),
+        item(2, [28], 7.2, 15000, 2008, 95),
+        item(3, [28], 8.3, 800, 2026, 50),
+      ],
+      1
+    );
+
+    const reason = buildSurpriseReason(surprise);
+
+    assert.ok(!reason.includes("otra época"), reason);
+    assert.ok(reason.includes("más reciente (2026)"), reason);
+  });
+
+  test("una sorpresa antigua sí viene de otra época", () => {
+    const [, , surprise] = buildTrios(
+      [
+        item(1, [28], 7.5, 20000, 2021, 100),
+        item(2, [28], 7.2, 15000, 2019, 95),
+        item(3, [28], 7.9, 800, 1954, 50),
+      ],
+      1
+    );
+
+    assert.ok(
+      buildSurpriseReason(surprise).includes("otra época (1954)")
+    );
   });
 });

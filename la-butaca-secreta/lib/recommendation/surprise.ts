@@ -22,6 +22,8 @@ export interface TrioEntry {
   // Solo en sorpresas: qué la hace distinta (nombres de género)
   newGenres?: string[];
   differentEra?: boolean;
+  // Si es de una época distinta: ¿más reciente que las otras dos?
+  newer?: boolean;
 }
 
 // Una sorpresa debe tener buena nota...
@@ -71,7 +73,21 @@ function novelty(
       );
     });
 
-  return { newGenres, differentEra };
+  // ¿Más reciente que las recomendaciones principales?
+  const candidateYear = yearOf(candidate);
+
+  const mainYears = mains
+    .map(yearOf)
+    .filter((year): year is number => year !== undefined);
+
+  const newer =
+    candidateYear !== undefined &&
+    mainYears.length > 0 &&
+    candidateYear >
+      mainYears.reduce((sum, year) => sum + year, 0) /
+        mainYears.length;
+
+  return { newGenres, differentEra, newer };
 }
 
 function surpriseScore(
@@ -134,7 +150,8 @@ function sameGenres(a: ScoredItem, b: ScoredItem) {
 /**
  * Principales: siempre los que mejor encajan, en orden. Solo evitamos
  * que los dos de una misma tanda tengan exactamente los mismos géneros
- * ("nunca mostrar recomendaciones casi idénticas").
+ * ("nunca mostrar recomendaciones casi idénticas") y, si se puede, que
+ * sean de épocas distintas (no dos clásicos de los años 70 seguidos).
  */
 function pickMains(
   ranked: ScoredItem[],
@@ -152,12 +169,20 @@ function pickMains(
 
     // El segundo de la tanda: el primero (entre los 5 siguientes)
     // que no repita los mismos géneros que el primero.
-    const index = pool
-      .slice(0, 5)
-      .findIndex(
-        (candidate) =>
-          !sameGenres(candidate, first)
-      );
+    const nearby = pool.slice(0, 5);
+
+    const different = nearby.filter(
+      (candidate) => !sameGenres(candidate, first)
+    );
+
+    // Primero se busca uno de otra década; si no hay, vale uno distinto
+    const otherEra = different.find(
+      (candidate) => decadeOf(candidate) !== decadeOf(first)
+    );
+
+    const chosen = otherEra ?? different[0];
+
+    const index = chosen ? nearby.indexOf(chosen) : -1;
 
     const [second] = pool.splice(
       index === -1 ? 0 : index,
@@ -219,7 +244,7 @@ export function buildTrios(
     if (surprise) {
       rest.splice(rest.indexOf(surprise), 1);
 
-      const { newGenres, differentEra } =
+      const { newGenres, differentEra, newer } =
         novelty(surprise, mains);
 
       result.push({
@@ -229,6 +254,7 @@ export function buildTrios(
           .map((id) => GenreNames[id])
           .filter(Boolean),
         differentEra,
+        newer,
       });
     }
   }
@@ -243,8 +269,12 @@ export function buildTrios(
 export function buildSurpriseReason(
   entry: TrioEntry
 ): string {
-  const { item, newGenres = [], differentEra } =
-    entry;
+  const {
+    item,
+    newGenres = [],
+    differentEra,
+    newer,
+  } = entry;
 
   const parts: string[] = [];
 
@@ -259,7 +289,12 @@ export function buildSurpriseReason(
     const year = yearOf(item);
 
     if (year) {
-      parts.push(`viene de otra época (${year})`);
+      // «Otra época» solo tiene sentido hacia el pasado
+      parts.push(
+        newer
+          ? `es bastante más reciente (${year})`
+          : `viene de otra época (${year})`
+      );
     }
   }
 
