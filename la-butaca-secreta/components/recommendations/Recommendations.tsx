@@ -16,6 +16,7 @@ type Recommendation = {
   overview: string;
   poster: string;
   providers: { name: string; logo: string;}[];
+  reason?: string;
 };
 
 type Props = {
@@ -101,6 +102,9 @@ export default function Recommendations({
   };
 
   useEffect(() => {
+    // Evita respuestas duplicadas o desordenadas (p. ej. React StrictMode en desarrollo)
+    const controller = new AbortController();
+
     async function load() {
       try {
         setLoading(true);
@@ -188,7 +192,8 @@ if (profile.preferredGenre) {
 
         const response =
           await fetch(
-            `/api/tmdb?${params.toString()}`
+            `/api/tmdb?${params.toString()}`,
+            { signal: controller.signal }
           );
 
         if (!response.ok) {
@@ -201,18 +206,31 @@ if (profile.preferredGenre) {
           await response.json();
 
         setMovies(data);
+        setPage(0);
+        setActiveIndex(0);
       } catch (err) {
+        if (
+          err instanceof DOMException &&
+          err.name === "AbortError"
+        ) {
+          return;
+        }
+
         console.error(err);
 
         setError(
           "No se pudieron cargar las recomendaciones."
         );
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       }
     }
 
     load();
+
+    return () => controller.abort();
   }, [profile]);
 
   if (loading) {
@@ -227,6 +245,16 @@ if (profile.preferredGenre) {
     return (
       <p className="text-center text-red-400">
         {error}
+      </p>
+    );
+  }
+
+  if (movies.length === 0) {
+    return (
+      <p className="text-center text-zinc-300">
+        😕 No he encontrado nada que encaje con todo
+        lo que me has contado. Prueba a recargar y
+        responder distinto: seguro que hay algo para ti.
       </p>
     );
   }
@@ -308,6 +336,9 @@ if (profile.preferredGenre) {
               providers={
                 visibleMovies[activeIndex].providers
               }
+              reason={
+                visibleMovies[activeIndex].reason
+              }
             />
 
             <button
@@ -365,6 +396,7 @@ if (profile.preferredGenre) {
               overview={movie.overview}
               poster={movie.poster}
               providers={movie.providers}
+              reason={movie.reason}
             />
           )
         )}

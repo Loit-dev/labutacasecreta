@@ -56,6 +56,9 @@ export interface TMDBMovieDetails {
   status?: string;
 
   tagline?: string;
+
+  // Solo series: creadores (las series no suelen tener "Director")
+  created_by?: { id: number; name: string }[];
 }
 
 export interface TMDBProvider {
@@ -63,7 +66,7 @@ export interface TMDBProvider {
 
   provider_name: string;
 
-  logo_path: string;
+  logo_path: string | null;
 }
 
 export interface TMDBCountryProviders {
@@ -111,4 +114,15 @@ export interface TMDBCredits {
   cast: TMDBCastMember[];
 
   crew: TMDBCrewMember[];
+}
+
+/**
+ * Respuesta de /movie/{id} o /tv/{id} usando
+ * append_to_response=credits,watch/providers
+ * (una sola llamada en lugar de tres).
+ */
+export interface TMDBFullDetails extends TMDBMovieDetails {
+  credits: TMDBCredits;
+
+  "watch/providers": TMDBWatchProviders;
 }

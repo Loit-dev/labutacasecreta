@@ -7,7 +7,20 @@ import {
   TMDBWatchProviders,
 } from "./types";
 
-const IMAGE_URL = process.env.TMDB_IMAGE_URL!;
+const IMAGE_URL =
+  process.env.TMDB_IMAGE_URL ??
+  "https://image.tmdb.org/t/p/w500";
+
+const PLACEHOLDER_POSTER = "/placeholder-poster.svg";
+
+// Plataformas principales primero, para que no queden fuera
+// al mostrar solo los 3 primeros logos.
+const PROVIDER_PRIORITY = [
+  "Netflix",
+  "Prime Video",
+  "Disney+",
+  "Max",
+];
 
 const GENRES: Record<number, string> = {
   12: "Aventura",
@@ -89,13 +102,20 @@ function normalizeProviderName(providerName: string) {
   ) {
     return "FlixOlé";
   }
-  if (
-  name.includes("Crunchyroll")
-) {
-  return "Crunchyroll";
-}
+
+  if (name.includes("crunchyroll")) {
+    return "Crunchyroll";
+  }
 
   return providerName.trim();
+}
+
+function priorityOf(name: string) {
+  const index = PROVIDER_PRIORITY.indexOf(name);
+
+  return index === -1
+    ? PROVIDER_PRIORITY.length
+    : index;
 }
 
 export interface Recommendation {
@@ -114,6 +134,7 @@ export interface Recommendation {
   }[];
   director?: string;
   cast: string[];
+  reason?: string;
 }
 
 
@@ -155,22 +176,17 @@ export function mapRecommendation(
   providers?: TMDBWatchProviders,
   credits?: TMDBCredits
 ): Recommendation {
-  const esProviders =
-    providers?.results?.ES?.flatrate ?? [];
+  // Sin logo no podemos pintar el proveedor, así que se descarta
+  const esProviders = (
+    providers?.results?.ES?.flatrate ?? []
+  ).filter((provider) => provider.logo_path);
 
-
-console.log(
-  "PROVIDERS TMDB:",
-  esProviders.map(p => p.provider_name)
-);
-
-
-
-
-
-  const director = credits?.crew.find(
-    (person) => person.job === "Director"
-  );
+  const director =
+    credits?.crew.find(
+      (person) => person.job === "Director"
+    )?.name ??
+    // Las series no suelen tener "Director": usamos el creador
+    details?.created_by?.[0]?.name;
 
   return {
     id: item.id,
@@ -210,28 +226,34 @@ console.log(
 
     poster: item.poster_path
       ? `${IMAGE_URL}${item.poster_path}`
-      : "/placeholder-poster.jpg",
+      : PLACEHOLDER_POSTER,
 
-providers: Array.from(
-  new Map(
-    esProviders.map((provider) => {
-      const name = normalizeProviderName(
-        provider.provider_name
-      );
+    providers: Array.from(
+      new Map(
+        esProviders.map((provider) => {
+          const name = normalizeProviderName(
+            provider.provider_name
+          );
 
-      return [
-        name,
-        {
-          id: provider.provider_id,
-          name,
-          logo: `${IMAGE_URL}${provider.logo_path}`,
-        },
-      ];
-    })
-  ).values()
-).slice(0, 3),
+          return [
+            name,
+            {
+              id: provider.provider_id,
+              name,
+              logo: `${IMAGE_URL}${provider.logo_path}`,
+            },
+          ];
+        })
+      ).values()
+    )
+      .sort(
+        (a, b) =>
+          priorityOf(a.name) -
+          priorityOf(b.name)
+      )
+      .slice(0, 3),
 
-    director: director?.name,
+    director,
 
     cast:
       credits?.cast
