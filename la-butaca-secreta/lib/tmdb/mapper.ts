@@ -128,7 +128,14 @@ export interface Recommendation {
   genres: string[];
   overview: string;
   poster: string;
+  // Los 3 primeros (para el póster de la tarjeta)
   providers: {
+    id: number;
+    name: string;
+    logo: string;
+  }[];
+  // Todas las plataformas de suscripción en España (para los detalles)
+  platforms: {
     id: number;
     name: string;
     logo: string;
@@ -213,6 +220,28 @@ export function mapRecommendation(
     // Las series no suelen tener "Director": usamos el creador
     details?.created_by?.[0]?.name;
 
+  const platforms = Array.from(
+    new Map(
+      esProviders.map((provider) => {
+        const name = normalizeProviderName(
+          provider.provider_name
+        );
+
+        return [
+          name,
+          {
+            id: provider.provider_id,
+            name,
+            logo: `${IMAGE_URL}${provider.logo_path}`,
+          },
+        ];
+      })
+    ).values()
+  ).sort(
+    (a, b) =>
+      priorityOf(a.name) - priorityOf(b.name)
+  );
+
   return {
     id: item.id,
 
@@ -253,30 +282,9 @@ export function mapRecommendation(
       ? `${IMAGE_URL}${item.poster_path}`
       : PLACEHOLDER_POSTER,
 
-    providers: Array.from(
-      new Map(
-        esProviders.map((provider) => {
-          const name = normalizeProviderName(
-            provider.provider_name
-          );
+    providers: platforms.slice(0, 3),
 
-          return [
-            name,
-            {
-              id: provider.provider_id,
-              name,
-              logo: `${IMAGE_URL}${provider.logo_path}`,
-            },
-          ];
-        })
-      ).values()
-    )
-      .sort(
-        (a, b) =>
-          priorityOf(a.name) -
-          priorityOf(b.name)
-      )
-      .slice(0, 3),
+    platforms,
 
     director,
 
