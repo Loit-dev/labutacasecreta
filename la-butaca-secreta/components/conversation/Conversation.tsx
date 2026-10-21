@@ -33,25 +33,15 @@ export default function Conversation() {
   };
 
   if (finished) {
-    const timer1 = setTimeout(
+    // Solo una vez, para ver el "Buscando…". Cuando llegan los
+    // resultados, Recommendations se encarga de bajar hasta ellos.
+    const timer = setTimeout(
       scrollToBottom,
       500
     );
 
-    const timer2 = setTimeout(
-      scrollToBottom,
-      1500
-    );
-
-    const timer3 = setTimeout(
-      scrollToBottom,
-      2500
-    );
-
     return () => {
-      clearTimeout(timer1);
-      clearTimeout(timer2);
-      clearTimeout(timer3);
+      clearTimeout(timer);
     };
   }
 

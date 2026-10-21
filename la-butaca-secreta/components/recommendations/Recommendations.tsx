@@ -1,6 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 import RecommendationCard from "./RecommendationCard";
 
@@ -246,6 +251,33 @@ if (profile.preferredGenre) {
     return () => controller.abort();
   }, [profile, attempt]);
 
+  // Al terminar de cargar, bajamos hasta los resultados para que se vean
+  // sin tener que hacer scroll. Si caben en pantalla, se alinean por abajo;
+  // si son más altos que la pantalla, se muestra desde el principio.
+  const sectionRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (loading || movies.length === 0) return;
+
+    // Pequeña espera para que el diseño termine de colocarse
+    const timer = window.setTimeout(() => {
+      const section = sectionRef.current;
+
+      if (!section) return;
+
+      const fits =
+        section.getBoundingClientRect().height <=
+        window.innerHeight - 32;
+
+      section.scrollIntoView({
+        behavior: "smooth",
+        block: fits ? "end" : "start",
+      });
+    }, 150);
+
+    return () => window.clearTimeout(timer);
+  }, [loading, movies]);
+
   if (loading) {
     return (
       <p className="text-center text-zinc-400">
@@ -307,7 +339,11 @@ if (profile.preferredGenre) {
   ];
 
   return (
-    <section  id="recommendations"  className="space-y-8">
+    <section
+      ref={sectionRef}
+      id="recommendations"
+      className="scroll-mt-4 scroll-mb-4 space-y-8"
+    >
       <div className="text-center">
         <h1 className="text-2xl font-bold text-white md:text-3xl">
           🎬 Creo que estas tres pueden ser justo lo que buscas.
