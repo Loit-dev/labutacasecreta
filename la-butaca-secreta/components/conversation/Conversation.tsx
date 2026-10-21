@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 import GroupQuiz from "@/components/group/GroupQuiz";
 import PosterWall from "@/components/layout/PosterWall";
-import CalendarButton from "@/components/calendar/CalendarButton";
+import CalendarView from "@/components/calendar/CalendarView";
 import MyListButton from "@/components/list/MyListButton";
 import { track } from "@/lib/analytics";
 import {
@@ -21,6 +21,14 @@ import SoloChat from "./SoloChat";
 
 export default function Conversation() {
   const [mode, setMode] = useState<Mode | null>(null);
+
+  // Pestañas: el Recomendador no se desmonta al ir al Calendario, así
+  // que al volver todo sigue como estaba
+  const [tab, setTab] = useState<"recommender" | "calendar">(
+    "recommender"
+  );
+
+  const [calendarOpened, setCalendarOpened] = useState(false);
 
   const [platforms, setPlatforms] = useState<PlatformKey[]>([
     ...ALL_PLATFORM_KEYS,
@@ -54,8 +62,6 @@ export default function Conversation() {
       </a>
 
       <PosterWall />
-
-      <CalendarButton />
 
       <MyListButton />
 
@@ -92,29 +98,88 @@ export default function Conversation() {
   alt="La Butaca Secreta"
   className="absolute left-4 top-4 hidden md:block md:h-12 lg:h-14 w-auto opacity-90"
 />
-          <div className="border-b border-white/10 px-8 pt-8 pb-8">
-            <Header />
+          <div
+            role="tablist"
+            aria-label="Secciones"
+            className="flex justify-center gap-2 px-4 pt-4"
+          >
+            {(
+              [
+                ["recommender", "🎬", "Recomendador"],
+                ["calendar", "📅", "Calendario"],
+              ] as const
+            ).map(([id, emoji, label]) => {
+              const active = tab === id;
+
+              return (
+                <button
+                  key={id}
+                  role="tab"
+                  id={`tab-${id}`}
+                  aria-selected={active}
+                  aria-controls={`panel-${id}`}
+                  onClick={() => {
+                    if (id === "calendar") {
+                      track("calendar_open");
+                      setCalendarOpened(true);
+                    }
+
+                    setTab(id);
+                  }}
+                  className={`rounded-full border px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
+                    active
+                      ? "border-red-500/70 bg-red-500/20 text-white"
+                      : "border-white/15 bg-black/40 text-zinc-300 hover:border-white/30 hover:text-white"
+                  }`}
+                >
+                  <span aria-hidden="true">{emoji}</span> {label}
+                </button>
+              );
+            })}
           </div>
 
-          {mode === null && (
-            <div className="px-8 py-6">
-              <ModeSelect
-                onSelect={chooseMode}
-                platforms={platforms}
-                onPlatformsChange={changePlatforms}
-              />
+          <div
+            role="tabpanel"
+            id="panel-recommender"
+            aria-labelledby="tab-recommender"
+            hidden={tab !== "recommender"}
+          >
+            <div className="border-b border-white/10 px-8 pt-6 pb-8">
+              <Header />
             </div>
-          )}
 
-          {mode === "solo" && (
-            <SoloChat platforms={platformsValue} />
-          )}
+            {mode === null && (
+              <div className="px-8 py-6">
+                <ModeSelect
+                  onSelect={chooseMode}
+                  platforms={platforms}
+                  onPlatformsChange={changePlatforms}
+                />
+              </div>
+            )}
 
-          {mode === "group" && (
-            <div className="px-8 py-6">
-              <GroupQuiz platforms={platformsValue} />
-            </div>
-          )}
+            {mode === "solo" && (
+              <SoloChat platforms={platformsValue} />
+            )}
+
+            {mode === "group" && (
+              <div className="px-8 py-6">
+                <GroupQuiz platforms={platformsValue} />
+              </div>
+            )}
+          </div>
+
+          <div
+            role="tabpanel"
+            id="panel-calendar"
+            aria-labelledby="tab-calendar"
+            hidden={tab !== "calendar"}
+            className="px-5 py-5 md:px-8"
+          >
+            {calendarOpened && (
+              <CalendarView platforms={platforms} />
+            )}
+          </div>
         </section>
       </main>
     </>

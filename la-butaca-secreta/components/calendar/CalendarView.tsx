@@ -2,9 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
-import { createPortal } from "react-dom";
 
-import { useDialog } from "@/hooks/useDialog";
 import {
   buildMonthGrid,
   parseMonth,
@@ -12,15 +10,11 @@ import {
   shiftMonth,
   type CalendarEntry,
 } from "@/lib/calendar";
-import {
-  ALL_PLATFORM_KEYS,
-  PLATFORMS,
-  readPlatforms,
-  type PlatformKey,
-} from "@/lib/platforms";
+import { PLATFORMS, type PlatformKey } from "@/lib/platforms";
 
 type Props = {
-  onClose: () => void;
+  // Plataformas que el usuario ha marcado
+  platforms: PlatformKey[];
 };
 
 type MonthData = {
@@ -93,25 +87,13 @@ function PlatformLogo({
   );
 }
 
-export default function CalendarDialog({ onClose }: Props) {
-  const dialogRef = useDialog<HTMLDivElement>(onClose);
-
+export default function CalendarView({ platforms: mine }: Props) {
   const today = todayKey();
 
   const [month, setMonth] = useState(today.substring(0, 7));
   const [selected, setSelected] = useState<string | null>(today);
   const [data, setData] = useState<Record<string, MonthData>>({});
   const [failed, setFailed] = useState<string | null>(null);
-
-  // Solo las plataformas que ha marcado el usuario
-  const [mine, setMine] = useState<PlatformKey[]>([
-    ...ALL_PLATFORM_KEYS,
-  ]);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMine(readPlatforms());
-  }, []);
 
   useEffect(() => {
     if (data[month]) return;
@@ -166,43 +148,21 @@ export default function CalendarDialog({ onClose }: Props) {
 
   const selectedEntries = selected ? entriesOf(selected) : [];
 
-  return createPortal(
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-3 backdrop-blur-sm sm:p-6"
-      onClick={onClose}
-    >
-      <div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="calendar-title"
-        tabIndex={-1}
-        className="relative flex max-h-[94dvh] w-full max-w-2xl flex-col gap-3 overflow-y-auto overscroll-contain rounded-3xl border border-zinc-800 bg-zinc-900 p-4 shadow-2xl sm:p-5"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h2
-              id="calendar-title"
-              className="text-lg font-bold text-white"
-            >
-              Calendario de estrenos
-            </h2>
+  return (
+    <div className="flex flex-col gap-3">
+      <div>
+        <h2
+          id="calendar-title"
+          className="text-lg font-bold text-white"
+        >
+          Calendario de estrenos
+        </h2>
 
-            <p className="text-xs text-zinc-400">
-              Novedades de {mine.map((p) => LABELS[p]).join(", ")}.
-              Puedes cambiar tus plataformas en el inicio.
-            </p>
-          </div>
-
-          <button
-            onClick={onClose}
-            aria-label="Cerrar"
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-black/70 text-white hover:bg-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-          >
-            <span aria-hidden="true">✕</span>
-          </button>
-        </div>
+        <p className="text-xs text-zinc-400">
+          Novedades de {mine.map((p) => LABELS[p]).join(", ")}. Puedes
+          cambiar tus plataformas en el Recomendador.
+        </p>
+      </div>
 
         <div className="flex items-center justify-between">
           <button
@@ -387,8 +347,6 @@ export default function CalendarDialog({ onClose }: Props) {
           Datos: TMDb · Las fechas son las de estreno en España y
           pueden variar un poco.
         </p>
-      </div>
-    </div>,
-    document.body
+    </div>
   );
 }

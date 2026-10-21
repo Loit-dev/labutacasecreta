@@ -63,10 +63,10 @@ test.describe("Calendario de estrenos", () => {
 
     await page.goto("/");
 
-    await page.getByRole("button", { name: /Calendario/ }).click();
+    await page.getByRole("tab", { name: /Calendario/ }).click();
 
-    const dialog = page.getByRole("dialog", {
-      name: "Calendario de estrenos",
+    const dialog = page.getByRole("tabpanel", {
+      name: /Calendario/,
     });
 
     await expect(dialog).toBeVisible();
@@ -96,14 +96,19 @@ test.describe("Calendario de estrenos", () => {
       dialog.getByText("No hay estrenos este día en tus plataformas.")
     ).toBeVisible();
 
-    // Cambiar de mes pide ese mes y se cierra con Escape
+    // Cambiar de mes pide ese mes
     await dialog.getByRole("button", { name: "Mes siguiente" }).click();
 
     await expect.poll(() => requested.length).toBeGreaterThan(1);
 
-    await page.keyboard.press("Escape");
+    // Y se puede volver al recomendador
+    await page.getByRole("tab", { name: /Recomendador/ }).click();
 
     await expect(dialog).toBeHidden();
+
+    await expect(
+      page.getByRole("button", { name: /^Solo/ })
+    ).toBeVisible();
   });
 
   test("solo enseña las plataformas que has marcado", async ({ page }) => {
@@ -134,10 +139,10 @@ test.describe("Calendario de estrenos", () => {
       await group.getByRole("button", { name }).click();
     }
 
-    await page.getByRole("button", { name: /Calendario/ }).click();
+    await page.getByRole("tab", { name: /Calendario/ }).click();
 
-    const dialog = page.getByRole("dialog", {
-      name: "Calendario de estrenos",
+    const dialog = page.getByRole("tabpanel", {
+      name: /Calendario/,
     });
 
     await expect(
@@ -158,10 +163,40 @@ test.describe("Calendario de estrenos", () => {
 
     await page.goto("/");
 
-    await page.getByRole("button", { name: /Calendario/ }).click();
+    await page.getByRole("tab", { name: /Calendario/ }).click();
 
     await expect(
       page.getByRole("alert").filter({ hasText: "No he podido cargar" })
     ).toBeVisible();
+  });
+
+  test("al volver al recomendador, todo sigue como estaba", async ({
+    page,
+  }) => {
+    await mockApi(page);
+
+    await page.route("**/api/calendar**", (route) =>
+      route.fulfill({ json: { month: "2026-10", logos: {}, days: {} } })
+    );
+
+    await page.goto("/");
+
+    await page.getByRole("button", { name: /^Solo/ }).click();
+
+    const first = page.locator("[data-options] button").first();
+
+    await first.waitFor();
+    await first.click();
+
+    const log = page.locator('[role="log"] > div');
+
+    await expect.poll(() => log.count()).toBeGreaterThan(0);
+
+    const before = await log.count();
+
+    await page.getByRole("tab", { name: /Calendario/ }).click();
+    await page.getByRole("tab", { name: /Recomendador/ }).click();
+
+    expect(await log.count()).toBe(before);
   });
 });
