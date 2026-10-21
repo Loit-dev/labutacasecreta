@@ -250,4 +250,38 @@ describe("calidad", () => {
     assert.equal(ranked[2].id, 3);
     assert.equal(ranked[0].score, ranked[1].score);
   });
+
+  test("sin pedirlo, la animación queda por detrás de la imagen real a igualdad", () => {
+    const animated = make({ id: 1, genres: [16, 28, 12] });
+    const liveAction = make({ id: 2, genres: [28, 12] });
+
+    const [first] = sortByScore([animated, liveAction], {
+      profile: { preferredGenre: "action" },
+    });
+
+    assert.equal(first.id, 2);
+  });
+
+  test("con «infantil y familiar» la animación no se penaliza, sino que suma", () => {
+    const animated = make({ id: 1, genres: [16, 10751] });
+    const live = make({ id: 2, genres: [10751] });
+
+    const ranked = sortByScore([animated, live], {
+      profile: { preferredGenre: "family" },
+    });
+
+    // Al contrario: para niños, la animación suma
+    assert.equal(ranked[0].id, 1);
+  });
+
+  test("si piden animación expresamente, no se penaliza", () => {
+    const animated = make({ id: 1, genres: [16, 28] });
+    const live = make({ id: 2, genres: [28] });
+
+    const ranked = sortByScore([animated, live], {
+      profile: { preferredGenre: "action", animation: "yes" },
+    });
+
+    assert.equal(ranked[0].score, ranked[1].score);
+  });
 });

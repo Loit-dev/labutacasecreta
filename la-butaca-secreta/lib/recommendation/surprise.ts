@@ -22,6 +22,8 @@ export interface TrioEntry {
   // Solo en sorpresas: qué la hace distinta (nombres de género)
   newGenres?: string[];
   differentEra?: boolean;
+  // Si es de una época distinta: ¿más reciente que las otras dos?
+  newer?: boolean;
 }
 
 // Una sorpresa debe tener buena nota...
@@ -71,7 +73,21 @@ function novelty(
       );
     });
 
-  return { newGenres, differentEra };
+  // ¿Más reciente que las recomendaciones principales?
+  const candidateYear = yearOf(candidate);
+
+  const mainYears = mains
+    .map(yearOf)
+    .filter((year): year is number => year !== undefined);
+
+  const newer =
+    candidateYear !== undefined &&
+    mainYears.length > 0 &&
+    candidateYear >
+      mainYears.reduce((sum, year) => sum + year, 0) /
+        mainYears.length;
+
+  return { newGenres, differentEra, newer };
 }
 
 function surpriseScore(
@@ -219,7 +235,7 @@ export function buildTrios(
     if (surprise) {
       rest.splice(rest.indexOf(surprise), 1);
 
-      const { newGenres, differentEra } =
+      const { newGenres, differentEra, newer } =
         novelty(surprise, mains);
 
       result.push({
@@ -229,6 +245,7 @@ export function buildTrios(
           .map((id) => GenreNames[id])
           .filter(Boolean),
         differentEra,
+        newer,
       });
     }
   }
@@ -243,8 +260,12 @@ export function buildTrios(
 export function buildSurpriseReason(
   entry: TrioEntry
 ): string {
-  const { item, newGenres = [], differentEra } =
-    entry;
+  const {
+    item,
+    newGenres = [],
+    differentEra,
+    newer,
+  } = entry;
 
   const parts: string[] = [];
 
@@ -259,7 +280,12 @@ export function buildSurpriseReason(
     const year = yearOf(item);
 
     if (year) {
-      parts.push(`viene de otra época (${year})`);
+      // «Otra época» solo tiene sentido hacia el pasado
+      parts.push(
+        newer
+          ? `es bastante más reciente (${year})`
+          : `viene de otra época (${year})`
+      );
     }
   }
 

@@ -1,6 +1,8 @@
 import { effectiveCompany } from "./company";
 import { ScoreContext, ScoredItem } from "./types";
 
+const ANIMATION_PENALTY = 20;
+
 export function scoreAudience(
   item: ScoredItem,
   context: ScoreContext
@@ -16,6 +18,16 @@ export function scoreAudience(
 
   if (company === "family") {
     return 0;
+  }
+
+  // Animación: sin que lo hayan pedido, se prefiere el «imagen real».
+  // (No hay pregunta sobre animación, y sin este ajuste las series de
+  // acción o aventuras salen casi todas de dibujos o anime.)
+  if (
+    item.genres.includes(16) &&
+    context.profile.animation !== "yes"
+  ) {
+    score -= ANIMATION_PENALTY;
   }
 
   // Contenido familiar

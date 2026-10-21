@@ -168,4 +168,35 @@ describe("buildSurpriseReason", () => {
     assert.ok(reason.includes("7.9"));
     assert.ok(reason.includes("thriller"));
   });
+
+  test("una sorpresa reciente no «viene de otra época»", () => {
+    const [, , surprise] = buildTrios(
+      [
+        item(1, [28], 7.5, 20000, 1993, 100),
+        item(2, [28], 7.2, 15000, 2008, 95),
+        item(3, [28], 8.3, 800, 2026, 50),
+      ],
+      1
+    );
+
+    const reason = buildSurpriseReason(surprise);
+
+    assert.ok(!reason.includes("otra época"), reason);
+    assert.ok(reason.includes("más reciente (2026)"), reason);
+  });
+
+  test("una sorpresa antigua sí viene de otra época", () => {
+    const [, , surprise] = buildTrios(
+      [
+        item(1, [28], 7.5, 20000, 2021, 100),
+        item(2, [28], 7.2, 15000, 2019, 95),
+        item(3, [28], 7.9, 800, 1954, 50),
+      ],
+      1
+    );
+
+    assert.ok(
+      buildSurpriseReason(surprise).includes("otra época (1954)")
+    );
+  });
 });
