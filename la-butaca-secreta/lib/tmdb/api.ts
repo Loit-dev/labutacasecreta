@@ -487,10 +487,11 @@ export async function getTvFlatrateIds(id: number): Promise<number[]> {
 export async function searchTitle(
   type: "movie" | "tv",
   query: string,
-  year: number
+  year?: number
 ) {
-  const yearParam =
-    type === "movie"
+  const yearParam = !year
+    ? ""
+    : type === "movie"
       ? `&primary_release_year=${year}`
       : `&first_air_date_year=${year}`;
 

@@ -198,27 +198,26 @@ async function destacados(
     inMonth,
     CONCURRENCY,
     async (item): Promise<CalendarEntry | null> => {
+      const note = item.note ?? "Novedad en la plataforma";
+
       let match: TMDBMovie | null = null;
 
-      try {
-        match = await searchTitle(item.type, item.query, item.year);
-      } catch {
-        match = null;
+      if (item.match !== false) {
+        try {
+          match = await searchTitle(item.type, item.query, item.year);
+        } catch {
+          match = null;
+        }
       }
 
       if (match && known.has(`${item.type}|${match.id}`)) return null;
 
       const base: CalendarEntry = match
-        ? toEntry(
-            match,
-            item.type,
-            item.date,
-            item.platform,
-            "Estreno destacado"
-          )
+        ? toEntry(match, item.type, item.date, item.platform, note)
         : {
-            // Sin coincidencia en TMDb: se enseña solo con el título
-            id: 0,
+            // Sin coincidencia en TMDb: se enseña solo con el título.
+            // Id negativo y único para que no se mezcle con otros.
+            id: -(DESTACADOS.indexOf(item) + 1),
             type: item.type,
             title: item.query,
             date: item.date,
@@ -227,11 +226,16 @@ async function destacados(
             rating: 0,
             popularity: 0,
             platforms: [item.platform],
-            note: "Estreno destacado",
+            note,
           };
 
-      // Un destacado manda sobre el orden: va el primero de su día
-      return { ...base, popularity: Math.max(base.popularity, 1000) };
+      // Por delante de lo demás de su día, en el orden de la lista
+      const position = DESTACADOS.indexOf(item);
+
+      return {
+        ...base,
+        popularity: 10000 - position,
+      };
     }
   );
 
