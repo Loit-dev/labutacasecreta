@@ -23,6 +23,8 @@ type Options = {
   fontFamily?: string;
   // Para quién son las sugerencias ("Ana y Luis"); sin esto, "Mis sugerencias"
   audience?: string;
+  // Cuánto han coincidido (0-100); solo con «audience»
+  compatibility?: number;
   // Logo de la web y pósters de fondo (los mismos que usa la web)
   logo?: DrawableImage | null;
   backdrops?: (DrawableImage | null)[];
@@ -320,10 +322,15 @@ export function drawShareImage(
 
   ctx.fillStyle = "#e4e4e7";
   ctx.font = `500 38px ${font}`;
-  ctx.fillText(
+  const what =
     options.kind === "tv"
       ? "Series para ver hoy"
-      : "Películas para ver hoy",
+      : "Películas para ver hoy";
+
+  ctx.fillText(
+    options.audience && options.compatibility !== undefined
+      ? `${what} · ${options.compatibility} % de coincidencia`
+      : what,
     W / 2,
     458
   );

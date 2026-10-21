@@ -4,6 +4,11 @@
  * El código lleva el tipo (movie o tv) y de 1 a 6 títulos con su papel:
  * «m» = recomendación principal, «s» = sorpresa. Solo se aceptan ids
  * numéricos, así que no se puede colar nada raro en la dirección.
+ *
+ * Si las recomendaciones salieron del modo acompañado, el código puede
+ * llevar además el porcentaje de coincidencia («c63») y los nombres
+ * («n» + letras y números en hexadecimal): /r/movie-101m-102m-103s-c63-n416e61...
+ * Los nombres se leen siempre como texto, nunca como código.
  */
 
 export type ShareKindCode = "movie" | "tv";
@@ -13,18 +18,65 @@ export type SharedEntry = {
   role: "main" | "surprise";
 };
 
+export type SharedGroup = {
+  names: string[];
+  percent: number;
+};
+
 export type SharedSet = {
   type: ShareKindCode;
   entries: SharedEntry[];
+  group?: SharedGroup;
 };
 
 export const MAX_SHARED = 6;
 
+export const MAX_GROUP_NAMES = 6;
+
+export const MAX_NAME_LENGTH = 14;
+
 const ENTRY = /^(\d{1,9})([ms])$/;
+const PERCENT = /^c(\d{1,3})$/;
+const NAMES = /^n([0-9a-f]{2,400})$/;
+
+const SEPARATOR = "|";
+
+/** Deja un nombre en algo seguro: sin saltos, sin separador y corto. */
+export function cleanGroupName(name: string): string {
+  return name
+    .replace(/[\p{C}|]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, MAX_NAME_LENGTH)
+    .trim();
+}
+
+function toHex(text: string): string {
+  return [...new TextEncoder().encode(text)]
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+function fromHex(hex: string): string | null {
+  if (hex.length % 2 !== 0) return null;
+
+  const bytes = new Uint8Array(hex.length / 2);
+
+  for (let i = 0; i < bytes.length; i++) {
+    bytes[i] = parseInt(hex.slice(i * 2, i * 2 + 2), 16);
+  }
+
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  } catch {
+    return null;
+  }
+}
 
 export function buildShareCode(
   type: ShareKindCode,
-  entries: SharedEntry[]
+  entries: SharedEntry[],
+  group?: SharedGroup
 ): string {
   const parts = entries
     .filter(
@@ -36,7 +88,25 @@ export function buildShareCode(
         `${entry.id}${entry.role === "surprise" ? "s" : "m"}`
     );
 
-  return [type, ...parts].join("-");
+  const extra: string[] = [];
+
+  if (group) {
+    const percent = Math.min(
+      100,
+      Math.max(0, Math.round(group.percent))
+    );
+
+    const names = group.names
+      .map(cleanGroupName)
+      .filter(Boolean)
+      .slice(0, MAX_GROUP_NAMES);
+
+    if (Number.isFinite(percent)) extra.push(`c${percent}`);
+
+    if (names.length > 0) extra.push(`n${toHex(names.join(SEPARATOR))}`);
+  }
+
+  return [type, ...parts, ...extra].join("-");
 }
 
 export function parseShareCode(code: string): SharedSet | null {
@@ -52,11 +122,48 @@ export function parseShareCode(code: string): SharedSet | null {
 
   if (type !== "movie" && type !== "tv") return null;
 
-  if (rest.length === 0 || rest.length > MAX_SHARED) return null;
+  if (rest.length === 0) return null;
 
   const entries: SharedEntry[] = [];
 
+  let percent: number | null = null;
+  let names: string[] | null = null;
+  let tokens = 0;
+
   for (const part of rest) {
+    const percentMatch = PERCENT.exec(part);
+
+    if (percentMatch) {
+      const value = Number(percentMatch[1]);
+
+      if (percent !== null || value > 100) return null;
+
+      percent = value;
+      continue;
+    }
+
+    const namesMatch = NAMES.exec(part);
+
+    if (namesMatch) {
+      if (names !== null) return null;
+
+      const text = fromHex(namesMatch[1]);
+
+      if (text === null) return null;
+
+      names = text
+        .split(SEPARATOR)
+        .map(cleanGroupName)
+        .filter(Boolean)
+        .slice(0, MAX_GROUP_NAMES);
+
+      continue;
+    }
+
+    tokens++;
+
+    if (tokens > MAX_SHARED) return null;
+
     const match = ENTRY.exec(part);
 
     if (!match) return null;
@@ -74,7 +181,16 @@ export function parseShareCode(code: string): SharedSet | null {
     });
   }
 
-  return { type, entries };
+  if (entries.length === 0) return null;
+
+  const set: SharedSet = { type, entries };
+
+  // Con nombres, o con porcentaje, es de un grupo
+  if (names && names.length > 0 && percent !== null) {
+    set.group = { names, percent };
+  }
+
+  return set;
 }
 
 export function shareUrl(origin: string, code: string): string {

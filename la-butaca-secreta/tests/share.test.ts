@@ -213,3 +213,85 @@ describe("enlaces para compartir", () => {
     assert.ok(!text.includes("Mis sugerencias"));
   });
 });
+
+describe("enlaces de grupo", () => {
+  const entries = [
+    { id: 101, role: "main" as const },
+    { id: 202, role: "main" as const },
+    { id: 303, role: "surprise" as const },
+  ];
+
+  test("ida y vuelta con nombres (también con tildes y emojis) y porcentaje", () => {
+    const code = buildShareCode("movie", entries, {
+      names: ["Ana", "José 🎬"],
+      percent: 63,
+    });
+
+    assert.match(code, /^movie-101m-202m-303s-c63-n[0-9a-f]+$/);
+
+    assert.deepEqual(parseShareCode(code)?.group, {
+      names: ["Ana", "José 🎬"],
+      percent: 63,
+    });
+
+    assert.deepEqual(parseShareCode(code)?.entries, entries);
+  });
+
+  test("los nombres se limpian y se recortan", () => {
+    const code = buildShareCode("tv", entries, {
+      names: ["  Ana|Luis\n", "Nombre larguísimo de verdad"],
+      percent: 50,
+    });
+
+    const group = parseShareCode(code)?.group;
+
+    assert.deepEqual(group?.names.length, 2);
+    assert.ok(group?.names.every((n) => n.length <= 14));
+    assert.ok(group?.names.every((n) => !/[|\n]/.test(n)));
+  });
+
+  test("el porcentaje se ajusta entre 0 y 100", () => {
+    assert.match(
+      buildShareCode("movie", entries, { names: ["A"], percent: 250 }),
+      /-c100-/
+    );
+    assert.match(
+      buildShareCode("movie", entries, { names: ["A"], percent: -4 }),
+      /-c0-/
+    );
+  });
+
+  test("un enlace sin grupo no lleva nada de grupo", () => {
+    assert.equal(
+      buildShareCode("movie", entries),
+      "movie-101m-202m-303s"
+    );
+    assert.equal(parseShareCode("movie-101m-202m-303s")?.group, undefined);
+  });
+
+  test("rechaza grupos mal formados", () => {
+    for (const bad of [
+      "movie-1m-c101-n416e61",
+      "movie-1m-c5-c6-n416e61",
+      "movie-1m-c5-n416e61-n416e61",
+      "movie-1m-c5-nzz",
+      "movie-1m-c5-n4",
+      "movie-1m-c5-nff",
+      "movie-c5-n416e61",
+    ]) {
+      assert.equal(parseShareCode(bad), null, bad);
+    }
+  });
+
+  test("el nombre no puede convertirse en otra cosa que texto", () => {
+    const code = buildShareCode("movie", entries, {
+      names: ["<script>alert(1)</script>"],
+      percent: 10,
+    });
+
+    const [name] = parseShareCode(code)?.group?.names ?? [];
+
+    // Es solo texto (React lo escapa al mostrarlo) y de largo limitado
+    assert.ok(name.length <= 14);
+  });
+});

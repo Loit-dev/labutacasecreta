@@ -274,6 +274,55 @@ test.describe("Modo acompañado", () => {
     await expect(page.getByText(/evitar|Evitaremos/)).toHaveCount(0);
   });
 
+  test("el resultado del grupo se comparte con nombres y porcentaje", async ({
+    page,
+    context,
+  }) => {
+    await mockApi(page);
+
+    const names = ["Ana", "Luis"];
+
+    await startGroup(page, names);
+
+    for (let q = 0; q < 4; q++) {
+      await vote(page, names, [0, 0]);
+      await page.getByRole("button", { name: "Siguiente" }).click();
+    }
+
+    await page
+      .getByRole("button", { name: "Ver recomendaciones" })
+      .click();
+
+    await page
+      .getByRole("button", { name: /Compartir mis sugerencias/ })
+      .click();
+
+    const dialog = page.getByRole("dialog");
+
+    const link = await dialog
+      .getByLabel("Enlace para compartir estas recomendaciones")
+      .inputValue();
+
+    expect(link).toMatch(/\/r\/movie-\d+m-\d+m-\d+s-c100-n[0-9a-f]+$/);
+
+    // Quien abre el enlace ve para quién son y cuánto coincidieron
+    const other = await context.newPage();
+
+    await mockApi(other);
+
+    await other.goto(new URL(link).pathname);
+
+    await expect(
+      other.getByRole("heading", { level: 1 })
+    ).toHaveText("Sugerencias para Ana y Luis");
+
+    await expect(
+      other.getByText(/100 % de coincidencia/).first()
+    ).toBeVisible();
+
+    await expect(other.getByRole("article")).toHaveCount(3);
+  });
+
   test("tres personas: gana la mayoría sin desempatar", async ({ page }) => {
     const names = ["Ana", "Luis", "Eva"];
 

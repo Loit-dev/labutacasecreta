@@ -17,19 +17,23 @@ import { useRecommendations } from "@/hooks/useRecommendations";
 import { useWatchlist } from "@/hooks/useWatchlist";
 import { track } from "@/lib/analytics";
 import { UserProfile } from "@/lib/conversation/types";
+import { formatNames } from "@/lib/group";
 import { posterSource, type ShareItem } from "@/lib/share";
 import type { Recommendation } from "@/lib/tmdb/mapper";
 
 type Props = {
   profile: UserProfile;
-  // Si es para varias personas ("Ana y Luis"), el modo acompañado lo indica
-  audience?: string;
+  // Si son para varias personas, el modo acompañado dice quiénes y cuánto
+  // han coincidido
+  group?: { names: string[]; percent: number };
 };
 
 export default function Recommendations({
   profile,
-  audience,
+  group,
 }: Props) {
+  const audience = group ? formatNames(group.names) : undefined;
+
   const {
     visible,
     available,
@@ -499,7 +503,7 @@ export default function Recommendations({
         <ShareDialog
           items={shareItems}
           kind={type}
-          audience={audience}
+          group={group}
           onClose={closeShare}
         />
       )}

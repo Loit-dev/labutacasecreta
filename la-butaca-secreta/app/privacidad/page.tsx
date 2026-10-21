@@ -109,6 +109,15 @@ export default function PrivacyPage() {
           números de identificación de esos títulos; quien lo
           abra verá las recomendaciones, sin ningún dato tuyo.
         </p>
+
+        <p>
+          Si has usado el modo «acompañado», el enlace incluye
+          además los nombres o motes que hayas escrito y el
+          porcentaje de coincidencia, para que quien lo abra vea
+          «Sugerencias para Ana y Luis». Esos nombres no se
+          guardan en ningún servidor: viajan solo dentro de la
+          dirección que tú decides compartir.
+        </p>
       </section>
 
       <section>
