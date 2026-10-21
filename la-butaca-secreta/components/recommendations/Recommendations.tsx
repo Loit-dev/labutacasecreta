@@ -383,13 +383,13 @@ export default function Recommendations({
       <div className="text-center">
         <h2
           id="recommendations-title"
-          className="text-2xl font-bold text-white md:text-3xl"
+          className="text-lg font-bold text-white md:text-3xl"
         >
           <span aria-hidden="true">🎬</span> Creo que estas
           tres pueden ser justo lo que buscas.
         </h2>
 
-        <p className="mt-2 text-sm text-zinc-400 md:mt-3 md:text-base">
+        <p className="mt-2 hidden text-sm text-zinc-400 md:mt-3 md:block md:text-base">
           {audience
             ? "Seleccionadas especialmente para vosotros."
             : "Seleccionadas especialmente para ti."}
@@ -422,7 +422,7 @@ export default function Recommendations({
             <button
               onClick={prevMovie}
               aria-label="Anterior"
-              className="absolute left-3 top-3 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-black/70 text-white backdrop-blur focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              className="absolute left-2 top-36 z-20 flex h-14 w-14 items-center justify-center rounded-full border border-white/30 bg-black/65 text-3xl font-bold text-white shadow-xl shadow-black/60 backdrop-blur transition-transform active:scale-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
               <span aria-hidden="true">←</span>
             </button>
@@ -430,7 +430,7 @@ export default function Recommendations({
             <button
               onClick={nextMovie}
               aria-label="Siguiente"
-              className="absolute right-3 top-3 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-black/70 text-white backdrop-blur focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              className="absolute right-2 top-36 z-20 flex h-14 w-14 items-center justify-center rounded-full border border-white/30 bg-black/65 text-3xl font-bold text-white shadow-xl shadow-black/60 backdrop-blur transition-transform active:scale-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
               <span aria-hidden="true">→</span>
             </button>
@@ -461,7 +461,7 @@ export default function Recommendations({
         {visible.map(renderCard)}
       </div>
 
-      <div className="sticky bottom-3 z-30 mt-4 flex flex-wrap items-center justify-center gap-2 md:static md:mt-6 md:gap-3">
+      <div className="mt-4 flex flex-wrap items-center justify-center gap-2 md:mt-6 md:gap-3">
         <button
           onClick={openShare}
           className="rounded-xl bg-red-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-black/60 transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"

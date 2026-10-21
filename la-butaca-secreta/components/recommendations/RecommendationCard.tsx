@@ -42,8 +42,8 @@ export default function RecommendationCard({
       aria-label={title}
       className="flex h-full flex-col overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900 shadow-xl"
     >
-       <div className="relative h-44 w-full overflow-hidden md:h-58">
-        <Image src={poster} alt={title} fill unoptimized={poster.endsWith(".svg")} className="object-contain bg-black" sizes="(max-width: 768px) 100vw, 33vw" />
+       <div className="relative h-80 w-full overflow-hidden md:h-58">
+        <Image src={poster} alt={title} fill unoptimized={poster.endsWith(".svg")} className="object-cover object-top md:object-contain md:bg-black" sizes="(max-width: 768px) 100vw, 33vw" />
         {providers.length > 0 && (
   <div
     className="
@@ -106,7 +106,7 @@ export default function RecommendationCard({
         </div>
 
         {genres.length > 0 && (
-          <div className="flex flex-wrap gap-2">
+          <div className="hidden flex-wrap gap-2 md:flex">
             {genres.slice(0, 3).map((genre) => (
               <span
                 key={genre}
@@ -119,7 +119,7 @@ export default function RecommendationCard({
         )}
 
         {reason && (
-          <p className="text-xs italic leading-relaxed text-yellow-200/80">
+          <p className="line-clamp-2 text-xs italic leading-relaxed text-yellow-200/80 md:line-clamp-none">
             <span aria-hidden="true">💡</span> {reason}
           </p>
         )}
