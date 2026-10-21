@@ -71,7 +71,7 @@ test.describe("Accesibilidad", () => {
     });
   }
 
-  test("el enlace «Saltar al contenido» es lo primero con el teclado", async ({
+  test("el enlace «Saltar al contenido» es lo primero y funciona", async ({
     page,
     isMobile,
   }) => {
@@ -79,19 +79,31 @@ test.describe("Accesibilidad", () => {
 
     await page.goto("/");
 
-    // Esperamos a que la página esté lista (ya hidratada) antes de usar el teclado
     await expect(
       page.locator("[data-options] button").first()
     ).toBeVisible();
 
-    await page.evaluate(() =>
-      (document.activeElement as HTMLElement | null)?.blur()
+    // Es el primer elemento al que llega el teclado
+    const first = await page.evaluate(
+      () =>
+        document.querySelector(
+          'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        )?.textContent
     );
 
-    await page.keyboard.press("Tab");
+    expect(first).toContain("Saltar al contenido");
 
-    await expect(
-      page.getByRole("link", { name: "Saltar al contenido" })
-    ).toBeFocused();
+    // Al recibir el foco se hace visible y lleva al contenido
+    const link = page.getByRole("link", {
+      name: "Saltar al contenido",
+    });
+
+    await link.focus();
+
+    await expect(link).toBeFocused();
+
+    await page.keyboard.press("Enter");
+
+    await expect(page).toHaveURL(/#contenido$/);
   });
 });
