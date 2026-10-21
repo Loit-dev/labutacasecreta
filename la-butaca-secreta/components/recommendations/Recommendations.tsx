@@ -389,7 +389,7 @@ export default function Recommendations({
           tres pueden ser justo lo que buscas.
         </h2>
 
-        <p className="mt-2 hidden text-sm text-zinc-400 md:mt-3 md:block md:text-base">
+        <p className="mt-1 text-xs text-zinc-400 md:mt-3 md:text-base">
           {audience
             ? "Seleccionadas especialmente para vosotros."
             : "Seleccionadas especialmente para ti."}
