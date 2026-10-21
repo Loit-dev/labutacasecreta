@@ -96,12 +96,12 @@ export default function Conversation() {
           <img
   src="/Logo.png"
   alt="La Butaca Secreta"
-  className="absolute left-4 top-4 hidden md:block md:h-12 lg:h-14 w-auto opacity-90"
+  className="absolute left-4 top-16 hidden md:block md:h-12 lg:h-14 w-auto opacity-90"
 />
           <div
             role="tablist"
             aria-label="Secciones"
-            className="flex justify-center gap-2 px-4 pt-4"
+            className="flex border-b border-white/15"
           >
             {(
               [
@@ -126,10 +126,10 @@ export default function Conversation() {
 
                     setTab(id);
                   }}
-                  className={`rounded-full border px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
+                  className={`flex-1 border-b-[3px] px-2 pb-2.5 pt-3.5 text-sm font-bold transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-white ${
                     active
-                      ? "border-red-500/70 bg-red-500/20 text-white"
-                      : "border-white/15 bg-black/40 text-zinc-300 hover:border-white/30 hover:text-white"
+                      ? "border-red-500 bg-white/10 text-white"
+                      : "border-transparent bg-black/30 text-zinc-300 hover:bg-white/5 hover:text-white"
                   }`}
                 >
                   <span aria-hidden="true">{emoji}</span> {label}
@@ -144,7 +144,7 @@ export default function Conversation() {
             aria-labelledby="tab-recommender"
             hidden={tab !== "recommender"}
           >
-            <div className="border-b border-white/10 px-8 pt-6 pb-8">
+            <div className="border-b border-white/10 px-8 pt-8 pb-8">
               <Header />
             </div>
 
