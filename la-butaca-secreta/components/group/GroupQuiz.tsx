@@ -69,7 +69,11 @@ function labelOf(question: string, value: string) {
 const primaryButton =
   "rounded-xl bg-red-700 px-6 py-3 font-semibold text-white transition hover:bg-red-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white";
 
-export default function GroupQuiz() {
+export default function GroupQuiz({
+  platforms = "",
+}: {
+  platforms?: string;
+}) {
   const [step, setStep] = useState<Step>({ kind: "setup" });
   const [count, setCount] = useState(MIN_PLAYERS);
   const [rawNames, setRawNames] = useState<string[]>([]);
@@ -80,10 +84,11 @@ export default function GroupQuiz() {
 
   const [rounds, setRounds] = useState<RoundView[]>([]);
 
-  const profile = useMemo(
-    () => buildGroupProfile(rounds, names.length),
-    [rounds, names.length]
-  );
+  const profile = useMemo(() => {
+    const base = buildGroupProfile(rounds, names.length);
+
+    return platforms ? { ...base, platforms } : base;
+  }, [rounds, names.length, platforms]);
 
   // Se calcula una sola vez para no regenerar la imagen de compartir
   const group = useMemo(

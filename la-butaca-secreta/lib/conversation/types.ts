@@ -28,6 +28,9 @@ export interface UserProfile {
   animation?: string;
 
   restrictions?: string[];
+
+  // Plataformas elegidas («netflix,prime»); vacío = todas
+  platforms?: string;
 }
 
 export interface ConversationOption {

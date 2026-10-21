@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 import Recommendations from "@/components/recommendations/Recommendations";
 import { useConversation } from "@/hooks/useConversation";
@@ -9,7 +9,11 @@ import ChatHistory from "./ChatHistory";
 import OptionButtons from "./OptionButtons";
 import TypingIndicator from "./TypingIndicator";
 
-export default function SoloChat() {
+export default function SoloChat({
+  platforms = "",
+}: {
+  platforms?: string;
+}) {
   const {
     messages,
     profile,
@@ -20,6 +24,11 @@ export default function SoloChat() {
   } = useConversation();
 
   const endRef = useRef<HTMLDivElement>(null);
+
+  const fullProfile = useMemo(
+    () => (platforms ? { ...profile, platforms } : profile),
+    [profile, platforms]
+  );
 
  useEffect(() => {
   const scrollToBottom = () => {
@@ -86,7 +95,7 @@ export default function SoloChat() {
 
            {finished && (
   <div className="mt-10">
-    <Recommendations profile={profile} />
+    <Recommendations profile={fullProfile} />
   </div>
 )}
 

@@ -36,6 +36,7 @@ const PROFILE_KEYS = [
   "discoveryMode",
   "language",
   "animation",
+  "platforms",
 ] as const;
 
 function buildQuery(

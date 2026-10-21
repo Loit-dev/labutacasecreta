@@ -47,6 +47,30 @@ describe("sortByScore", () => {
     assert.equal(first.id, 1);
   });
 
+  test("«reírme»: un thriller largo no gana a una comedia, aunque tenga mejor nota", () => {
+    const thriller = make({
+      id: 1,
+      genres: [53, 18],
+      runtime: 162,
+      voteAverage: 8.4,
+      popularity: 300,
+    });
+
+    const comedy = make({
+      id: 2,
+      genres: [35],
+      runtime: 100,
+      voteAverage: 6.8,
+      popularity: 40,
+    });
+
+    const [first] = sortByScore([thriller, comedy], {
+      profile: { mood: "laugh" },
+    });
+
+    assert.equal(first.id, 2);
+  });
+
   test("en familia, el terror se hunde", () => {
     const horror = make({ id: 1, genres: [27] });
     const family = make({ id: 2, genres: [10751, 16] });

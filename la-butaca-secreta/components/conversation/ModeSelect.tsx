@@ -1,7 +1,13 @@
+import type { PlatformKey } from "@/lib/platforms";
+
+import PlatformPicker from "./PlatformPicker";
+
 export type Mode = "solo" | "group";
 
 type Props = {
   onSelect: (mode: Mode) => void;
+  platforms: PlatformKey[];
+  onPlatformsChange: (next: PlatformKey[]) => void;
 };
 
 const MODES: {
@@ -24,7 +30,11 @@ const MODES: {
   },
 ];
 
-export default function ModeSelect({ onSelect }: Props) {
+export default function ModeSelect({
+  onSelect,
+  platforms,
+  onPlatformsChange,
+}: Props) {
   return (
     <div data-mode-select>
       <p
@@ -61,6 +71,11 @@ export default function ModeSelect({ onSelect }: Props) {
           </button>
         ))}
       </div>
+
+      <PlatformPicker
+        selected={platforms}
+        onChange={onPlatformsChange}
+      />
     </div>
   );
 }
