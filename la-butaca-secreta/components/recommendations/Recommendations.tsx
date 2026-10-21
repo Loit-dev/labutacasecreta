@@ -20,6 +20,7 @@ export default function Recommendations({
   const [movies, setMovies] = useState<Recommendation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [errorDetail, setErrorDetail] = useState("");
   const [attempt, setAttempt] = useState(0);
   const [detailsIndex, setDetailsIndex] = useState<
     number | null
@@ -109,6 +110,7 @@ export default function Recommendations({
       try {
         setLoading(true);
         setError("");
+        setErrorDetail("");
 
         const params =
           new URLSearchParams();
@@ -197,9 +199,20 @@ if (profile.preferredGenre) {
           );
 
         if (!response.ok) {
-          throw new Error(
-            await response.text()
+          const body = await response.text();
+
+          // La API incluye "detail" solo fuera de producción
+          let detail = "";
+
+          try {
+            detail = JSON.parse(body).detail ?? "";
+          } catch {}
+
+          setErrorDetail(
+            detail || `Error ${response.status}`
           );
+
+          throw new Error(body);
         }
 
         const data: Recommendation[] =
@@ -245,6 +258,12 @@ if (profile.preferredGenre) {
     return (
       <div className="space-y-3 text-center">
         <p className="text-red-400">{error}</p>
+
+        {errorDetail && (
+          <p className="break-words text-xs text-zinc-500">
+            Detalle técnico: {errorDetail}
+          </p>
+        )}
 
         <button
           onClick={() =>

@@ -430,10 +430,20 @@ export async function GET(
   } catch (error) {
     console.error(error);
 
+    // En vistas previas y desarrollo devolvemos la causa para poder
+    // diagnosticar (p. ej. falta el token de TMDb). En producción no.
+    const detail =
+      error instanceof Error
+        ? error.message
+        : String(error);
+
     return NextResponse.json(
       {
         error:
           "No se pudieron obtener recomendaciones.",
+        ...(process.env.VERCEL_ENV !== "production"
+          ? { detail: detail.slice(0, 300) }
+          : {}),
       },
       {
         status: 500,
