@@ -16,6 +16,10 @@ export type CalendarEntry = {
   rating: number;
   popularity: number;
   platforms: PlatformKey[];
+  // «Nueva temporada (2)», «Estreno de la serie»…
+  note?: string;
+  // true si dos fuentes (TMDb y TVmaze) coinciden en el día
+  confirmed?: boolean;
 };
 
 const MONTH_RE = /^(\d{4})-(0[1-9]|1[0-2])$/;
@@ -140,4 +144,66 @@ export function platformsOfDay(
   return order.filter((key) =>
     entries.some((entry) => entry.platforms.includes(key))
   );
+}
+
+/**
+ * Junta lo que dicen TMDb y TVmaze. Si los dos hablan del mismo título:
+ * - mismo día → «confirmado» (y se unen sus plataformas);
+ * - distinto día → manda TVmaze (fecha exacta del episodio), sin confirmar.
+ * Lo que solo conoce TVmaze (p. ej. una temporada nueva de una serie
+ * antigua) se añade con su nota.
+ */
+export function mergeSources(
+  tmdb: CalendarEntry[],
+  tvmaze: CalendarEntry[]
+): CalendarEntry[] {
+  const result = new Map<string, CalendarEntry>();
+
+  // Varias entradas de TMDb del mismo título (una por plataforma) se unen
+  for (const entry of tmdb) {
+    const key = `${entry.type}|${entry.id}`;
+    const existing = result.get(key);
+
+    if (!existing) {
+      result.set(key, { ...entry, platforms: [...entry.platforms] });
+    } else if (existing.date === entry.date) {
+      for (const platform of entry.platforms) {
+        if (!existing.platforms.includes(platform)) {
+          existing.platforms.push(platform);
+        }
+      }
+    } else {
+      result.set(`${key}|${entry.date}`, {
+        ...entry,
+        platforms: [...entry.platforms],
+      });
+    }
+  }
+
+  for (const entry of tvmaze) {
+    const key = `${entry.type}|${entry.id}`;
+    const existing = result.get(key);
+
+    if (!existing) {
+      result.set(key, { ...entry, platforms: [...entry.platforms] });
+      continue;
+    }
+
+    for (const platform of entry.platforms) {
+      if (!existing.platforms.includes(platform)) {
+        existing.platforms.push(platform);
+      }
+    }
+
+    if (existing.date === entry.date) {
+      existing.confirmed = true;
+      existing.note = existing.note ?? entry.note;
+    } else {
+      existing.date = entry.date;
+      existing.confirmed = false;
+      existing.note = entry.note ?? existing.note;
+    }
+  }
+
+  return [...result.values()];
 }

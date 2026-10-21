@@ -418,3 +418,46 @@ export async function getProviderLogos(
 
   return logos;
 }
+
+
+// ------------------------------------------------------
+// Series de TVmaze → TMDb
+// ------------------------------------------------------
+
+interface TMDBFindResponse {
+  tv_results?: {
+    id: number;
+    name?: string;
+    overview: string;
+    poster_path: string | null;
+    vote_average: number;
+    popularity: number;
+  }[];
+}
+
+/** Busca una serie de TMDb por su id de IMDb o de TheTVDB. */
+export async function findTvByExternalId(
+  externalId: string | number,
+  source: "imdb_id" | "tvdb_id"
+) {
+  const data = await request<TMDBFindResponse>(
+    `/find/${encodeURIComponent(String(externalId))}?external_source=${source}&language=es-ES`,
+    CALENDAR_REVALIDATE
+  );
+
+  return data.tv_results?.[0] ?? null;
+}
+
+/** Ids de proveedor en suscripción (España) de una serie. */
+export async function getTvFlatrateIds(id: number): Promise<number[]> {
+  const data = await request<TMDBWatchProviders>(
+    `/tv/${id}/watch/providers`,
+    CALENDAR_REVALIDATE
+  );
+
+  const flatrate = data.results?.[WATCH_REGION]?.flatrate;
+
+  return Array.isArray(flatrate)
+    ? flatrate.map((provider) => provider.provider_id)
+    : [];
+}

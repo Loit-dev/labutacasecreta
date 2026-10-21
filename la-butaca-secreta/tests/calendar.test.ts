@@ -5,6 +5,7 @@ import {
   buildMonthGrid,
   daysInMonth,
   groupByDay,
+  mergeSources,
   monthRange,
   parseMonth,
   platformsOfDay,
@@ -106,5 +107,54 @@ describe("calendario", () => {
     );
 
     assert.deepEqual(platformsOfDay(undefined, ["netflix"]), []);
+  });
+
+  test("mezcla fuentes: mismo día = confirmado", () => {
+    const merged = mergeSources(
+      [entry({ id: 1, date: "2026-10-21", platforms: ["netflix"] })],
+      [entry({ id: 1, date: "2026-10-21", platforms: ["netflix"], note: "Nueva temporada (2)" })]
+    );
+
+    assert.equal(merged.length, 1);
+    assert.equal(merged[0].confirmed, true);
+    assert.equal(merged[0].note, "Nueva temporada (2)");
+  });
+
+  test("mezcla fuentes: distinto día = manda TVmaze y no se confirma", () => {
+    const merged = mergeSources(
+      [entry({ id: 1, date: "2026-10-20" })],
+      [entry({ id: 1, date: "2026-10-22" })]
+    );
+
+    assert.equal(merged.length, 1);
+    assert.equal(merged[0].date, "2026-10-22");
+    assert.equal(merged[0].confirmed, false);
+  });
+
+  test("mezcla fuentes: lo que solo conoce TVmaze se añade, y lo de TMDb se queda", () => {
+    const merged = mergeSources(
+      [entry({ id: 1 })],
+      [entry({ id: 2, note: "Nueva temporada (4)" })]
+    );
+
+    assert.deepEqual(
+      merged.map((e) => e.id).sort(),
+      [1, 2]
+    );
+
+    assert.equal(merged.find((e) => e.id === 1)?.confirmed, undefined);
+  });
+
+  test("mezcla fuentes: se unen las plataformas del mismo título", () => {
+    const merged = mergeSources(
+      [
+        entry({ id: 1, platforms: ["netflix"] }),
+        entry({ id: 1, platforms: ["max"] }),
+      ],
+      [entry({ id: 1, platforms: ["prime"] })]
+    );
+
+    assert.equal(merged.length, 1);
+    assert.deepEqual(merged[0].platforms.sort(), ["max", "netflix", "prime"]);
   });
 });

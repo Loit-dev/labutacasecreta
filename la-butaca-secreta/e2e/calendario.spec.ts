@@ -53,7 +53,11 @@ test.describe("Calendario de estrenos", () => {
           logos: {},
           days: {
             [day]: [
-              entry(1, "Serie Uno", day, ["netflix"]),
+              {
+                ...entry(1, "Serie Uno", day, ["netflix"]),
+                note: "Nueva temporada (2)",
+                confirmed: true,
+              },
               entry(2, "Serie Dos", day, ["max", "netflix"]),
             ],
           },
@@ -79,6 +83,10 @@ test.describe("Calendario de estrenos", () => {
     await expect(
       dialog.getByRole("link", { name: /Serie Dos/ })
     ).toBeVisible();
+
+    // Nota de temporada nueva y sello de «dos fuentes»
+    await expect(dialog.getByText(/Nueva temporada \(2\)/)).toBeVisible();
+    await expect(dialog.getByText(/2 fuentes/).first()).toBeVisible();
 
     await expect(
       dialog.getByRole("button", { name: /2 estrenos/ })

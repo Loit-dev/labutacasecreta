@@ -316,10 +316,23 @@ export default function CalendarView({ platforms: mine }: Props) {
 
                       <p className="mt-0.5 text-xs text-zinc-400">
                         {entry.type === "tv" ? "Serie" : "Película"}
+                        {entry.note && ` · ${entry.note}`}
                         {entry.rating > 0 && ` · ⭐ ${entry.rating}`}
                       </p>
 
                       <div className="mt-1 flex items-center gap-1">
+                        {entry.confirmed && (
+                          <span
+                            title="Confirmado por TMDb y TVmaze"
+                            className="mr-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-300"
+                          >
+                            <span aria-hidden="true">✓</span> 2 fuentes
+                            <span className="sr-only">
+                              : confirmado por TMDb y TVmaze
+                            </span>
+                          </span>
+                        )}
+
                         {entry.platforms.map((platform) => (
                           <PlatformLogo
                             key={platform}
@@ -344,8 +357,9 @@ export default function CalendarView({ platforms: mine }: Props) {
         )}
 
         <p className="text-[11px] text-zinc-400">
-          Datos: TMDb · Las fechas son las de estreno en España y
-          pueden variar un poco.
+          Datos: TMDb y TVmaze. «✓ 2 fuentes» = las dos coinciden en el
+          día. Las fechas son las de estreno en España y pueden variar
+          un poco.
         </p>
     </div>
   );
