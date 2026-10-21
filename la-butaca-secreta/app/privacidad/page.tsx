@@ -52,6 +52,14 @@ export default function PrivacyPage() {
           el enlace «Olvidar mis títulos vistos» o limpiando
           los datos del sitio en tu navegador.
         </p>
+
+        <p>
+          Lo mismo ocurre con «Mi lista»: si pulsas «Guardar
+          para ver luego», guardamos en tu navegador el
+          título, año, nota, póster y plataformas de ese
+          título. No se envía a ningún servidor y puedes
+          vaciarla desde «Mi lista» en cualquier momento.
+        </p>
       </section>
 
       <section>
@@ -64,6 +72,13 @@ export default function PrivacyPage() {
           sigue entre sitios web. Recoge datos agregados como
           la página visitada, de dónde llegas, el país, el
           tipo de dispositivo y el navegador.
+        </p>
+
+        <p>
+          Con <strong>Vercel Speed Insights</strong> medimos
+          además cuánto tarda la web en cargar y responder en
+          los dispositivos reales, para que vaya más rápido.
+          Tampoco usa cookies ni te identifica.
         </p>
 
         <p>

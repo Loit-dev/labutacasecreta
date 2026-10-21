@@ -1,12 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import {
-  Geist,
-  Geist_Mono,
-  Manrope,
-} from "next/font/google";
+import { Geist, Manrope } from "next/font/google";
 
 import Analytics from "@/components/layout/Analytics";
 import Footer from "@/components/layout/Footer";
+import SpeedInsights from "@/components/layout/SpeedInsights";
 import {
   SITE_DESCRIPTION,
   SITE_NAME,
@@ -18,11 +15,6 @@ import "./globals.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
   subsets: ["latin"],
 });
 
@@ -93,7 +85,6 @@ export default function RootLayout({
       lang="es"
       className={`
         ${geistSans.variable}
-        ${geistMono.variable}
         ${manrope.variable}
         h-full
         antialiased
@@ -105,6 +96,8 @@ export default function RootLayout({
         <Footer />
 
         <Analytics />
+
+        <SpeedInsights />
       </body>
     </html>
   );

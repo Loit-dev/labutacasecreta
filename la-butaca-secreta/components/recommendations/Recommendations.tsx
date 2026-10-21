@@ -13,6 +13,7 @@ import RecommendationSkeleton from "./RecommendationSkeleton";
 import ShareDialog from "./ShareDialog";
 
 import { useRecommendations } from "@/hooks/useRecommendations";
+import { useWatchlist } from "@/hooks/useWatchlist";
 import { track } from "@/lib/analytics";
 import { UserProfile } from "@/lib/conversation/types";
 import { posterSource, type ShareItem } from "@/lib/share";
@@ -106,6 +107,35 @@ export default function Recommendations({
   const [announcement, setAnnouncement] = useState("");
 
   const type = profile.contentType ?? "movie";
+
+  const watchlist = useWatchlist();
+
+  // Guarda o quita de «Mi lista» y lo anuncia
+  const toggleSaved = (movie: Recommendation) => {
+    const added = watchlist.toggle({
+      id: movie.id,
+      type,
+      title: movie.title,
+      year: movie.year || undefined,
+      rating: movie.rating,
+      poster: movie.poster,
+      platforms: (movie.platforms ?? []).map(
+        (platform) => platform.name
+      ),
+    });
+
+    track(added ? "list_add" : "list_remove", {
+      type,
+      id: movie.id,
+      role: movie.role,
+    });
+
+    setAnnouncement(
+      added
+        ? `«${movie.title}» guardada en tu lista.`
+        : `«${movie.title}» quitada de tu lista.`
+    );
+  };
 
   const sectionRef = useRef<HTMLElement>(null);
   const scrolledRef = useRef(false);
@@ -338,6 +368,8 @@ export default function Recommendations({
         poster={movie.poster}
         providers={movie.providers}
         reason={movie.reason}
+        saved={watchlist.has(movie.id, type)}
+        onToggleSave={() => toggleSaved(movie)}
         onDetails={() => {
           track("details_open", {
             id: movie.id,
@@ -513,6 +545,8 @@ export default function Recommendations({
           movie={detailsMovie}
           badge={detailsBadge.badge}
           badgeTitle={detailsBadge.badgeTitle}
+          saved={watchlist.has(detailsMovie.id, type)}
+          onToggleSave={() => toggleSaved(detailsMovie)}
           onClose={closeDetails}
         />
       )}

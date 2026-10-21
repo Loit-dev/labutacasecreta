@@ -12,6 +12,8 @@ type Props = {
   poster: string;
   providers?: {name: string; logo: string;}[];
   reason?: string;
+  saved?: boolean;
+  onToggleSave?: () => void;
   onDetails?: () => void;
   onSeen?: () => void;
   onReject?: () => void;
@@ -29,6 +31,8 @@ export default function RecommendationCard({
   poster,
   providers = [],
   reason,
+  saved = false,
+  onToggleSave,
   onDetails,
   onSeen,
   onReject,
@@ -146,6 +150,26 @@ export default function RecommendationCard({
 >
   Ver detalles
 </button>
+
+        {onToggleSave && (
+          <button
+            onClick={onToggleSave}
+            aria-pressed={saved}
+            aria-label={
+              saved
+                ? `Guardada, quitar de mi lista: ${title}`
+                : `Guardar en mi lista: ${title}`
+            }
+            className={`w-full rounded-lg border px-2 py-2 text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
+              saved
+                ? "border-yellow-500/70 bg-yellow-400/10 text-yellow-300 hover:bg-yellow-400/20"
+                : "border-zinc-700 text-zinc-300 hover:border-zinc-500 hover:bg-zinc-800 hover:text-white"
+            }`}
+          >
+            <span aria-hidden="true">{saved ? "✓" : "🔖"}</span>{" "}
+            {saved ? "Guardada en mi lista" : "Guardar para ver luego"}
+          </button>
+        )}
 
         {(onSeen || onReject) && (
           <div className="flex gap-2">
