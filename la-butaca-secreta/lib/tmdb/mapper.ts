@@ -4,6 +4,7 @@ import {
   TMDBCredits,
   TMDBMovie,
   TMDBMovieDetails,
+  TMDBVideo,
   TMDBWatchProviders,
 } from "./types";
 
@@ -135,6 +136,30 @@ export interface Recommendation {
   director?: string;
   cast: string[];
   reason?: string;
+  tagline?: string;
+  // Clave de YouTube del tráiler (si existe)
+  trailerKey?: string;
+  // Página de JustWatch con todas las plataformas en España
+  watchLink?: string;
+}
+
+/**
+ * Elige el mejor tráiler de YouTube: oficial > en español > cualquiera.
+ */
+function pickTrailer(videos: TMDBVideo[] = []) {
+  const trailers = videos.filter(
+    (video) =>
+      video.site === "YouTube" &&
+      video.type === "Trailer"
+  );
+
+  const score = (video: TMDBVideo) =>
+    (video.official ? 2 : 0) +
+    (video.iso_639_1 === "es" ? 1 : 0);
+
+  return [...trailers].sort(
+    (a, b) => score(b) - score(a)
+  )[0]?.key;
 }
 
 
@@ -254,6 +279,15 @@ export function mapRecommendation(
       .slice(0, 3),
 
     director,
+
+    tagline: details?.tagline || undefined,
+
+    trailerKey: pickTrailer(
+      details?.videos?.results
+    ),
+
+    watchLink:
+      providers?.results?.ES?.link,
 
     cast:
       credits?.cast

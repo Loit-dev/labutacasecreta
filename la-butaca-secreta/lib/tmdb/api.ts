@@ -224,7 +224,7 @@ export async function getMovieFull(
   id: number
 ) {
   return request<TMDBFullDetails>(
-    `/movie/${id}?language=es-ES&append_to_response=credits,watch/providers`,
+    `/movie/${id}?language=es-ES&append_to_response=credits,watch/providers,videos&include_video_language=es,en`,
     DETAILS_REVALIDATE
   );
 }
@@ -233,7 +233,7 @@ export async function getTVFull(
   id: number
 ) {
   return request<TMDBFullDetails>(
-    `/tv/${id}?language=es-ES&append_to_response=credits,watch/providers`,
+    `/tv/${id}?language=es-ES&append_to_response=credits,watch/providers,videos&include_video_language=es,en`,
     DETAILS_REVALIDATE
   );
 }

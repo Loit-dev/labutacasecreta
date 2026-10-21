@@ -9,7 +9,10 @@ import {
 } from "@/lib/recommendation/engine";
 import { RecommendationFilters } from "@/lib/recommendation/filters";
 import { sortByScore } from "@/lib/recommendation/scoring";
-import { diversify } from "@/lib/recommendation/diversity";
+import {
+  buildSurpriseReason,
+  buildTrios,
+} from "@/lib/recommendation/surprise";
 import { buildRecommendationReason } from "@/lib/recommendation/prompt";
 import {
   discoverMovies,
@@ -30,6 +33,10 @@ import {
 
 // Siempre dinámico: depende de los parámetros de la URL.
 export const dynamic = "force-dynamic";
+
+// La primera búsqueda (sin caché) hace ~50 llamadas a TMDb:
+// damos margen para que no se corte por tiempo en Vercel.
+export const maxDuration = 30;
 
 // IDs permitidos estrictamente: Netflix (8), Prime (119), Disney+ (337), Max (1899, 384)
 const ALLOWED_PROVIDER_IDS = [
@@ -384,23 +391,16 @@ export async function GET(
       ])
     );
 
-    let selected = diversify(
+    // Tandas de 3: 🥇 🥈 por encaje (con variedad) y 🥉 sorpresa
+    const trios = buildTrios(
       rescored,
-      MAX_RECOMMENDATIONS
+      MAX_RECOMMENDATIONS / 3
     );
 
-    // Si la diversificación no devuelve nada, usamos el ranking tal cual
-    if (selected.length === 0) {
-      selected = rescored.slice(
-        0,
-        MAX_RECOMMENDATIONS
-      );
-    }
-
-    let recommendations = selected.map(
-      (item) => {
+    const recommendations = trios.map(
+      (entry) => {
         const { movie, details } =
-          poolById.get(item.id)!;
+          poolById.get(entry.item.id)!;
 
         return {
           ...mapRecommendation(
@@ -410,27 +410,21 @@ export async function GET(
             details.credits
           ),
 
-          reason: buildRecommendationReason(
-            profile,
-            {
-              genreIds: movie.genre_ids,
-              voteAverage: movie.vote_average,
-              voteCount: movie.vote_count,
-            }
-          ),
+          reason:
+            entry.role === "surprise"
+              ? buildSurpriseReason(entry)
+              : buildRecommendationReason(
+                  profile,
+                  {
+                    genreIds: movie.genre_ids,
+                    voteAverage:
+                      movie.vote_average,
+                    voteCount: movie.vote_count,
+                  }
+                ),
         };
       }
     );
-
-    // Tandas completas de 3. Solo se recorta si hay al menos 3:
-    // con 1 o 2 resultados antes se devolvía una lista vacía.
-    if (recommendations.length > 3) {
-      recommendations = recommendations.slice(
-        0,
-        recommendations.length -
-          (recommendations.length % 3)
-      );
-    }
 
     return NextResponse.json(recommendations);
   } catch (error) {

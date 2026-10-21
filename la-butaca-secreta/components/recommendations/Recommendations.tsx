@@ -1,23 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import RecommendationCard from "./RecommendationCard";
 
-import { UserProfile } from "@/lib/conversation/types";
+import DetailsModal from "./DetailsModal";
 
-type Recommendation = {
-  id: number;
-  title: string;
-  year: number;
-  rating: number;
-  runtime: number;
-  genres: string[];
-  overview: string;
-  poster: string;
-  providers: { name: string; logo: string;}[];
-  reason?: string;
-};
+import { UserProfile } from "@/lib/conversation/types";
+import type { Recommendation } from "@/lib/tmdb/mapper";
+
 
 type Props = {
   profile: UserProfile;
@@ -29,10 +20,18 @@ export default function Recommendations({
   const [movies, setMovies] = useState<Recommendation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [attempt, setAttempt] = useState(0);
+  const [detailsIndex, setDetailsIndex] = useState<
+    number | null
+  >(null);
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [page, setPage] = useState(0);
   const visibleMovies = movies.slice(page*3, page*3+3);
+  const closeDetails = useCallback(
+    () => setDetailsIndex(null),
+    []
+  );
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
@@ -61,6 +60,7 @@ export default function Recommendations({
 
   setPage(newPage);
   setActiveIndex(0);
+  setDetailsIndex(null);
 };
   const minSwipeDistance = 50;
 
@@ -231,7 +231,7 @@ if (profile.preferredGenre) {
     load();
 
     return () => controller.abort();
-  }, [profile]);
+  }, [profile, attempt]);
 
   if (loading) {
     return (
@@ -243,9 +243,18 @@ if (profile.preferredGenre) {
 
   if (error) {
     return (
-      <p className="text-center text-red-400">
-        {error}
-      </p>
+      <div className="space-y-3 text-center">
+        <p className="text-red-400">{error}</p>
+
+        <button
+          onClick={() =>
+            setAttempt((current) => current + 1)
+          }
+          className="rounded-xl border border-zinc-700 bg-zinc-900/80 px-5 py-3 text-sm font-medium text-white transition-all hover:border-red-500/50 hover:bg-zinc-800"
+        >
+          🔄 Reintentar
+        </button>
+      </div>
     );
   }
 
@@ -339,6 +348,9 @@ if (profile.preferredGenre) {
               reason={
                 visibleMovies[activeIndex].reason
               }
+              onDetails={() =>
+                setDetailsIndex(activeIndex)
+              }
             />
 
             <button
@@ -397,6 +409,9 @@ if (profile.preferredGenre) {
               poster={movie.poster}
               providers={movie.providers}
               reason={movie.reason}
+              onDetails={() =>
+                setDetailsIndex(index)
+              }
             />
           )
         )}
@@ -431,6 +446,22 @@ if (profile.preferredGenre) {
     🔄 Dame otras 3 recomendaciones
   </button>
 )}
+
+      {detailsIndex !== null &&
+        visibleMovies[detailsIndex] && (
+          <DetailsModal
+            movie={visibleMovies[detailsIndex]}
+            badge={
+              badges[detailsIndex % 3]?.badge ??
+              "🎬"
+            }
+            badgeTitle={
+              badges[detailsIndex % 3]
+                ?.badgeTitle ?? "Recomendación"
+            }
+            onClose={closeDetails}
+          />
+        )}
     </section>
   );
 }
