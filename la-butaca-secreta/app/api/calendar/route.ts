@@ -26,6 +26,8 @@ import {
 } from "@/lib/tvmaze";
 import type { TMDBMovie } from "@/lib/tmdb/types";
 import { DESTACADOS } from "@/data/calendar/destacados";
+import { translateToSpanish } from "@/lib/translate";
+import { getFallbackPoster } from "@/lib/posterFallback";
 import { IMPORTADOS } from "@/data/calendar/decine21";
 
 export const dynamic = "force-dynamic";
@@ -303,13 +305,24 @@ async function importados(
           try {
             const fallback = await getFallback(item.type, match.id);
 
-            entry = {
-              ...entry,
-              poster: entry.poster ?? (fallback.poster_path
+            const overview = entry.overview
+              ? entry.overview
+              : await translateToSpanish(fallback.overview);
+
+            let poster =
+              entry.poster ??
+              (fallback.poster_path
                 ? `${POSTER_BASE}${fallback.poster_path}`
-                : null),
-              overview: entry.overview || fallback.overview,
-            };
+                : null);
+
+            if (!poster) {
+              poster = await getFallbackPoster(
+                item.type,
+                entry.title
+              );
+            }
+
+            entry = { ...entry, poster, overview };
           } catch {
             // Sin ficha de repuesto: se queda como está
           }
