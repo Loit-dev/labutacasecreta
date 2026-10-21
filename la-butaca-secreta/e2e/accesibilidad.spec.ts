@@ -79,6 +79,15 @@ test.describe("Accesibilidad", () => {
 
     await page.goto("/");
 
+    // Esperamos a que la página esté lista (ya hidratada) antes de usar el teclado
+    await expect(
+      page.locator("[data-options] button").first()
+    ).toBeVisible();
+
+    await page.evaluate(() =>
+      (document.activeElement as HTMLElement | null)?.blur()
+    );
+
     await page.keyboard.press("Tab");
 
     await expect(
