@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { createPortal } from "react-dom";
 
 import type { Recommendation } from "@/lib/tmdb/mapper";
 
@@ -65,7 +66,10 @@ export default function DetailsModal({
 
   const platforms = movie.platforms ?? [];
 
-  return (
+  // Se pinta en <body> con un portal: el contenedor del chat tiene
+  // backdrop-blur y overflow-hidden, lo que haría que "fixed" se
+  // posicionara y recortara respecto a él y no respecto a la pantalla.
+  const content = (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-3 backdrop-blur-sm sm:p-6"
       onClick={onClose}
@@ -74,7 +78,7 @@ export default function DetailsModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="details-title"
-        className="relative max-h-[94dvh] w-full max-w-xl overflow-y-auto rounded-3xl border border-zinc-800 bg-zinc-900 p-4 shadow-2xl sm:p-6"
+        className="relative max-h-[96dvh] w-full max-w-xl overflow-y-auto overscroll-contain rounded-3xl border border-zinc-800 bg-zinc-900 p-4 shadow-2xl sm:p-5"
         onClick={(event) =>
           event.stopPropagation()
         }
@@ -108,7 +112,7 @@ export default function DetailsModal({
             </button>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {/* Cabecera: póster + datos básicos */}
             <div className="flex gap-4 pr-10">
               <div className="relative aspect-[2/3] w-24 shrink-0 overflow-hidden rounded-xl bg-black sm:w-28">
@@ -166,7 +170,7 @@ export default function DetailsModal({
             </div>
 
             {/* Resumen */}
-            <p className="line-clamp-4 text-sm leading-relaxed text-zinc-200">
+            <p className="line-clamp-3 text-sm leading-relaxed text-zinc-200 sm:line-clamp-4">
               {movie.overview ||
                 "TMDb todavía no tiene sinopsis en español para este título."}
             </p>
@@ -278,4 +282,6 @@ export default function DetailsModal({
       </div>
     </div>
   );
+
+  return createPortal(content, document.body);
 }
