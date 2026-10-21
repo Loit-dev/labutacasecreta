@@ -13,6 +13,26 @@ describe("ConversationEngine", () => {
     assert.equal(engine.getNextNode()?.id, "contentType");
   });
 
+  test("preset da una pregunta por contestada sin mostrarla", () => {
+    const engine = new ConversationEngine();
+
+    engine.preset("company", "alone");
+
+    let guard = 0;
+
+    for (
+      let node = engine.getNextNode();
+      node && guard < 50;
+      node = engine.getNextNode(), guard++
+    ) {
+      assert.notEqual(node.id, "company");
+      engine.answer(node.id, node.options[0].value, "respuesta");
+    }
+
+    assert.equal(engine.getProfile().company, "alone");
+    assert.equal(engine.getMessages().length > 0, true);
+  });
+
   test("las restricciones se guardan como lista", () => {
     const engine = new ConversationEngine();
 

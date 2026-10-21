@@ -25,7 +25,7 @@ test.describe("Accesibilidad", () => {
   test("la página de inicio no tiene fallos graves", async ({ page }) => {
     await page.goto("/");
 
-    await expect(page.locator("[data-options] button").first()).toBeVisible();
+    await expect(page.locator("[data-mode-select] button").first()).toBeVisible();
 
     const results = await new AxeBuilder({ page })
       .withTags(TAGS)
@@ -80,7 +80,7 @@ test.describe("Accesibilidad", () => {
     await page.goto("/");
 
     await expect(
-      page.locator("[data-options] button").first()
+      page.locator("[data-mode-select] button").first()
     ).toBeVisible();
 
     // Es el primer elemento al que llega el teclado

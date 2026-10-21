@@ -1,73 +1,23 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useState } from "react";
 
+import GroupQuiz from "@/components/group/GroupQuiz";
 import PosterWall from "@/components/layout/PosterWall";
 import MyListButton from "@/components/list/MyListButton";
+import { track } from "@/lib/analytics";
 
 import Header from "./Header";
-import ChatHistory from "./ChatHistory";
-import OptionButtons from "./OptionButtons";
-import TypingIndicator from "./TypingIndicator";
-
-import Recommendations from "@/components/recommendations/Recommendations";
-import { useConversation } from "@/hooks/useConversation";
+import ModeSelect, { type Mode } from "./ModeSelect";
+import SoloChat from "./SoloChat";
 
 export default function Conversation() {
-  const {
-    messages,
-    profile,
-    currentQuestion,
-    answer,
-    isThinking,
-    finished,
-  } = useConversation();
+  const [mode, setMode] = useState<Mode | null>(null);
 
-  const endRef = useRef<HTMLDivElement>(null);
-
- useEffect(() => {
-  const scrollToBottom = () => {
-    endRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "end",
-    });
-  };
-
-  if (finished) {
-    // Solo una vez, para ver el "Buscando…". Cuando llegan los
-    // resultados, Recommendations se encarga de bajar hasta ellos.
-    const timer = setTimeout(
-      scrollToBottom,
-      500
-    );
-
-    return () => {
-      clearTimeout(timer);
-    };
+  function chooseMode(next: Mode) {
+    track("mode_selected", { mode: next });
+    setMode(next);
   }
-
-  scrollToBottom();
-
-  const timer1 = setTimeout(
-    scrollToBottom,
-    250
-  );
-
-  const timer2 = setTimeout(
-    scrollToBottom,
-    500
-  );
-
-  return () => {
-    clearTimeout(timer1);
-    clearTimeout(timer2);
-  };
-}, [
-  messages,
-  currentQuestion,
-  isThinking,
-  finished,
-]);
 
   return (
     <>
@@ -119,35 +69,19 @@ export default function Conversation() {
             <Header />
           </div>
 
-          <div className="px-8 py-6">
-            <ChatHistory messages={messages} />
+          {mode === null && (
+            <div className="px-8 py-6">
+              <ModeSelect onSelect={chooseMode} />
+            </div>
+          )}
 
-            {isThinking && (
-              <div className="mt-8">
-                <TypingIndicator />
-              </div>
-            )}
+          {mode === "solo" && <SoloChat />}
 
-            {!finished && !isThinking && (
-              <div className="mt-4">
-                <OptionButtons
-                  question={currentQuestion}
-                  onSelect={answer}
-                />
-              </div>
-            )}
-
-           {finished && (
-  <div className="mt-10">
-    <Recommendations profile={profile} />
-  </div>
-)}
-
-            <div
-              ref={endRef}
-              className="h-2"
-            />
-          </div>
+          {mode === "group" && (
+            <div className="px-8 py-6">
+              <GroupQuiz />
+            </div>
+          )}
         </section>
       </main>
     </>

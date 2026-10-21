@@ -104,6 +104,8 @@ export async function mockApi(page: Page): Promise<Captured> {
 export async function completeQuiz(page: Page) {
   await page.goto("/");
 
+  await page.getByRole("button", { name: /Solo/ }).click();
+
   const log = page.locator('[role="log"] > div');
 
   for (let step = 0; step < 15; step++) {
