@@ -249,10 +249,10 @@ export function drawShareImage(
   const logo = options.logo;
 
   if (logo && logo.width > 0 && logo.height > 0) {
-    const logoH = 150;
+    const logoH = 180;
     const logoW = (logo.width / logo.height) * logoH;
     const logoX = W / 2 - logoW / 2;
-    const logoY = 250;
+    const logoY = 235;
 
     // Brillo rojo detrás
     ctx.save();
@@ -316,7 +316,7 @@ export function drawShareImage(
   ctx.shadowColor = "rgba(0,0,0,0.6)";
   ctx.shadowBlur = 24;
   ctx.fillStyle = titleGradient;
-  ctx.fillText(title, W / 2, 490);
+  ctx.fillText(title, W / 2, 505);
   ctx.restore();
 
   ctx.fillStyle = "#e4e4e7";
@@ -331,7 +331,7 @@ export function drawShareImage(
       ? `${what} · ${options.compatibility} % de coincidencia`
       : what,
     W / 2,
-    548
+    562
   );
 
   // ---------- Pósters: abanico con la apuesta principal al centro ----------
