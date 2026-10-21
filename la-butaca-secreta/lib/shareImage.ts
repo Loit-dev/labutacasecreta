@@ -1,15 +1,17 @@
 /**
  * Dibuja la imagen «Mis sugerencias» (3 pósters) en un canvas.
  *
- * Formato 4:5 (1080×1350): se ve bien en WhatsApp, Instagram,
- * Telegram o cualquier red. Esta función no depende de React ni de
+ * Formato vertical 9:16 (1080×1920) para Stories y Reels de Instagram,
+ * estados de WhatsApp, TikTok… Todo lo importante queda en la zona
+ * segura (sin los ~250 px de arriba ni los ~340 px de abajo, que tapa
+ * la interfaz de esas apps). Esta función no depende de React ni de
  * Next, así que se puede probar en un navegador de pruebas.
  */
 
 import type { ShareItem, ShareKind } from "./share";
 
 export const SHARE_WIDTH = 1080;
-export const SHARE_HEIGHT = 1350;
+export const SHARE_HEIGHT = 1920;
 
 export type DrawableImage = CanvasImageSource & {
   width: number;
@@ -32,12 +34,12 @@ type Options = {
 
 // Pósters decorativos del fondo: (x, y, ancho, alto, giro en grados)
 const BACKDROP_SLOTS: [number, number, number, number, number][] = [
-  [-70, 30, 380, 540, -10],
-  [-60, 560, 380, 540, 6],
-  [-80, 1000, 380, 540, -6],
-  [770, 10, 380, 540, 10],
-  [780, 540, 380, 540, -6],
-  [760, 1010, 380, 540, 8],
+  [-70, 20, 380, 600, -10],
+  [-60, 660, 380, 600, 6],
+  [-80, 1300, 380, 620, -6],
+  [770, 0, 380, 600, 10],
+  [780, 640, 380, 600, -6],
+  [760, 1290, 380, 620, 8],
 ];
 
 // Pósters del fondo (los mismos que decoran la web)
@@ -250,10 +252,10 @@ export function drawShareImage(
   const logo = options.logo;
 
   if (logo && logo.width > 0 && logo.height > 0) {
-    const logoH = 205;
+    const logoH = 190;
     const logoW = (logo.width / logo.height) * logoH;
     const logoX = W / 2 - logoW / 2;
-    const logoY = 70;
+    const logoY = 260;
 
     // Brillo rojo detrás
     ctx.save();
@@ -278,7 +280,7 @@ export function drawShareImage(
     ctx.fillStyle = "#ef4444";
     ctx.font = `800 34px ${font}`;
     spaced.letterSpacing = "8px";
-    ctx.fillText(options.siteName.toUpperCase(), W / 2 + 4, 170);
+    ctx.fillText(options.siteName.toUpperCase(), W / 2 + 4, 380);
     resetSpacing();
   }
 
@@ -317,7 +319,7 @@ export function drawShareImage(
   ctx.shadowColor = "rgba(0,0,0,0.6)";
   ctx.shadowBlur = 24;
   ctx.fillStyle = titleGradient;
-  ctx.fillText(title, W / 2, 384);
+  ctx.fillText(title, W / 2, 600);
   ctx.restore();
 
   ctx.fillStyle = "#e4e4e7";
@@ -332,7 +334,7 @@ export function drawShareImage(
       ? `${what} · ${options.compatibility} % de coincidencia`
       : what,
     W / 2,
-    458
+    664
   );
 
   // ---------- Pósters ----------
@@ -342,7 +344,7 @@ export function drawShareImage(
 
   const startX = (W - totalW) / 2;
 
-  const POSTERS_TOP = 500;
+  const POSTERS_TOP = 730;
 
   let mainsBefore = 0;
 
@@ -486,7 +488,7 @@ export function drawShareImage(
 
   const pillW = ctx.measureText(url).width + 90;
   const pillX = W / 2 - pillW / 2;
-  const footY = H - 168;
+  const footY = H - 450;
 
   const pillGradient = ctx.createLinearGradient(pillX, 0, pillX + pillW, 0);
 

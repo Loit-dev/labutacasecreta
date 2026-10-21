@@ -262,7 +262,7 @@ export default function Recommendations({
 
         <button
           onClick={retry}
-          className="rounded-xl border border-zinc-700 bg-zinc-900/80 px-5 py-3 text-sm font-medium text-white transition-all hover:border-red-500/50 hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          className="rounded-xl border border-zinc-700 bg-zinc-900 px-5 py-3 shadow-lg shadow-black/60 text-sm font-medium text-white transition-all hover:border-red-500/50 hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
           🔄 Reintentar
         </button>
@@ -374,7 +374,7 @@ export default function Recommendations({
       id="recommendations"
       aria-labelledby="recommendations-title"
       tabIndex={-1}
-      className="scroll-mt-4 scroll-mb-4 space-y-8 outline-none"
+      className="scroll-mt-4 scroll-mb-4 space-y-5 outline-none md:space-y-8"
     >
       <p role="status" className="sr-only">
         {announcement}
@@ -389,7 +389,7 @@ export default function Recommendations({
           tres pueden ser justo lo que buscas.
         </h2>
 
-        <p className="mt-3 text-sm text-zinc-400 md:text-base">
+        <p className="mt-2 text-sm text-zinc-400 md:mt-3 md:text-base">
           {audience
             ? "Seleccionadas especialmente para vosotros."
             : "Seleccionadas especialmente para ti."}
@@ -461,10 +461,10 @@ export default function Recommendations({
         {visible.map(renderCard)}
       </div>
 
-      <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+      <div className="sticky bottom-3 z-30 mt-4 flex flex-wrap items-center justify-center gap-2 md:static md:mt-6 md:gap-3">
         <button
           onClick={openShare}
-          className="rounded-xl bg-red-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          className="rounded-xl bg-red-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-black/60 transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
           <span aria-hidden="true">📤</span> Compartir mis
           sugerencias

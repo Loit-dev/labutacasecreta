@@ -1,9 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
+import InstallButton from "./InstallButton";
 
 export default function Footer() {
   return (
     <footer className="relative z-30 mx-auto w-full max-w-4xl px-6 pb-8 pt-2 text-center text-xs leading-relaxed text-zinc-400">
+      <InstallButton />
+
       <a
         href="https://www.themoviedb.org/"
         target="_blank"
