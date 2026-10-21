@@ -94,6 +94,10 @@ export default function CalendarView({ platforms: mine }: Props) {
   const [selected, setSelected] = useState<string | null>(today);
   const [data, setData] = useState<Record<string, MonthData>>({});
   const [failed, setFailed] = useState<string | null>(null);
+  // Pestaña de plataforma elegida en el detalle del día ("todas" = sin filtrar)
+  const [platformTab, setPlatformTab] = useState<PlatformKey | "todas">(
+    "todas"
+  );
 
   useEffect(() => {
     if (data[month]) return;
@@ -144,9 +148,35 @@ export default function CalendarView({ platforms: mine }: Props) {
 
     setMonth(next);
     setSelected(next === today.substring(0, 7) ? today : null);
+    setPlatformTab("todas");
   }
 
-  const selectedEntries = selected ? entriesOf(selected) : [];
+  function select(date: string) {
+    setSelected(date);
+    setPlatformTab("todas");
+  }
+
+  const dayEntries = selected ? entriesOf(selected) : [];
+
+  // Cuántos estrenos hay de cada plataforma, para el número en su pestaña
+  const countsByPlatform = Object.fromEntries(
+    mine.map((platform) => [
+      platform,
+      dayEntries.filter((entry) => entry.platforms.includes(platform))
+        .length,
+    ])
+  ) as Record<PlatformKey, number>;
+
+  const platformsInDay = mine.filter(
+    (platform) => countsByPlatform[platform] > 0
+  );
+
+  const selectedEntries =
+    platformTab === "todas"
+      ? dayEntries
+      : dayEntries.filter((entry) =>
+          entry.platforms.includes(platformTab)
+        );
 
   return (
     <div className="flex flex-col gap-3">
@@ -238,7 +268,7 @@ export default function CalendarView({ platforms: mine }: Props) {
                   return (
                     <button
                       key={date}
-                      onClick={() => setSelected(date)}
+                      onClick={() => select(date)}
                       aria-pressed={isSelected}
                       aria-label={`${dayTitle(date)}: ${entries.length} ${entries.length === 1 ? "estreno" : "estrenos"}`}
                       className={`flex min-h-14 flex-col items-center gap-1 rounded-xl border p-1 text-xs transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:min-h-20 ${
@@ -276,6 +306,51 @@ export default function CalendarView({ platforms: mine }: Props) {
             <h3 className="text-sm font-bold capitalize text-white">
               {dayTitle(selected)}
             </h3>
+
+            {platformsInDay.length > 1 && (
+              <div
+                role="tablist"
+                aria-label="Filtrar por plataforma"
+                className="mt-2 flex gap-1.5 overflow-x-auto pb-1"
+              >
+                <button
+                  role="tab"
+                  aria-selected={platformTab === "todas"}
+                  onClick={() => setPlatformTab("todas")}
+                  className={`shrink-0 rounded-full border px-3 py-1 text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
+                    platformTab === "todas"
+                      ? "border-red-500 bg-red-500 text-white"
+                      : "border-zinc-700 bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
+                  }`}
+                >
+                  Todas ({dayEntries.length})
+                </button>
+
+                {platformsInDay.map((platform) => (
+                  <button
+                    key={platform}
+                    role="tab"
+                    aria-selected={platformTab === platform}
+                    aria-label={`${LABELS[platform]} (${countsByPlatform[platform]})`}
+                    onClick={() => setPlatformTab(platform)}
+                    className={`flex shrink-0 items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
+                      platformTab === platform
+                        ? "border-red-500 bg-red-500/15"
+                        : "border-zinc-700 bg-zinc-800 hover:bg-zinc-700"
+                    }`}
+                  >
+                    <PlatformLogo
+                      platform={platform}
+                      logos={current.logos}
+                      size={18}
+                    />
+                    <span className="text-zinc-300">
+                      {countsByPlatform[platform]}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
 
             {selectedEntries.length === 0 ? (
               <p className="mt-2 rounded-2xl bg-black/40 px-4 py-5 text-center text-sm text-zinc-300">
