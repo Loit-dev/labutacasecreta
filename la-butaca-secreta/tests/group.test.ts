@@ -159,7 +159,7 @@ describe("compatibilidad", () => {
     assert.equal(compatibility(rounds), 50);
   });
 
-  test("las preguntas en las que a alguien le da igual no cuentan como coincidencia", () => {
+  test("cuando a alguien le da igual, cuenta como media coincidencia", () => {
     const rounds = [
       round("contentType", "unanimous", "movie"),
       round("mood", "auto", "laugh"),
@@ -167,22 +167,29 @@ describe("compatibilidad", () => {
       round("freshness", "auto", "new"),
     ];
 
-    // Solo había opinión de todos en 2 preguntas y coincidieron en 1
+    // 1 + 0,5 + 0 + 0,5 = 2 de 4
     assert.equal(compatibility(rounds), 50);
   });
 
-  test("si a todos les dio igual todo, no hay porcentaje", () => {
+  test("si a todos les da igual todo, es el 50 %", () => {
     assert.equal(
       compatibility([
         round("mood", "auto", "laugh"),
         round("freshness", "auto", "new"),
       ]),
-      null
+      50
     );
   });
 
-  test("sin preguntas no hay porcentaje", () => {
-    assert.equal(compatibility([]), null);
+  test("una mayoría no cuenta como coincidencia", () => {
+    assert.equal(
+      compatibility([round("mood", "majority", "laugh")]),
+      0
+    );
+  });
+
+  test("sin preguntas es 0", () => {
+    assert.equal(compatibility([]), 0);
   });
 
   test("el texto cambia según el porcentaje y el tamaño del grupo", () => {

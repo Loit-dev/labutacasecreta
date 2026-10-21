@@ -167,22 +167,24 @@ export interface Round {
 }
 
 /**
- * Porcentaje de preguntas en las que todos coincidieron de verdad.
+ * Porcentaje de coincidencia del grupo.
  *
- * Solo cuentan las preguntas en las que todos tenían una opinión: si a
- * alguien le daba igual, no hay coincidencia (ni desacuerdo) que medir.
- * Si a todos les dio igual todo, no hay nada que medir y devuelve null.
+ * - Coinciden todos: cuenta entera.
+ * - A alguien le da igual: cuenta a medias (nadie discrepa, pero tampoco
+ *   hay una elección compartida).
+ * - Mayoría o desempate: no cuenta, alguien ha tenido que ceder.
  */
-export function compatibility(rounds: Round[]): number | null {
-  const opinionated = rounds.filter((round) => round.kind !== "auto");
+export function compatibility(rounds: Round[]) {
+  if (rounds.length === 0) return 0;
 
-  if (opinionated.length === 0) return null;
+  const points = rounds.reduce((sum, round) => {
+    if (round.kind === "unanimous") return sum + 1;
+    if (round.kind === "auto") return sum + 0.5;
 
-  const agreed = opinionated.filter(
-    (round) => round.kind === "unanimous"
-  ).length;
+    return sum;
+  }, 0);
 
-  return Math.round((agreed / opinionated.length) * 100);
+  return Math.round((points / rounds.length) * 100);
 }
 
 /** Frase para el marcador, según el porcentaje. */

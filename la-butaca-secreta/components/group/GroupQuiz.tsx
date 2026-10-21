@@ -421,17 +421,11 @@ export default function GroupQuiz() {
         eyebrow={
           names.length === 2 ? "Resultado de los dos" : "Resultado del grupo"
         }
-        title={
-          percent === null
-            ? "Os da igual casi todo 😌"
-            : `${percent} % de coincidencia`
-        }
-        tone={percent === null || percent >= 75 ? "good" : "neutral"}
+        title={`${percent} % de coincidencia`}
+        tone={percent >= 75 ? "good" : "neutral"}
       >
         <p className="mt-2 text-center text-zinc-300">
-          {percent === null
-            ? "Nadie ha tenido que ceder en nada."
-            : compatibilityText(percent, names.length)}
+          {compatibilityText(percent, names.length)}
         </p>
 
         <ul className="mx-auto mt-5 grid max-w-md gap-2">
@@ -461,7 +455,7 @@ export default function GroupQuiz() {
             onClick={() => {
               track("group_done", {
                 players: names.length,
-                match: percent ?? undefined,
+                match: percent,
               });
 
               setStep({ kind: "results" });
