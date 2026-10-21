@@ -7,6 +7,7 @@ import {
 import {
   RecommendationEngine,
 } from "@/lib/recommendation/engine";
+import { recentPoolFilters } from "@/lib/recommendation/eras";
 import { RecommendationFilters } from "@/lib/recommendation/filters";
 import { sortByScore } from "@/lib/recommendation/scoring";
 import {
@@ -201,11 +202,18 @@ async function fetchCandidates(
   filters: RecommendationFilters,
   pageNumbers: readonly number[]
 ): Promise<TMDBMovie[]> {
+  // Además de la búsqueda normal, otra con títulos recientes (si procede)
+  const searches = [filters, recentPoolFilters(filters)].filter(
+    (search): search is RecommendationFilters => search !== null
+  );
+
   const pages = await Promise.all(
-    pageNumbers.map((page) =>
-      filters.type === "movie"
-        ? discoverMovies(filters, page)
-        : discoverTV(filters, page)
+    searches.flatMap((search) =>
+      pageNumbers.map((page) =>
+        search.type === "movie"
+          ? discoverMovies(search, page)
+          : discoverTV(search, page)
+      )
     )
   );
 

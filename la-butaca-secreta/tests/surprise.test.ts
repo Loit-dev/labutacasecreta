@@ -151,6 +151,39 @@ describe("buildTrios", () => {
   });
 });
 
+describe("variedad de épocas", () => {
+  test("las dos principales de una tanda son de épocas distintas si se puede", () => {
+    const [first, second] = buildTrios(
+      [
+        item(1, [18], 8, 20000, 1972, 100),
+        item(2, [35], 7.9, 20000, 1975, 95),
+        item(3, [53], 7.8, 20000, 2021, 90),
+        item(4, [28], 7.7, 20000, 1960, 80),
+        item(5, [12], 7.6, 20000, 1990, 70),
+      ],
+      1
+    );
+
+    assert.equal(first.item.id, 1);
+    assert.equal(second.item.id, 3);
+  });
+
+  test("si todas son de la misma época, no se queda sin segunda principal", () => {
+    const [first, second] = buildTrios(
+      [
+        item(1, [18], 8, 20000, 1972, 100),
+        item(2, [35], 7.9, 20000, 1975, 95),
+        item(3, [53], 7.8, 20000, 1978, 90),
+        item(4, [28], 7.7, 20000, 1971, 80),
+      ],
+      1
+    );
+
+    assert.equal(first.item.id, 1);
+    assert.equal(second.item.id, 2);
+  });
+});
+
 describe("buildSurpriseReason", () => {
   test("empieza por «Mi sorpresa» y cuenta algo verificable", () => {
     const [, , surprise] = buildTrios(
