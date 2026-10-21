@@ -15,6 +15,7 @@ import {
   getProviderLogos,
   getDigitalDate,
   getTvFlatrateIds,
+  searchTitle,
 } from "@/lib/tmdb/api";
 import {
   premieresFrom,
@@ -22,6 +23,7 @@ import {
   type TvmazeEpisode,
 } from "@/lib/tvmaze";
 import type { TMDBMovie } from "@/lib/tmdb/types";
+import { DESTACADOS } from "@/data/calendar/destacados";
 
 export const dynamic = "force-dynamic";
 
@@ -179,6 +181,65 @@ async function tvmazeEntries(
   );
 }
 
+/**
+ * Estrenos de la lista manual que caen en este mes. Se ignoran si TMDb
+ * ya trae ese título (`known`).
+ */
+async function destacados(
+  from: string,
+  to: string,
+  known: Set<string>
+): Promise<CalendarEntry[]> {
+  const inMonth = DESTACADOS.filter(
+    (item) => item.date >= from && item.date <= to
+  );
+
+  const found = await mapLimited(
+    inMonth,
+    CONCURRENCY,
+    async (item): Promise<CalendarEntry | null> => {
+      let match: TMDBMovie | null = null;
+
+      try {
+        match = await searchTitle(item.type, item.query, item.year);
+      } catch {
+        match = null;
+      }
+
+      if (match && known.has(`${item.type}|${match.id}`)) return null;
+
+      const base: CalendarEntry = match
+        ? toEntry(
+            match,
+            item.type,
+            item.date,
+            item.platform,
+            "Estreno destacado"
+          )
+        : {
+            // Sin coincidencia en TMDb: se enseña solo con el título
+            id: 0,
+            type: item.type,
+            title: item.query,
+            date: item.date,
+            poster: null,
+            overview: "",
+            rating: 0,
+            popularity: 0,
+            platforms: [item.platform],
+            note: "Estreno destacado",
+          };
+
+      // Un destacado manda sobre el orden: va el primero de su día
+      return { ...base, popularity: Math.max(base.popularity, 1000) };
+    }
+  );
+
+  return found.filter(
+    (entry): entry is CalendarEntry => entry !== null
+  );
+}
+
 export async function GET(request: NextRequest) {
   const month = parseMonth(
     request.nextUrl.searchParams.get("month")
@@ -292,7 +353,15 @@ export async function GET(request: NextRequest) {
       tvmaze = [];
     }
 
-    const entries = mergeSources(tmdbEntries, tvmaze);
+    const merged = mergeSources(tmdbEntries, tvmaze);
+
+    const extra = await destacados(
+      from,
+      to,
+      new Set(merged.map((entry) => `${entry.type}|${entry.id}`))
+    ).catch(() => [] as CalendarEntry[]);
+
+    const entries = [...merged, ...extra];
 
     // Logos de cada plataforma (si no se pueden leer, la web usa texto)
     const logos: Partial<Record<PlatformKey, string>> = {};

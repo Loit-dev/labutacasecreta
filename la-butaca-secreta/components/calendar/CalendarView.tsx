@@ -302,7 +302,11 @@ export default function CalendarView({ platforms: mine }: Props) {
 
                     <div className="min-w-0 flex-1">
                       <a
-                        href={`https://www.themoviedb.org/${entry.type}/${entry.id}?language=es-ES`}
+                        href={
+                          entry.id > 0
+                            ? `https://www.themoviedb.org/${entry.type}/${entry.id}?language=es-ES`
+                            : `https://www.themoviedb.org/search?query=${encodeURIComponent(entry.title)}`
+                        }
                         target="_blank"
                         rel="noopener noreferrer"
                         className="line-clamp-2 text-sm font-semibold text-white underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"

@@ -477,3 +477,27 @@ export async function getTvFlatrateIds(id: number): Promise<number[]> {
     ? flatrate.map((provider) => provider.provider_id)
     : [];
 }
+
+
+// ------------------------------------------------------
+// Estrenos destacados (lista manual)
+// ------------------------------------------------------
+
+/** Primera coincidencia de TMDb para un título y año. */
+export async function searchTitle(
+  type: "movie" | "tv",
+  query: string,
+  year: number
+) {
+  const yearParam =
+    type === "movie"
+      ? `&primary_release_year=${year}`
+      : `&first_air_date_year=${year}`;
+
+  const data = await request<TMDBResponse>(
+    `/search/${type}?query=${encodeURIComponent(query)}&language=es-ES&include_adult=false${yearParam}`,
+    CALENDAR_REVALIDATE
+  );
+
+  return data.results[0] ?? null;
+}
