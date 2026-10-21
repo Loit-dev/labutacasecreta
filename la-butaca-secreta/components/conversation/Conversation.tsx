@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 
 import PosterWall from "@/components/layout/PosterWall";
+import MyListButton from "@/components/list/MyListButton";
 
 import Header from "./Header";
 import ChatHistory from "./ChatHistory";
@@ -78,6 +79,8 @@ export default function Conversation() {
       </a>
 
       <PosterWall />
+
+      <MyListButton />
 
       <main
         id="contenido"

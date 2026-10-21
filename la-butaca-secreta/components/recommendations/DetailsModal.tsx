@@ -12,6 +12,8 @@ type Props = {
   movie: Recommendation;
   badge: string;
   badgeTitle: string;
+  saved?: boolean;
+  onToggleSave?: () => void;
   onClose: () => void;
 };
 
@@ -19,6 +21,8 @@ export default function DetailsModal({
   movie,
   badge,
   badgeTitle,
+  saved = false,
+  onToggleSave,
   onClose,
 }: Props) {
   const [showTrailer, setShowTrailer] =
@@ -221,6 +225,28 @@ export default function DetailsModal({
 
             {/* Acciones */}
             <div className="flex flex-wrap items-center gap-3">
+              {onToggleSave && (
+                <button
+                  onClick={onToggleSave}
+                  aria-pressed={saved}
+                  aria-label={
+                    saved
+                      ? `Guardada, quitar de mi lista: ${movie.title}`
+                      : `Guardar en mi lista: ${movie.title}`
+                  }
+                  className={`rounded-xl border px-4 py-2.5 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
+                    saved
+                      ? "border-yellow-500/70 bg-yellow-400/10 text-yellow-300 hover:bg-yellow-400/20"
+                      : "border-zinc-600 text-white hover:bg-zinc-800"
+                  }`}
+                >
+                  <span aria-hidden="true">
+                    {saved ? "✓" : "🔖"}
+                  </span>{" "}
+                  {saved ? "Guardada" : "Guardar"}
+                </button>
+              )}
+
               {movie.trailerKey ? (
                 <button
                   onClick={() => {

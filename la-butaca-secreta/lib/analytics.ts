@@ -22,7 +22,10 @@ export type EventName =
   | "details_open"
   | "trailer_open"
   | "share_open"
-  | "share_done";
+  | "share_done"
+  | "list_add"
+  | "list_remove"
+  | "list_open";
 
 type Value = string | number | boolean;
 
