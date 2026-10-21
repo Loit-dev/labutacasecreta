@@ -3,12 +3,25 @@ import {
   ScoredItem,
 } from "./types";
 
+/**
+ * Quien pide algo «infantil y familiar» lo va a ver con niños,
+ * vaya con quien vaya: se trata como un plan en familia.
+ */
+export function effectiveCompany(
+  profile: ScoreContext["profile"]
+) {
+  return profile.preferredGenre === "family"
+    ? "family"
+    : profile.company;
+}
+
 export function scoreCompany(
   item: ScoredItem,
   context: ScoreContext
 ): number {
-  const company =
-    context.profile.company;
+  const company = effectiveCompany(
+    context.profile
+  );
 
   if (!company) {
     return 0;

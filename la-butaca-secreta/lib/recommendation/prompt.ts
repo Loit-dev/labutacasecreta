@@ -49,7 +49,10 @@ const GENRE_REASONS: Record<
   { genres: number[]; label: string }
 > = {
   scifi: { genres: [878], label: "ciencia ficción" },
-  action: { genres: [28], label: "acción" },
+  action: {
+    genres: [28, 12],
+    label: "acción y aventuras",
+  },
   thriller: {
     genres: [53, 9648, 80],
     label: "thriller",
@@ -58,9 +61,9 @@ const GENRE_REASONS: Record<
   horror: { genres: [27], label: "terror" },
   drama: { genres: [18], label: "drama" },
   romance: { genres: [10749], label: "romance" },
-  adventure: {
-    genres: [12, 14],
-    label: "aventuras",
+  family: {
+    genres: [10751, 16],
+    label: "un plan infantil y familiar",
   },
 };
 

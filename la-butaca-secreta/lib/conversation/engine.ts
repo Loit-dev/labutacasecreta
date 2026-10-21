@@ -86,6 +86,20 @@ export class ConversationEngine {
     return this.getNextNode();
   }
 
+  /**
+   * Da una pregunta por contestada sin mostrarla (por ejemplo, la compañía
+   * cuando la persona ya ha dicho que va sola).
+   */
+  preset(field: keyof UserProfile, value: string) {
+    this.context.profile[field] = value as never;
+
+    if (!this.context.answeredNodes.includes(field)) {
+      this.context.answeredNodes.push(field);
+    }
+
+    this.updateState();
+  }
+
   getNextNode(): ConversationNode | null {
     const node = conversationNodes
       .filter(

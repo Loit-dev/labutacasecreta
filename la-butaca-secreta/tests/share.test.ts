@@ -200,4 +200,16 @@ describe("enlaces para compartir", () => {
       )
     );
   });
+
+  test("para un grupo, el texto dice para quién son", () => {
+    const text = buildShareText(
+      ["A", "B"],
+      "tv",
+      "https://x.es",
+      "Ana y Luis"
+    );
+
+    assert.ok(text.startsWith("Sugerencias de series para Ana y Luis"));
+    assert.ok(!text.includes("Mis sugerencias"));
+  });
 });

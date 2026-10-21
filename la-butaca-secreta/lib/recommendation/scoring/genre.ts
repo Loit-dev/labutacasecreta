@@ -9,7 +9,11 @@ export const GenreMap: Record<
 > = {
   scifi: [878],
 
-  action: [28],
+  action: [
+    28, // Acción
+    12, // Aventura
+    14, // Fantasía
+  ],
 
   thriller: [
     53,   // Thriller
@@ -25,10 +29,16 @@ export const GenreMap: Record<
 
   romance: [10749],
 
-  adventure: [
-    12, // Aventura
-    14, // Fantasía
+  family: [
+    10751, // Familia
+    16,    // Animación
   ],
+};
+
+// Cuántos de los primeros géneros cuentan como "el género principal".
+// Acción y aventuras es una sola opción: cualquiera de las dos vale.
+const PRIMARY_COUNT: Record<string, number> = {
+  action: 2,
 };
 
 export function scoreGenre(
@@ -49,7 +59,11 @@ export function scoreGenre(
     return 0;
   }
 
+  const primaryCount =
+    PRIMARY_COUNT[preferredGenre] ?? 1;
+
   let score = 0;
+  let primaryHit = false;
 
   targetGenres.forEach(
     (genreId, index) => {
@@ -57,9 +71,12 @@ export function scoreGenre(
         return;
       }
 
-      // Primera coincidencia = género principal
-      if (index === 0) {
-        score += 35;
+      // Género principal (se cuenta una sola vez)
+      if (index < primaryCount) {
+        if (!primaryHit) {
+          score += 35;
+          primaryHit = true;
+        }
       } else {
         // Coincidencias relacionadas
         score += 8;

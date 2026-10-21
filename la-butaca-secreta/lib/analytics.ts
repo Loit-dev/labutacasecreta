@@ -27,7 +27,12 @@ export type EventName =
   | "list_remove"
   | "list_open"
   | "share_link_copy"
-  | "share_link_open";
+  | "share_link_open"
+  | "mode_selected"
+  | "group_started"
+  | "group_round"
+  | "group_duel"
+  | "group_done";
 
 type Value = string | number | boolean;
 

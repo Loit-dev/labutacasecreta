@@ -44,11 +44,16 @@ export function posterSource(
 export function buildShareText(
   titles: string[],
   kind: ShareKind,
-  link: string = SITE_URL
+  link: string = SITE_URL,
+  audience?: string
 ): string {
   const what = kind === "tv" ? "series" : "películas";
 
   const list = titles.filter(Boolean).join(", ");
+
+  if (list && audience) {
+    return `Sugerencias de ${what} para ${audience}: ${list}. Míralas aquí, en ${SITE_NAME}: ${link}`;
+  }
 
   return list
     ? `Mis sugerencias de ${what} para hoy: ${list}. Míralas aquí, en ${SITE_NAME}: ${link}`

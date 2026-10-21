@@ -110,7 +110,7 @@ export const conversationNodes: ConversationNode[] = [
     },
     {
       id: "action",
-      label: "🔫 Acción",
+      label: "💥 Acción y aventuras",
       value: "action",
     },
     {
@@ -139,9 +139,9 @@ export const conversationNodes: ConversationNode[] = [
       value: "romance",
     },
     {
-      id: "adventure",
-      label: "⚔️ Aventuras",
-      value: "adventure",
+      id: "family",
+      label: "👨‍👩‍👧 Infantil y familiar",
+      value: "family",
     },
   ],
 },

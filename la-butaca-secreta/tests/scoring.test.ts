@@ -215,4 +215,39 @@ describe("calidad", () => {
 
     assert.ok(bueno.score > flojo.score);
   });
+
+  test("«infantil y familiar» pone lo familiar por delante, aunque vayan en pareja", () => {
+    const family = make({
+      id: 1,
+      genres: [10751, 16],
+      voteAverage: 6.8,
+      popularity: 5,
+    });
+
+    const thriller = make({
+      id: 2,
+      genres: [53],
+      voteAverage: 8.5,
+      popularity: 900,
+    });
+
+    const [first] = sortByScore([thriller, family], {
+      profile: { preferredGenre: "family", company: "partner" },
+    });
+
+    assert.equal(first.id, 1);
+  });
+
+  test("«acción y aventuras»: una película de aventuras puntúa igual que una de acción", () => {
+    const action = make({ id: 1, genres: [28] });
+    const adventure = make({ id: 2, genres: [12] });
+    const drama = make({ id: 3, genres: [18] });
+
+    const ranked = sortByScore([drama, adventure, action], {
+      profile: { preferredGenre: "action" },
+    });
+
+    assert.equal(ranked[2].id, 3);
+    assert.equal(ranked[0].score, ranked[1].score);
+  });
 });

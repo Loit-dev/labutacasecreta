@@ -22,10 +22,13 @@ import type { Recommendation } from "@/lib/tmdb/mapper";
 
 type Props = {
   profile: UserProfile;
+  // Si es para varias personas ("Ana y Luis"), el modo acompañado lo indica
+  audience?: string;
 };
 
 export default function Recommendations({
   profile,
+  audience,
 }: Props) {
   const {
     visible,
@@ -383,7 +386,9 @@ export default function Recommendations({
         </h2>
 
         <p className="mt-3 text-sm text-zinc-400 md:text-base">
-          Seleccionadas especialmente para ti.
+          {audience
+            ? "Seleccionadas especialmente para vosotros."
+            : "Seleccionadas especialmente para ti."}
         </p>
       </div>
 
@@ -494,6 +499,7 @@ export default function Recommendations({
         <ShareDialog
           items={shareItems}
           kind={type}
+          audience={audience}
           onClose={closeShare}
         />
       )}

@@ -18,6 +18,8 @@ import { SITE_NAME, SITE_URL } from "@/lib/site";
 type Props = {
   items: ShareItem[];
   kind: ShareKind;
+  // Para quién son ("Ana y Luis"), si se ha usado el modo acompañado
+  audience?: string;
   onClose: () => void;
 };
 
@@ -40,6 +42,7 @@ function siteFont() {
 export default function ShareDialog({
   items,
   kind,
+  audience,
   onClose,
 }: Props) {
   const dialogRef = useDialog<HTMLDivElement>(onClose);
@@ -82,6 +85,7 @@ export default function ShareDialog({
       siteName: SITE_NAME,
       siteUrl: SITE_URL,
       fontFamily: siteFont(),
+      audience,
     })
       .then((blob) => {
         if (cancelled) return;
@@ -105,7 +109,7 @@ export default function ShareDialog({
 
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [items, kind]);
+  }, [items, kind, audience]);
 
   const file =
     state.status === "ready" ? state.file : null;
@@ -113,7 +117,8 @@ export default function ShareDialog({
   const text = buildShareText(
     items.map((item) => item.title),
     kind,
-    link || SITE_URL
+    link || SITE_URL,
+    audience
   );
 
   const canShare =
@@ -128,7 +133,9 @@ export default function ShareDialog({
     try {
       await navigator.share({
         files: [file],
-        title: `${SITE_NAME} · Mis sugerencias`,
+        title: `${SITE_NAME} · ${
+          audience ? `Sugerencias para ${audience}` : "Mis sugerencias"
+        }`,
         text,
       });
 
