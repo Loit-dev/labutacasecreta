@@ -11,6 +11,7 @@ import DetailsModal from "./DetailsModal";
 import RecommendationCard from "./RecommendationCard";
 import RecommendationSkeleton from "./RecommendationSkeleton";
 import ShareDialog from "./ShareDialog";
+import { badgeFor } from "./badges";
 
 import { useRecommendations } from "@/hooks/useRecommendations";
 import { useWatchlist } from "@/hooks/useWatchlist";
@@ -22,50 +23,6 @@ import type { Recommendation } from "@/lib/tmdb/mapper";
 type Props = {
   profile: UserProfile;
 };
-
-type Badge = {
-  badge: string;
-  badgeTitle: string;
-};
-
-const GOLD: Badge = {
-  badge: "🥇",
-  badgeTitle: "Mi apuesta para ti",
-};
-
-const SILVER: Badge = {
-  badge: "🥈",
-  badgeTitle: "Otra que creo que disfrutarás",
-};
-
-const BRONZE: Badge = {
-  badge: "🥉",
-  badgeTitle: "Una sorpresa que merece una oportunidad",
-};
-
-const EXTRA: Badge = {
-  badge: "🎬",
-  badgeTitle: "Otra que puede gustarte",
-};
-
-// La insignia depende del tipo de recomendación, no de la posición:
-// así la sorpresa siempre es 🥉 aunque se descarte otra tarjeta.
-function badgeFor(
-  item: Recommendation,
-  index: number,
-  list: Recommendation[]
-): Badge {
-  if (item.role === "surprise") {
-    return BRONZE;
-  }
-
-  const mainsBefore = list
-    .slice(0, index)
-    .filter((other) => other.role !== "surprise")
-    .length;
-
-  return [GOLD, SILVER][mainsBefore] ?? EXTRA;
-}
 
 export default function Recommendations({
   profile,
@@ -188,6 +145,7 @@ export default function Recommendations({
     const items: ShareItem[] = visible
       .slice(0, 3)
       .map((movie) => ({
+        id: movie.id,
         title: movie.title,
         year: movie.year,
         rating: movie.rating,
