@@ -59,6 +59,23 @@ export interface TMDBMovieDetails {
 
   // Solo series: creadores (las series no suelen tener "Director")
   created_by?: { id: number; name: string }[];
+
+  // Vídeos (tráilers); solo si se pide con append_to_response=videos
+  videos?: { results: TMDBVideo[] };
+}
+
+export interface TMDBVideo {
+  key: string;
+
+  name: string;
+
+  site: string;
+
+  type: string;
+
+  official?: boolean;
+
+  iso_639_1?: string;
 }
 
 export interface TMDBProvider {
@@ -70,6 +87,9 @@ export interface TMDBProvider {
 }
 
 export interface TMDBCountryProviders {
+  // Página de JustWatch con todas las plataformas de este país
+  link?: string;
+
   flatrate?: TMDBProvider[];
 
   rent?: TMDBProvider[];

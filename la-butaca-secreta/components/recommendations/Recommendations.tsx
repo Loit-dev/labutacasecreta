@@ -1,23 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 import RecommendationCard from "./RecommendationCard";
 
-import { UserProfile } from "@/lib/conversation/types";
+import DetailsModal from "./DetailsModal";
 
-type Recommendation = {
-  id: number;
-  title: string;
-  year: number;
-  rating: number;
-  runtime: number;
-  genres: string[];
-  overview: string;
-  poster: string;
-  providers: { name: string; logo: string;}[];
-  reason?: string;
-};
+import { UserProfile } from "@/lib/conversation/types";
+import type { Recommendation } from "@/lib/tmdb/mapper";
+
 
 type Props = {
   profile: UserProfile;
@@ -29,10 +25,19 @@ export default function Recommendations({
   const [movies, setMovies] = useState<Recommendation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [errorDetail, setErrorDetail] = useState("");
+  const [attempt, setAttempt] = useState(0);
+  const [detailsIndex, setDetailsIndex] = useState<
+    number | null
+  >(null);
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [page, setPage] = useState(0);
   const visibleMovies = movies.slice(page*3, page*3+3);
+  const closeDetails = useCallback(
+    () => setDetailsIndex(null),
+    []
+  );
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
@@ -61,6 +66,7 @@ export default function Recommendations({
 
   setPage(newPage);
   setActiveIndex(0);
+  setDetailsIndex(null);
 };
   const minSwipeDistance = 50;
 
@@ -109,6 +115,7 @@ export default function Recommendations({
       try {
         setLoading(true);
         setError("");
+        setErrorDetail("");
 
         const params =
           new URLSearchParams();
@@ -197,9 +204,20 @@ if (profile.preferredGenre) {
           );
 
         if (!response.ok) {
-          throw new Error(
-            await response.text()
+          const body = await response.text();
+
+          // La API incluye "detail" solo fuera de producción
+          let detail = "";
+
+          try {
+            detail = JSON.parse(body).detail ?? "";
+          } catch {}
+
+          setErrorDetail(
+            detail || `Error ${response.status}`
           );
+
+          throw new Error(body);
         }
 
         const data: Recommendation[] =
@@ -231,7 +249,34 @@ if (profile.preferredGenre) {
     load();
 
     return () => controller.abort();
-  }, [profile]);
+  }, [profile, attempt]);
+
+  // Al terminar de cargar, bajamos hasta los resultados para que se vean
+  // sin tener que hacer scroll. Si caben en pantalla, se alinean por abajo;
+  // si son más altos que la pantalla, se muestra desde el principio.
+  const sectionRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (loading || movies.length === 0) return;
+
+    // Pequeña espera para que el diseño termine de colocarse
+    const timer = window.setTimeout(() => {
+      const section = sectionRef.current;
+
+      if (!section) return;
+
+      const fits =
+        section.getBoundingClientRect().height <=
+        window.innerHeight - 32;
+
+      section.scrollIntoView({
+        behavior: "smooth",
+        block: fits ? "end" : "start",
+      });
+    }, 150);
+
+    return () => window.clearTimeout(timer);
+  }, [loading, movies]);
 
   if (loading) {
     return (
@@ -243,9 +288,24 @@ if (profile.preferredGenre) {
 
   if (error) {
     return (
-      <p className="text-center text-red-400">
-        {error}
-      </p>
+      <div className="space-y-3 text-center">
+        <p className="text-red-400">{error}</p>
+
+        {errorDetail && (
+          <p className="break-words text-xs text-zinc-500">
+            Detalle técnico: {errorDetail}
+          </p>
+        )}
+
+        <button
+          onClick={() =>
+            setAttempt((current) => current + 1)
+          }
+          className="rounded-xl border border-zinc-700 bg-zinc-900/80 px-5 py-3 text-sm font-medium text-white transition-all hover:border-red-500/50 hover:bg-zinc-800"
+        >
+          🔄 Reintentar
+        </button>
+      </div>
     );
   }
 
@@ -279,7 +339,11 @@ if (profile.preferredGenre) {
   ];
 
   return (
-    <section  id="recommendations"  className="space-y-8">
+    <section
+      ref={sectionRef}
+      id="recommendations"
+      className="scroll-mt-4 scroll-mb-4 space-y-8"
+    >
       <div className="text-center">
         <h1 className="text-2xl font-bold text-white md:text-3xl">
           🎬 Creo que estas tres pueden ser justo lo que buscas.
@@ -339,6 +403,9 @@ if (profile.preferredGenre) {
               reason={
                 visibleMovies[activeIndex].reason
               }
+              onDetails={() =>
+                setDetailsIndex(activeIndex)
+              }
             />
 
             <button
@@ -397,6 +464,9 @@ if (profile.preferredGenre) {
               poster={movie.poster}
               providers={movie.providers}
               reason={movie.reason}
+              onDetails={() =>
+                setDetailsIndex(index)
+              }
             />
           )
         )}
@@ -431,6 +501,22 @@ if (profile.preferredGenre) {
     🔄 Dame otras 3 recomendaciones
   </button>
 )}
+
+      {detailsIndex !== null &&
+        visibleMovies[detailsIndex] && (
+          <DetailsModal
+            movie={visibleMovies[detailsIndex]}
+            badge={
+              badges[detailsIndex % 3]?.badge ??
+              "🎬"
+            }
+            badgeTitle={
+              badges[detailsIndex % 3]
+                ?.badgeTitle ?? "Recomendación"
+            }
+            onClose={closeDetails}
+          />
+        )}
     </section>
   );
 }

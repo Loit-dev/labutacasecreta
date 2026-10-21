@@ -12,6 +12,7 @@ type Props = {
   poster: string;
   providers?: {name: string; logo: string;}[];
   reason?: string;
+  onDetails?: () => void;
 };
 
 export default function RecommendationCard({
@@ -26,6 +27,7 @@ export default function RecommendationCard({
   poster,
   providers = [],
   reason,
+  onDetails,
 }: Props) {
   return (
     <article className="flex h-full flex-col overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900 shadow-xl">
@@ -111,6 +113,7 @@ export default function RecommendationCard({
         </p>
 
         <button
+  onClick={onDetails}
   className="
     mt-auto
     w-full

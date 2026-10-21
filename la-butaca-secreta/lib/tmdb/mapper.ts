@@ -4,6 +4,7 @@ import {
   TMDBCredits,
   TMDBMovie,
   TMDBMovieDetails,
+  TMDBVideo,
   TMDBWatchProviders,
 } from "./types";
 
@@ -13,13 +14,17 @@ const IMAGE_URL =
 
 const PLACEHOLDER_POSTER = "/placeholder-poster.svg";
 
-// Plataformas principales primero, para que no queden fuera
-// al mostrar solo los 3 primeros logos.
-const PROVIDER_PRIORITY = [
+// Plataformas que se muestran (y su orden). Cualquier otra se oculta
+// para no llenar la tarjeta con servicios minoritarios.
+const MAIN_PLATFORMS = [
   "Netflix",
   "Prime Video",
   "Disney+",
   "Max",
+  "Movistar+",
+  "Filmin",
+  "Apple TV+",
+  "SkyShowtime",
 ];
 
 const GENRES: Record<number, string> = {
@@ -111,11 +116,7 @@ function normalizeProviderName(providerName: string) {
 }
 
 function priorityOf(name: string) {
-  const index = PROVIDER_PRIORITY.indexOf(name);
-
-  return index === -1
-    ? PROVIDER_PRIORITY.length
-    : index;
+  return MAIN_PLATFORMS.indexOf(name);
 }
 
 export interface Recommendation {
@@ -127,7 +128,14 @@ export interface Recommendation {
   genres: string[];
   overview: string;
   poster: string;
+  // Los 3 primeros (para el póster de la tarjeta)
   providers: {
+    id: number;
+    name: string;
+    logo: string;
+  }[];
+  // Todas las plataformas de suscripción en España (para los detalles)
+  platforms: {
     id: number;
     name: string;
     logo: string;
@@ -135,6 +143,30 @@ export interface Recommendation {
   director?: string;
   cast: string[];
   reason?: string;
+  tagline?: string;
+  // Clave de YouTube del tráiler (si existe)
+  trailerKey?: string;
+  // Página de JustWatch con todas las plataformas en España
+  watchLink?: string;
+}
+
+/**
+ * Elige el mejor tráiler de YouTube: oficial > en español > cualquiera.
+ */
+function pickTrailer(videos: TMDBVideo[] = []) {
+  const trailers = videos.filter(
+    (video) =>
+      video.site === "YouTube" &&
+      video.type === "Trailer"
+  );
+
+  const score = (video: TMDBVideo) =>
+    (video.official ? 2 : 0) +
+    (video.iso_639_1 === "es" ? 1 : 0);
+
+  return [...trailers].sort(
+    (a, b) => score(b) - score(a)
+  )[0]?.key;
 }
 
 
@@ -188,6 +220,33 @@ export function mapRecommendation(
     // Las series no suelen tener "Director": usamos el creador
     details?.created_by?.[0]?.name;
 
+  const platforms = Array.from(
+    new Map(
+      esProviders.map((provider) => {
+        const name = normalizeProviderName(
+          provider.provider_name
+        );
+
+        return [
+          name,
+          {
+            id: provider.provider_id,
+            name,
+            logo: `${IMAGE_URL}${provider.logo_path}`,
+          },
+        ];
+      })
+    ).values()
+  )
+    // Solo las plataformas principales, en orden de importancia
+    .filter(
+      (platform) => priorityOf(platform.name) !== -1
+    )
+    .sort(
+      (a, b) =>
+        priorityOf(a.name) - priorityOf(b.name)
+    );
+
   return {
     id: item.id,
 
@@ -228,32 +287,20 @@ export function mapRecommendation(
       ? `${IMAGE_URL}${item.poster_path}`
       : PLACEHOLDER_POSTER,
 
-    providers: Array.from(
-      new Map(
-        esProviders.map((provider) => {
-          const name = normalizeProviderName(
-            provider.provider_name
-          );
+    providers: platforms.slice(0, 3),
 
-          return [
-            name,
-            {
-              id: provider.provider_id,
-              name,
-              logo: `${IMAGE_URL}${provider.logo_path}`,
-            },
-          ];
-        })
-      ).values()
-    )
-      .sort(
-        (a, b) =>
-          priorityOf(a.name) -
-          priorityOf(b.name)
-      )
-      .slice(0, 3),
+    platforms,
 
     director,
+
+    tagline: details?.tagline || undefined,
+
+    trailerKey: pickTrailer(
+      details?.videos?.results
+    ),
+
+    watchLink:
+      providers?.results?.ES?.link,
 
     cast:
       credits?.cast
