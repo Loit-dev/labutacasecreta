@@ -41,3 +41,7 @@ yarn-error.log*
 next-env.d.ts
 
 !.env.example
+
+# Pruebas de interfaz (Playwright)
+/test-results/
+/playwright-report/

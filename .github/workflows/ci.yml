@@ -1,7 +1,8 @@
 name: CI
 
 # Se ejecuta en cada pull request y en cada cambio que llega a main.
-# Los tipos y los tests deben pasar; el lint es informativo por ahora.
+# Los tipos, los tests y las pruebas de interfaz deben pasar;
+# el lint es informativo por ahora.
 
 on:
   pull_request:
@@ -43,3 +44,47 @@ jobs:
       - name: Lint
         run: npm run lint
         continue-on-error: true
+
+  # Abre la web de verdad en un navegador, contesta el cuestionario y
+  # comprueba lo que ve el usuario (con TMDb simulado, sin token).
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    defaults:
+      run:
+        working-directory: la-butaca-secreta
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: la-butaca-secreta/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      # Solo se usan en estas pruebas, así que no se añaden a package.json
+      - name: Instalar Playwright
+        run: npm install --no-save @playwright/test@1.52.0 @axe-core/playwright@4.10.1
+
+      - name: Instalar el navegador
+        run: npx playwright install --with-deps chromium
+
+      - name: Construir la web
+        run: npm run build
+
+      - name: Pruebas de interfaz
+        run: npm run test:e2e
+
+      - name: Guardar el informe si algo falla
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: informe-e2e
+          path: |
+            la-butaca-secreta/test-results
+          retention-days: 7
