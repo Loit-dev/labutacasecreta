@@ -166,6 +166,9 @@ export interface Round {
   winner: string;
 }
 
+/** Lo que cuenta una pregunta en la que a alguien le dio igual (de 1). */
+const AUTO_POINTS = 0.75;
+
 /**
  * Porcentaje de coincidencia del grupo.
  *
@@ -174,8 +177,6 @@ export interface Round {
  *   tampoco hay una elección compartida).
  * - Mayoría o desempate: no cuenta, alguien ha tenido que ceder.
  */
-const AUTO_POINTS = 0.75;
-
 export function compatibility(rounds: Round[]) {
   if (rounds.length === 0) return 0;
 
