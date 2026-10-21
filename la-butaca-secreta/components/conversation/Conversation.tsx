@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import GroupQuiz from "@/components/group/GroupQuiz";
 import PosterWall from "@/components/layout/PosterWall";
+import CalendarButton from "@/components/calendar/CalendarButton";
 import MyListButton from "@/components/list/MyListButton";
 import { track } from "@/lib/analytics";
 import {
@@ -53,6 +54,8 @@ export default function Conversation() {
       </a>
 
       <PosterWall />
+
+      <CalendarButton />
 
       <MyListButton />
 

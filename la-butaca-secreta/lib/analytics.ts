@@ -26,6 +26,7 @@ export type EventName =
   | "list_add"
   | "list_remove"
   | "list_open"
+  | "calendar_open"
   | "share_link_copy"
   | "share_link_open"
   | "mode_selected"

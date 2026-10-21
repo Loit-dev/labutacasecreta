@@ -315,3 +315,106 @@ export async function getTVCredits(
     `/tv/${id}/credits?language=es-ES`
   );
 }
+
+// ======================================================
+// CALENDARIO DE ESTRENOS
+// ======================================================
+
+// Estos datos cambian poco: se guardan en caché un día
+const CALENDAR_REVALIDATE = 60 * 60 * 24;
+
+/**
+ * Títulos de las plataformas dadas (suscripción, España) que se
+ * estrenan entre `from` y `to`. En películas se pide la fecha de
+ * estreno digital (tipo 4), la más cercana a su llegada a la plataforma.
+ */
+export async function discoverCalendar(
+  type: "movie" | "tv",
+  options: {
+    from: string;
+    to: string;
+    providerIds: number[];
+    page?: number;
+  }
+) {
+  const params = new URLSearchParams();
+
+  params.set("language", "es-ES");
+  params.set("page", String(options.page ?? 1));
+  params.set("include_adult", "false");
+  params.set("sort_by", "popularity.desc");
+  params.set("watch_region", WATCH_REGION);
+  params.set("with_watch_providers", options.providerIds.join("|"));
+  params.set("with_watch_monetization_types", "flatrate");
+
+  if (type === "movie") {
+    params.set("region", WATCH_REGION);
+    params.set("with_release_type", "4");
+    params.set("release_date.gte", options.from);
+    params.set("release_date.lte", options.to);
+  } else {
+    params.set("first_air_date.gte", options.from);
+    params.set("first_air_date.lte", options.to);
+  }
+
+  return request<TMDBResponse>(
+    `/discover/${type}?${params.toString()}`,
+    CALENDAR_REVALIDATE
+  );
+}
+
+interface TMDBReleaseDates {
+  results?: {
+    iso_3166_1: string;
+    release_dates: { type: number; release_date: string }[];
+  }[];
+}
+
+/** Fecha de estreno digital en España («AAAA-MM-DD»), si la hay. */
+export async function getSpanishDigitalDate(
+  id: number
+): Promise<string | null> {
+  const data = await request<TMDBReleaseDates>(
+    `/movie/${id}/release_dates`,
+    CALENDAR_REVALIDATE
+  );
+
+  const spain = data.results?.find(
+    (entry) => entry.iso_3166_1 === WATCH_REGION
+  );
+
+  const digital = spain?.release_dates
+    .filter((release) => release.type === 4)
+    .map((release) => release.release_date.substring(0, 10))
+    .sort()[0];
+
+  return digital ?? null;
+}
+
+interface TMDBProviderList {
+  results?: {
+    provider_id: number;
+    logo_path: string | null;
+  }[];
+}
+
+/** Logos (url completa) por id de proveedor, para los que se piden. */
+export async function getProviderLogos(
+  ids: number[]
+): Promise<Record<number, string>> {
+  const data = await request<TMDBProviderList>(
+    `/watch/providers/tv?watch_region=${WATCH_REGION}&language=es-ES`,
+    CALENDAR_REVALIDATE
+  );
+
+  const logos: Record<number, string> = {};
+
+  for (const provider of data.results ?? []) {
+    if (ids.includes(provider.provider_id) && provider.logo_path) {
+      logos[provider.provider_id] =
+        `https://image.tmdb.org/t/p/w92${provider.logo_path}`;
+    }
+  }
+
+  return logos;
+}
