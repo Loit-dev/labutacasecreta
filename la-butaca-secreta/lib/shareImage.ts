@@ -214,27 +214,6 @@ function drawBackdrop(
   ctx.fillRect(0, 0, W, H);
 }
 
-// Cinta de película (con sus agujeros) arriba y abajo
-function drawFilmStrip(
-  ctx: CanvasRenderingContext2D,
-  y: number
-) {
-  const H = 52;
-
-  ctx.fillStyle = "rgba(0,0,0,0.72)";
-  ctx.fillRect(0, y, SHARE_WIDTH, H);
-
-  ctx.fillStyle = "rgba(255,255,255,0.16)";
-
-  for (let x = 14; x < SHARE_WIDTH; x += 54) {
-    roundedRect(ctx, x, y + 15, 28, 22, 5);
-    ctx.fill();
-  }
-
-  ctx.fillStyle = "rgba(239,68,68,0.55)";
-  ctx.fillRect(0, y === 0 ? H - 2 : y, SHARE_WIDTH, 2);
-}
-
 export function drawShareImage(
   ctx: CanvasRenderingContext2D,
   items: ShareItem[],
@@ -260,9 +239,6 @@ export function drawShareImage(
 
   drawBackdrop(ctx, options);
 
-  drawFilmStrip(ctx, 0);
-  drawFilmStrip(ctx, H - 52);
-
   ctx.textBaseline = "alphabetic";
   ctx.textAlign = "center";
 
@@ -273,7 +249,7 @@ export function drawShareImage(
     const logoH = 205;
     const logoW = (logo.width / logo.height) * logoH;
     const logoX = W / 2 - logoW / 2;
-    const logoY = 64;
+    const logoY = 70;
 
     // Brillo rojo detrás
     ctx.save();
@@ -324,7 +300,7 @@ export function drawShareImage(
   ctx.shadowColor = "rgba(0,0,0,0.6)";
   ctx.shadowBlur = 24;
   ctx.fillStyle = titleGradient;
-  ctx.fillText(title, W / 2, 385);
+  ctx.fillText(title, W / 2, 400);
   ctx.restore();
 
   ctx.fillStyle = "#e4e4e7";
@@ -334,7 +310,7 @@ export function drawShareImage(
       ? "Series para ver hoy"
       : "Películas para ver hoy",
     W / 2,
-    437
+    452
   );
 
   // ---------- Pósters ----------
@@ -344,7 +320,7 @@ export function drawShareImage(
 
   const startX = (W - totalW) / 2;
 
-  const POSTERS_TOP = 480;
+  const POSTERS_TOP = 500;
 
   let mainsBefore = 0;
 
@@ -488,7 +464,7 @@ export function drawShareImage(
 
   const pillW = ctx.measureText(url).width + 90;
   const pillX = W / 2 - pillW / 2;
-  const footY = H - 52 - 142;
+  const footY = H - 168;
 
   const pillGradient = ctx.createLinearGradient(pillX, 0, pillX + pillW, 0);
 
@@ -511,7 +487,7 @@ export function drawShareImage(
   ctx.fillText(
     "¿No sabes qué ver? Te recomiendo solo tres.",
     W / 2,
-    footY + 110
+    footY + 112
   );
 }
 
