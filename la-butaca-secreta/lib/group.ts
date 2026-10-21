@@ -170,16 +170,18 @@ export interface Round {
  * Porcentaje de coincidencia del grupo.
  *
  * - Coinciden todos: cuenta entera.
- * - A alguien le da igual: cuenta a medias (nadie discrepa, pero tampoco
- *   hay una elección compartida).
+ * - A alguien le da igual: cuenta tres cuartos (nadie discrepa, pero
+ *   tampoco hay una elección compartida).
  * - Mayoría o desempate: no cuenta, alguien ha tenido que ceder.
  */
+const AUTO_POINTS = 0.75;
+
 export function compatibility(rounds: Round[]) {
   if (rounds.length === 0) return 0;
 
   const points = rounds.reduce((sum, round) => {
     if (round.kind === "unanimous") return sum + 1;
-    if (round.kind === "auto") return sum + 0.5;
+    if (round.kind === "auto") return sum + AUTO_POINTS;
 
     return sum;
   }, 0);

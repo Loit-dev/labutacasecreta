@@ -159,7 +159,7 @@ describe("compatibilidad", () => {
     assert.equal(compatibility(rounds), 50);
   });
 
-  test("cuando a alguien le da igual, cuenta como media coincidencia", () => {
+  test("cuando a alguien le da igual, cuenta como tres cuartos de coincidencia", () => {
     const rounds = [
       round("contentType", "unanimous", "movie"),
       round("mood", "auto", "laugh"),
@@ -167,17 +167,17 @@ describe("compatibilidad", () => {
       round("freshness", "auto", "new"),
     ];
 
-    // 1 + 0,5 + 0 + 0,5 = 2 de 4
-    assert.equal(compatibility(rounds), 50);
+    // 1 + 0,75 + 0 + 0,75 = 2,5 de 4
+    assert.equal(compatibility(rounds), 63);
   });
 
-  test("si a todos les da igual todo, es el 50 %", () => {
+  test("si a todos les da igual todo, es el 75 %", () => {
     assert.equal(
       compatibility([
         round("mood", "auto", "laugh"),
         round("freshness", "auto", "new"),
       ]),
-      50
+      75
     );
   });
 
