@@ -42,8 +42,8 @@ export default function RecommendationCard({
       aria-label={title}
       className="flex h-full flex-col overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900 shadow-xl"
     >
-       <div className="relative h-44 w-full overflow-hidden md:h-58">
-        <Image src={poster} alt={title} fill unoptimized={poster.endsWith(".svg")} className="object-contain bg-black" sizes="(max-width: 768px) 100vw, 33vw" />
+       <div className="relative h-[26rem] w-full overflow-hidden md:h-58">
+        <Image src={poster} alt={title} fill unoptimized={poster.endsWith(".svg")} className="object-cover object-top md:object-contain md:bg-black" sizes="(max-width: 768px) 100vw, 33vw" />
         {providers.length > 0 && (
   <div
     className="
@@ -106,7 +106,7 @@ export default function RecommendationCard({
         </div>
 
         {genres.length > 0 && (
-          <div className="flex flex-wrap gap-2">
+          <div className="hidden flex-wrap gap-2 md:flex">
             {genres.slice(0, 3).map((genre) => (
               <span
                 key={genre}
@@ -119,12 +119,12 @@ export default function RecommendationCard({
         )}
 
         {reason && (
-          <p className="text-xs italic leading-relaxed text-yellow-200/80">
+          <p className="line-clamp-3 text-justify text-[13px] italic leading-relaxed text-yellow-200/80 md:line-clamp-none md:text-xs">
             <span aria-hidden="true">💡</span> {reason}
           </p>
         )}
 
-        <p className="line-clamp-2 hidden text-sm leading-relaxed text-zinc-300 md:block">
+        <p className="line-clamp-2 hidden text-justify text-sm leading-relaxed text-zinc-300 md:block">
           {overview}
         </p>
 
@@ -152,7 +152,7 @@ export default function RecommendationCard({
 </button>
 
         {(onToggleSave || onSeen || onReject) && (
-          <div className="flex gap-2">
+          <div className="flex gap-1.5">
             {onToggleSave && (
               <button
                 onClick={onToggleSave}
@@ -163,7 +163,7 @@ export default function RecommendationCard({
                     : `Guardar en mi lista: ${title}`
                 }
                 title="Guardar para ver luego"
-                className={`flex-1 rounded-lg border px-1 py-2 text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
+                className={`flex-1 rounded-full border px-1 py-1.5 text-[11px] font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
                   saved
                     ? "border-yellow-500/70 bg-yellow-400/10 text-yellow-300 hover:bg-yellow-400/20"
                     : "border-zinc-700 text-zinc-300 hover:border-zinc-500 hover:bg-zinc-800 hover:text-white"
@@ -179,7 +179,7 @@ export default function RecommendationCard({
                 onClick={onSeen}
                 aria-label={`Ya la vi: ${title}`}
                 title="No volveré a recomendártela"
-                className="flex-1 rounded-lg border border-zinc-700 px-1 py-2 text-xs font-medium text-zinc-300 transition-colors hover:border-zinc-500 hover:bg-zinc-800 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                className="flex-1 rounded-full border border-zinc-700/70 bg-zinc-800/40 px-1 py-1.5 text-[11px] font-medium text-zinc-300 transition-colors hover:border-zinc-500 hover:bg-zinc-800 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
               >
                 <span aria-hidden="true">👁</span> Ya la vi
               </button>
@@ -190,7 +190,7 @@ export default function RecommendationCard({
                 onClick={onReject}
                 aria-label={`No me apetece: ${title}`}
                 title="Buscaré algo distinto"
-                className="flex-1 rounded-lg border border-zinc-700 px-1 py-2 text-xs font-medium text-zinc-300 transition-colors hover:border-zinc-500 hover:bg-zinc-800 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                className="flex-1 rounded-full border border-zinc-700/70 bg-zinc-800/40 px-1 py-1.5 text-[11px] font-medium text-zinc-300 transition-colors hover:border-zinc-500 hover:bg-zinc-800 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
               >
                 <span aria-hidden="true">👎</span> No me apetece
               </button>
