@@ -12,10 +12,11 @@ export default function Footer() {
         className="mb-2 inline-block opacity-80 transition-opacity hover:opacity-100"
       >
         <Image
-          src="/tmdb-logo.png"
+          src="/tmdb-logo.svg"
           alt="Logo de TMDb"
-          width={773}
-          height={137}
+          width={273}
+          height={36}
+          unoptimized
           className="h-4 w-auto"
         />
       </a>
