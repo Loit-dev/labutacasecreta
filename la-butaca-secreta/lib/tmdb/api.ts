@@ -477,3 +477,45 @@ export async function getTvFlatrateIds(id: number): Promise<number[]> {
     ? flatrate.map((provider) => provider.provider_id)
     : [];
 }
+
+
+// ------------------------------------------------------
+// Estrenos destacados (lista manual)
+// ------------------------------------------------------
+
+/** Primera coincidencia de TMDb para un título y año. */
+export async function searchTitle(
+  type: "movie" | "tv",
+  query: string,
+  year?: number
+) {
+  const yearParam = !year
+    ? ""
+    : type === "movie"
+      ? `&primary_release_year=${year}`
+      : `&first_air_date_year=${year}`;
+
+  const data = await request<TMDBResponse>(
+    `/search/${type}?query=${encodeURIComponent(query)}&language=es-ES&include_adult=false${yearParam}`,
+    CALENDAR_REVALIDATE
+  );
+
+  return data.results[0] ?? null;
+}
+
+/** Ids de proveedor en suscripción (España) de una película o serie. */
+export async function getFlatrateIds(
+  type: "movie" | "tv",
+  id: number
+): Promise<number[]> {
+  const data = await request<TMDBWatchProviders>(
+    `/${type}/${id}/watch/providers`,
+    CALENDAR_REVALIDATE
+  );
+
+  const flatrate = data.results?.[WATCH_REGION]?.flatrate;
+
+  return Array.isArray(flatrate)
+    ? flatrate.map((provider) => provider.provider_id)
+    : [];
+}
