@@ -15,6 +15,7 @@ import {
 } from "@/lib/recommendation/surprise";
 import { buildRecommendationReason } from "@/lib/recommendation/prompt";
 import {
+  ALLOWED_PROVIDER_IDS,
   discoverMovies,
   discoverTV,
   getMovieFull,
@@ -37,11 +38,6 @@ export const dynamic = "force-dynamic";
 // La primera búsqueda (sin caché) hace ~50 llamadas a TMDb:
 // damos margen para que no se corte por tiempo en Vercel.
 export const maxDuration = 30;
-
-// IDs permitidos estrictamente: Netflix (8), Prime (119), Disney+ (337), Max (1899, 384)
-const ALLOWED_PROVIDER_IDS = [
-  8, 119, 337, 1899, 384,
-];
 
 const DISCOVERY_MODES: DiscoveryMode[] = [
   "impact",
@@ -321,7 +317,7 @@ export async function GET(
     );
 
     // ----------------------------------------------
-    // 4) Filtro estricto: solo Netflix, Prime, Disney+ o Max
+    // 4) Filtro estricto: solo Netflix, Prime, Disney+, Max o Filmin
     // ----------------------------------------------
 
     const finalPool = enriched.filter(

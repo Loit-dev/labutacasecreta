@@ -8,8 +8,16 @@ import {
 
 import { RecommendationFilters } from "@/lib/recommendation/filters";
 
-// IDs oficiales de TMDB: Netflix (8), Prime Video (119), Disney+ (337), Max (1899 y 384)
-const STREAMING_PROVIDERS = "8|119|337|1899|384";
+// Plataformas en las que se buscan y permiten recomendaciones.
+// IDs de TMDB: Netflix (8), Prime Video (119), Disney+ (337),
+// Max (1899 y 384) y Filmin (63).
+export const ALLOWED_PROVIDER_IDS = [
+  8, 119, 337, 1899, 384, 63,
+];
+
+// Formato de TMDB para "cualquiera de estas": ids separados por |
+const STREAMING_PROVIDERS =
+  ALLOWED_PROVIDER_IDS.join("|");
 const WATCH_REGION = "ES"; // Cambia a "US", "MX", "AR", etc. según tu región objetivo
 
 // Tiempos de caché (segundos). Los detalles de una película
