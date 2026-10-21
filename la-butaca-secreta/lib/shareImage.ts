@@ -254,18 +254,8 @@ export function drawShareImage(
     const logoX = W / 2 - logoW / 2;
     const logoY = 235;
 
-    // Resplandor rojo por debajo del logo (no detrás, para no empastarlo),
-    // sin marco: el fondo negro del logo se funde con la imagen («screen»)
-    const glowY = logoY + logoH + 6;
-
-    const glow = ctx.createRadialGradient(W / 2, glowY, 0, W / 2, glowY, 300);
-
-    glow.addColorStop(0, "rgba(239,68,68,0.34)");
-    glow.addColorStop(1, "rgba(239,68,68,0)");
-
-    ctx.fillStyle = glow;
-    ctx.fillRect(0, glowY - 300, W, 600);
-
+    // Sin marco ni resplandor: el fondo negro del logo se funde con la
+    // imagen (modo «screen»)
     ctx.save();
     ctx.globalCompositeOperation = "screen";
     ctx.drawImage(logo, logoX, logoY, logoW, logoH);
