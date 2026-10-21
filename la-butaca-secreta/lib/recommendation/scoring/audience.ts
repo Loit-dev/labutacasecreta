@@ -1,11 +1,13 @@
+import { effectiveCompany } from "./company";
 import { ScoreContext, ScoredItem } from "./types";
 
 export function scoreAudience(
   item: ScoredItem,
   context: ScoreContext
 ): number {
-  const company =
-    context.profile.company;
+  const company = effectiveCompany(
+    context.profile
+  );
 
   let score = 0;
 

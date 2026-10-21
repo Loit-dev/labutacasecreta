@@ -29,6 +29,11 @@ export const GenreMap: Record<
     12, // Aventura
     14, // Fantasía
   ],
+
+  family: [
+    10751, // Familia
+    16,    // Animación
+  ],
 };
 
 export function scoreGenre(

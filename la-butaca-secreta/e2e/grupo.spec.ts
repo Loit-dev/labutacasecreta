@@ -54,29 +54,52 @@ test.describe("Modo acompañado", () => {
     ).toBeVisible();
     await expect(
       page.getByRole("button", { name: /^En familia/ })
-    ).toBeVisible();
+    ).toHaveCount(0);
 
     // Aún no hay preguntas ni nombres
     await expect(page.locator("[data-options]")).toHaveCount(0);
     await expect(page.getByLabel("Nombre de la persona 1")).toHaveCount(0);
   });
 
-  test("en familia: no pregunta con quién vas y busca planes familiares", async ({
+  test("infantil y familiar: está entre los géneros y se envía al buscar", async ({
     page,
   }) => {
     const requests = await mockApi(page);
 
-    await completeQuiz(page, /^En familia/);
+    await page.goto("/");
+    await page.getByRole("button", { name: /^Solo/ }).click();
 
-    await expect(
-      page.getByText("¿Con quién vas a verla?")
-    ).toHaveCount(0);
+    for (let step = 0; step < 15; step++) {
+      if ((await page.locator("#recommendations").count()) > 0) break;
+
+      const kids = page
+        .locator("[data-options] button")
+        .filter({ hasText: "Infantil y familiar" });
+
+      const options = (await kids.count()) > 0
+        ? kids
+        : page.locator("[data-options] button");
+
+      const log = page.locator('[role="log"] > div');
+      const before = await log.count();
+
+      await options.first().waitFor();
+      await options.first().click();
+
+      await expect
+        .poll(() => log.count())
+        .toBeGreaterThan(before);
+    }
+
+    await expect(page.locator("#recommendations")).toBeVisible();
 
     await expect
       .poll(() => requests.length)
       .toBeGreaterThan(0);
 
-    expect(requests[0].url.searchParams.get("company")).toBe("family");
+    expect(requests[0].url.searchParams.get("preferredGenre")).toBe(
+      "family"
+    );
   });
 
   test("solo: busca como alguien que va solo", async ({ page }) => {

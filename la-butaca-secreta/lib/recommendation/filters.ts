@@ -45,6 +45,9 @@ const PreferredGenreMap: Record<
   romance: [10749],
 
   adventure: [12],
+
+  // Infantil y familiar
+  family: [10751],
 };
 
 export function buildFilters(
@@ -72,6 +75,11 @@ export function buildFilters(
       filters.withGenres.push(
         ...genres
       );
+    }
+
+    // Para ver con niños: nada de terror, thriller ni crimen
+    if (profile.preferredGenre === "family") {
+      filters.withoutGenres.push(27, 53, 80);
     }
   }
 

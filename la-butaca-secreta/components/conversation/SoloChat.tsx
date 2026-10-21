@@ -3,20 +3,13 @@
 import { useEffect, useRef } from "react";
 
 import Recommendations from "@/components/recommendations/Recommendations";
-import {
-  useConversation,
-  type SoloCompany,
-} from "@/hooks/useConversation";
+import { useConversation } from "@/hooks/useConversation";
 
 import ChatHistory from "./ChatHistory";
 import OptionButtons from "./OptionButtons";
 import TypingIndicator from "./TypingIndicator";
 
-export default function SoloChat({
-  company,
-}: {
-  company: SoloCompany;
-}) {
+export default function SoloChat() {
   const {
     messages,
     profile,
@@ -24,7 +17,7 @@ export default function SoloChat({
     answer,
     isThinking,
     finished,
-  } = useConversation(company);
+  } = useConversation();
 
   const endRef = useRef<HTMLDivElement>(null);
 

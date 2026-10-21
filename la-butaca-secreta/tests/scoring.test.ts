@@ -215,4 +215,26 @@ describe("calidad", () => {
 
     assert.ok(bueno.score > flojo.score);
   });
+
+  test("«infantil y familiar» pone lo familiar por delante, aunque vayan en pareja", () => {
+    const family = make({
+      id: 1,
+      genres: [10751, 16],
+      voteAverage: 6.8,
+      popularity: 5,
+    });
+
+    const thriller = make({
+      id: 2,
+      genres: [53],
+      voteAverage: 8.5,
+      popularity: 900,
+    });
+
+    const [first] = sortByScore([thriller, family], {
+      profile: { preferredGenre: "family", company: "partner" },
+    });
+
+    assert.equal(first.id, 1);
+  });
 });

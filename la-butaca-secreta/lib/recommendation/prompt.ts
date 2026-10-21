@@ -58,6 +58,10 @@ const GENRE_REASONS: Record<
   horror: { genres: [27], label: "terror" },
   drama: { genres: [18], label: "drama" },
   romance: { genres: [10749], label: "romance" },
+  family: {
+    genres: [10751, 16],
+    label: "un plan infantil y familiar",
+  },
   adventure: {
     genres: [12, 14],
     label: "aventuras",

@@ -75,9 +75,7 @@ export default function Conversation() {
             </div>
           )}
 
-          {mode === "solo" && <SoloChat company="alone" />}
-
-          {mode === "family" && <SoloChat company="family" />}
+          {mode === "solo" && <SoloChat />}
 
           {mode === "group" && (
             <div className="px-8 py-6">
