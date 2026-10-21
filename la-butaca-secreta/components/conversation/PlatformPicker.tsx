@@ -31,7 +31,7 @@ export default function PlatformPicker({
   }
 
   return (
-    <div data-platform-picker className="mt-5 md:mt-8">
+    <div data-platform-picker className="mt-8">
       <p
         className="text-center text-sm font-semibold text-zinc-200"
         style={{ fontFamily: "var(--font-manrope)" }}
@@ -46,7 +46,7 @@ export default function PlatformPicker({
       <div
         role="group"
         aria-label="Tus plataformas"
-        className="mt-3 flex flex-wrap justify-center gap-2"
+        className="mt-3 flex flex-wrap justify-center gap-1.5 sm:gap-2"
       >
         {PLATFORMS.map((platform) => {
           const on = selected.includes(platform.key);
@@ -57,13 +57,15 @@ export default function PlatformPicker({
               type="button"
               aria-pressed={on}
               onClick={() => toggle(platform.key)}
-              className={`rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
+              className={`rounded-full border px-2 py-1.5 text-xs font-semibold sm:px-3.5 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
                 on
                   ? "border-red-500/70 bg-red-500/15 text-white"
                   : "border-zinc-700 bg-zinc-900/70 text-zinc-400 hover:border-zinc-500 hover:text-white"
               }`}
             >
-              <span aria-hidden="true">{on ? "✓ " : ""}</span>
+              <span aria-hidden="true" className="hidden sm:inline">
+                {on ? "✓ " : ""}
+              </span>
               {platform.label}
             </button>
           );
