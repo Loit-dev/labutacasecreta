@@ -6,6 +6,10 @@ export interface RecommendationFilters {
 
   withGenres: number[];
 
+  // Si es true, basta con que tenga UNO de esos géneros (acción o aventura);
+  // si no, tiene que tenerlos todos.
+  withGenresAny?: boolean;
+
   withoutGenres: number[];
 
   runtimeLte?: number;
@@ -32,7 +36,8 @@ const PreferredGenreMap: Record<
 > = {
   scifi: [878],
 
-  action: [28],
+  // Acción y aventuras van juntas: vale cualquiera de las dos
+  action: [28, 12],
 
   thriller: [53],
 
@@ -43,8 +48,6 @@ const PreferredGenreMap: Record<
   drama: [18],
 
   romance: [10749],
-
-  adventure: [12],
 
   // Infantil y familiar
   family: [10751],
@@ -75,6 +78,8 @@ export function buildFilters(
       filters.withGenres.push(
         ...genres
       );
+
+      filters.withGenresAny = genres.length > 1;
     }
 
     // Para ver con niños: nada de terror, thriller ni crimen
@@ -115,6 +120,9 @@ export function buildFilters(
 
   if (profile.animation === "yes") {
     filters.withGenres.push(16);
+
+    // Animación se suma a lo anterior: ahora hacen falta todos
+    filters.withGenresAny = false;
   }
 
   if (profile.animation === "no") {

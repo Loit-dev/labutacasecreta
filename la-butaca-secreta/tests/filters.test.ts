@@ -128,4 +128,24 @@ describe("buildFilters", () => {
       assert.ok(filters.withoutGenres.includes(genre));
     }
   });
+
+  test("«acción y aventuras» vale con cualquiera de las dos", () => {
+    const filters = buildFilters({
+      contentType: "movie",
+      preferredGenre: "action",
+    });
+
+    assert.deepEqual(filters.withGenres, [28, 12]);
+    assert.equal(filters.withGenresAny, true);
+  });
+
+  test("un género sencillo sigue pidiendo solo ese género", () => {
+    const filters = buildFilters({
+      contentType: "movie",
+      preferredGenre: "comedy",
+    });
+
+    assert.deepEqual(filters.withGenres, [35]);
+    assert.equal(filters.withGenresAny, false);
+  });
 });

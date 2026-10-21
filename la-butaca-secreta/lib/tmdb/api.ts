@@ -152,7 +152,10 @@ function buildDiscoverQuery(
   if (filters.withGenres?.length) {
     params.set(
       "with_genres",
-      filters.withGenres.join(",")
+      // "|" = cualquiera de ellos; "," = todos a la vez
+      filters.withGenres.join(
+        filters.withGenresAny ? "|" : ","
+      )
     );
   }
 
