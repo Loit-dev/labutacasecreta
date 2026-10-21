@@ -15,6 +15,7 @@ import {
   getProviderLogos,
   getDigitalDate,
   getFlatrateIds,
+  getFallback,
   getTvFlatrateIds,
   searchTitle,
 } from "@/lib/tmdb/api";
@@ -289,13 +290,30 @@ async function importados(
             ? premiereNote(item.season)
             : "Novedad en la plataforma";
 
-        const entry = toEntry(
+        let entry = toEntry(
           match,
           item.type,
           item.date,
           platform,
           note
         );
+
+        // Completa póster/sinopsis que falten con la ficha en inglés
+        if (!entry.poster || !entry.overview) {
+          try {
+            const fallback = await getFallback(item.type, match.id);
+
+            entry = {
+              ...entry,
+              poster: entry.poster ?? (fallback.poster_path
+                ? `${POSTER_BASE}${fallback.poster_path}`
+                : null),
+              overview: entry.overview || fallback.overview,
+            };
+          } catch {
+            // Sin ficha de repuesto: se queda como está
+          }
+        }
 
         known.add(`${item.type}|${match.id}`);
 
