@@ -254,25 +254,22 @@ export function drawShareImage(
     const logoX = W / 2 - logoW / 2;
     const logoY = 235;
 
-    // Brillo rojo detrás
-    ctx.save();
-    ctx.shadowColor = "rgba(239,68,68,0.55)";
-    ctx.shadowBlur = 40;
-    roundedRect(ctx, logoX, logoY, logoW, logoH, 30);
-    ctx.fillStyle = "#000";
-    ctx.fill();
-    ctx.restore();
+    // Resplandor rojo por debajo del logo (no detrás, para no empastarlo),
+    // sin marco: el fondo negro del logo se funde con la imagen («screen»)
+    const glowY = logoY + logoH + 6;
+
+    const glow = ctx.createRadialGradient(W / 2, glowY, 0, W / 2, glowY, 300);
+
+    glow.addColorStop(0, "rgba(239,68,68,0.34)");
+    glow.addColorStop(1, "rgba(239,68,68,0)");
+
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, glowY - 300, W, 600);
 
     ctx.save();
-    roundedRect(ctx, logoX, logoY, logoW, logoH, 30);
-    ctx.clip();
+    ctx.globalCompositeOperation = "screen";
     ctx.drawImage(logo, logoX, logoY, logoW, logoH);
     ctx.restore();
-
-    roundedRect(ctx, logoX, logoY, logoW, logoH, 30);
-    ctx.strokeStyle = "rgba(255,255,255,0.22)";
-    ctx.lineWidth = 3;
-    ctx.stroke();
   } else {
     ctx.fillStyle = "#ef4444";
     ctx.font = `800 34px ${font}`;
@@ -351,7 +348,7 @@ export function drawShareImage(
   spot.addColorStop(1, "rgba(251,146,60,0)");
 
   ctx.fillStyle = spot;
-  ctx.fillRect(0, 420, W, 960);
+  ctx.fillRect(0, 270, W, 1260);
 
   // Se dibujan primero los laterales y al final el principal (encima)
   const order = shown.map((_, i) => i).sort((x, y) => y - x);
