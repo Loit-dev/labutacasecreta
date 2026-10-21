@@ -10,17 +10,17 @@ import {
   UserProfile,
 } from "@/lib/conversation/types";
 
-function createEngine() {
-  const engine = new ConversationEngine();
+// Con quién va ya lo ha dicho al elegir el modo; no se vuelve a preguntar
+export type SoloCompany = "alone" | "family";
 
-  // Quien ha elegido "Solo" no necesita que le preguntemos con quién va
-  engine.preset("company", "alone");
+export function useConversation(company: SoloCompany = "alone") {
+  const engine = useMemo(() => {
+    const created = new ConversationEngine();
 
-  return engine;
-}
+    created.preset("company", company);
 
-export function useConversation() {
-  const engine = useMemo(createEngine, []);
+    return created;
+  }, [company]);
 
   const [messages, setMessages] = useState<
     ConversationMessage[]

@@ -1,4 +1,4 @@
-export type Mode = "solo" | "group";
+export type Mode = "solo" | "group" | "family";
 
 type Props = {
   onSelect: (mode: Mode) => void;
@@ -22,6 +22,12 @@ const MODES: {
     title: "Acompañado",
     hint: "En pareja o en grupo. Cada uno elige y, si no coincidís, se desempata jugando.",
   },
+  {
+    id: "family",
+    emoji: "👨‍👩‍👧",
+    title: "En familia",
+    hint: "Con niños: planes aptos para todos.",
+  },
 ];
 
 export default function ModeSelect({ onSelect }: Props) {
@@ -34,7 +40,7 @@ export default function ModeSelect({ onSelect }: Props) {
         ¿Cómo vas a verla?
       </p>
 
-      <div className="mt-6 grid gap-3 md:grid-cols-2">
+      <div className="mt-6 grid gap-3 md:grid-cols-3">
         {MODES.map((mode) => (
           <button
             key={mode.id}

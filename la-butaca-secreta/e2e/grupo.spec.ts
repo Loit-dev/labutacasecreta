@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
-import { mockApi } from "./helpers";
+import { completeQuiz, mockApi } from "./helpers";
 
 /** Cada persona contesta la pregunta actual eligiendo la opción nº `index`. */
 async function vote(page: Page, names: string[], indexes: number[]) {
@@ -52,10 +52,43 @@ test.describe("Modo acompañado", () => {
     await expect(
       page.getByRole("button", { name: /Acompañado/ })
     ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /^En familia/ })
+    ).toBeVisible();
 
     // Aún no hay preguntas ni nombres
     await expect(page.locator("[data-options]")).toHaveCount(0);
     await expect(page.getByLabel("Nombre de la persona 1")).toHaveCount(0);
+  });
+
+  test("en familia: no pregunta con quién vas y busca planes familiares", async ({
+    page,
+  }) => {
+    const requests = await mockApi(page);
+
+    await completeQuiz(page, /^En familia/);
+
+    await expect(
+      page.getByText("¿Con quién vas a verla?")
+    ).toHaveCount(0);
+
+    await expect
+      .poll(() => requests.length)
+      .toBeGreaterThan(0);
+
+    expect(requests[0].url.searchParams.get("company")).toBe("family");
+  });
+
+  test("solo: busca como alguien que va solo", async ({ page }) => {
+    const requests = await mockApi(page);
+
+    await completeQuiz(page);
+
+    await expect
+      .poll(() => requests.length)
+      .toBeGreaterThan(0);
+
+    expect(requests[0].url.searchParams.get("company")).toBe("alone");
   });
 
   test("solo: no pregunta con quién vas", async ({ page }) => {
@@ -141,14 +174,10 @@ test.describe("Modo acompañado", () => {
     await vote(page, names, [0, 0]);
     await page.getByRole("button", { name: "Siguiente" }).click();
 
-    // Lo que evita cualquiera se evita para todos
-    await vote(page, names, [0, 5]);
-
     await expect(
       page.getByRole("heading", { name: "75 % de coincidencia" })
     ).toBeVisible();
 
-    await expect(page.getByText("Evitaremos: Nada de terror")).toBeVisible();
     await expect(page.getByText("✊ Ganó Ana")).toBeVisible();
 
     await page
@@ -156,6 +185,10 @@ test.describe("Modo acompañado", () => {
       .click();
 
     await expect(page.locator("#recommendations")).toBeVisible();
+
+    await expect(
+      page.getByText("Seleccionadas especialmente para vosotros.")
+    ).toBeVisible();
 
     await expect
       .poll(() => requests.length)
@@ -165,7 +198,53 @@ test.describe("Modo acompañado", () => {
 
     expect(query.get("company")).toBe("partner");
     expect(query.get("mood")).toBe("laugh");
-    expect(query.get("restrictions")).toBe("terror");
+    expect(query.get("restrictions")).toBeNull();
+  });
+
+  test("si a uno le da igual, gana la otra respuesta sin desempatar", async ({
+    page,
+  }) => {
+    const names = ["Ana", "Luis"];
+
+    await startGroup(page, names);
+
+    await vote(page, names, [0, 0]);
+    await page.getByRole("button", { name: "Siguiente" }).click();
+
+    // Ánimo: Ana "Me da igual" (última opción), Luis "Reírme"
+    await vote(page, names, [6, 0]);
+
+    await expect(
+      page.getByRole("heading", { name: /A Ana le da igual: gana .*Reírme/ })
+    ).toBeVisible();
+
+    await expect(
+      page.getByRole("button", { name: /A jugar/ })
+    ).toHaveCount(0);
+
+    await page.getByRole("button", { name: "Siguiente" }).click();
+
+    // Sigue la siguiente pregunta
+    await expect(
+      page.getByRole("heading", { name: "Turno de Ana" })
+    ).toBeVisible();
+  });
+
+  test("no se pregunta qué evitar", async ({ page }) => {
+    const names = ["Ana", "Luis"];
+
+    await startGroup(page, names);
+
+    for (let q = 0; q < 4; q++) {
+      await vote(page, names, [0, 0]);
+      await page.getByRole("button", { name: "Siguiente" }).click();
+    }
+
+    await expect(
+      page.getByRole("heading", { name: "100 % de coincidencia" })
+    ).toBeVisible();
+
+    await expect(page.getByText(/evitar|Evitaremos/)).toHaveCount(0);
   });
 
   test("tres personas: gana la mayoría sin desempatar", async ({ page }) => {

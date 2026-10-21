@@ -3,9 +3,10 @@
  * entre todos salen un único perfil.
  *
  * - Si todos eligen lo mismo, esa es la respuesta ("coincidís").
+ * - Si alguien contesta "me da igual" (o "sorpréndeme"), no cuenta: gana
+ *   lo que hayan elegido los demás.
  * - Si hay una opción con más votos que las demás, gana la mayoría.
  * - Si hay empate, se desempata con piedra, papel o tijera.
- * - Lo que alguien quiere evitar se evita para todos.
  *
  * Todo esto es lógica pura (sin React) para poder probarla.
  */
@@ -25,6 +26,17 @@ export const VOTE_QUESTIONS = [
 
 export type VoteQuestion = (typeof VOTE_QUESTIONS)[number];
 
+/**
+ * Respuestas que significan "lo que decidan los demás".
+ * Si alguien las elige, su voto no cuenta.
+ */
+export const INDIFFERENT: Record<VoteQuestion, readonly string[]> = {
+  contentType: [],
+  mood: ["anything", "surprise"],
+  preferredGenre: [],
+  freshness: ["any"],
+};
+
 export type Hand = "rock" | "paper" | "scissors";
 
 export const HANDS: { id: Hand; emoji: string; label: string }[] = [
@@ -33,7 +45,11 @@ export const HANDS: { id: Hand; emoji: string; label: string }[] = [
   { id: "scissors", emoji: "✌️", label: "Tijera" },
 ];
 
-export type RoundKind = "unanimous" | "majority" | "duel";
+export type RoundKind =
+  | "unanimous"
+  | "auto"
+  | "majority"
+  | "duel";
 
 export interface RoundOutcome {
   kind: RoundKind | "tie";
@@ -80,11 +96,37 @@ export function tally(picks: string[]) {
 }
 
 /** ¿Hay un ganador claro, o hay que desempatar? */
-export function resolveRound(picks: string[]): RoundOutcome {
-  const counts = tally(picks);
+export function resolveRound(
+  picks: string[],
+  indifferent: readonly string[] = []
+): RoundOutcome {
+  const decisive = picks.filter((pick) => !indifferent.includes(pick));
 
+  // Todos han dicho "me da igual": vale cualquiera, gana lo más votado
+  if (decisive.length === 0) {
+    const counts = tally(picks);
+
+    const [winner] = [...counts.entries()].sort(
+      (a, b) => b[1] - a[1]
+    )[0];
+
+    return {
+      kind: counts.size === 1 ? "unanimous" : "auto",
+      winner,
+      contenders: [],
+    };
+  }
+
+  const counts = tally(decisive);
+
+  // Los que no pasan están de acuerdo; a los demás les da igual
   if (counts.size === 1) {
-    return { kind: "unanimous", winner: picks[0], contenders: [] };
+    return {
+      kind:
+        decisive.length === picks.length ? "unanimous" : "auto",
+      winner: decisive[0],
+      contenders: [],
+    };
   }
 
   const best = Math.max(...counts.values());
@@ -124,12 +166,12 @@ export interface Round {
   winner: string;
 }
 
-/** Porcentaje de preguntas en las que coincidió todo el grupo. */
+/** Porcentaje de preguntas en las que nadie tuvo que ceder. */
 export function compatibility(rounds: Round[]) {
   if (rounds.length === 0) return 0;
 
   const agreed = rounds.filter(
-    (round) => round.kind === "unanimous"
+    (round) => round.kind === "unanimous" || round.kind === "auto"
   ).length;
 
   return Math.round((agreed / rounds.length) * 100);
@@ -147,17 +189,11 @@ export function compatibilityText(percent: number, size: number) {
   return `${group}: ¡ni una! Menos mal que hay trato 😅`;
 }
 
-/** Lo que cualquiera quiere evitar, se evita para todos. */
-export function mergeRestrictions(lists: string[][]) {
-  const all = new Set<string>();
+/** "Ana", "Ana y Luis", "Ana, Luis y Eva". */
+export function formatNames(names: string[]) {
+  if (names.length <= 1) return names[0] ?? "";
 
-  for (const list of lists) {
-    for (const item of list) {
-      if (item && item !== "none") all.add(item);
-    }
-  }
-
-  return [...all];
+  return `${names.slice(0, -1).join(", ")} y ${names[names.length - 1]}`;
 }
 
 /** Con 2 personas es "en pareja"; con más, "con amigos". */
@@ -167,7 +203,6 @@ export function companyFor(size: number) {
 
 export function buildGroupProfile(
   rounds: Round[],
-  restrictions: string[][],
   size: number
 ): UserProfile {
   const profile: UserProfile = {
@@ -193,10 +228,6 @@ export function buildGroupProfile(
         break;
     }
   }
-
-  const merged = mergeRestrictions(restrictions);
-
-  profile.restrictions = merged.length > 0 ? merged : ["none"];
 
   return profile;
 }

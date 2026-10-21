@@ -15,7 +15,8 @@ import {
   compatibility,
   compatibilityText,
   defaultName,
-  mergeRestrictions,
+  formatNames,
+  INDIFFERENT,
   resolveRound,
   type Round,
   type RoundOutcome,
@@ -24,8 +25,8 @@ import {
 import Panel from "./Panel";
 import RpsDuel from "./RpsDuel";
 
-// Las preguntas en las que votan todos y, al final, lo que se evita
-const QUESTIONS = [...VOTE_QUESTIONS, "restrictions"] as const;
+// Las preguntas en las que votan todos
+const QUESTIONS = VOTE_QUESTIONS;
 
 type Step =
   | { kind: "setup" }
@@ -78,11 +79,10 @@ export default function GroupQuiz() {
   const [picks, setPicks] = useState<string[]>([]);
 
   const [rounds, setRounds] = useState<RoundView[]>([]);
-  const [avoid, setAvoid] = useState<string[][]>([]);
 
   const profile = useMemo(
-    () => buildGroupProfile(rounds, avoid, names.length),
-    [rounds, avoid, names.length]
+    () => buildGroupProfile(rounds, names.length),
+    [rounds, names.length]
   );
 
   // ============================
@@ -95,7 +95,6 @@ export default function GroupQuiz() {
     setNames(finalNames);
     setPicks([]);
     setRounds([]);
-    setAvoid([]);
 
     track("group_started", { players: count });
 
@@ -139,19 +138,12 @@ export default function GroupQuiz() {
     }
 
     // Han elegido todos
-    if (QUESTIONS[q] === "restrictions") {
-      setAvoid(next.map((v) => (v === "none" ? [] : [v])));
-      setPicks([]);
-      setStep({ kind: "summary" });
-      return;
-    }
-
     setPicks(next);
     setStep({
       kind: "reveal",
       q,
       picks: next,
-      outcome: resolveRound(next),
+      outcome: resolveRound(next, INDIFFERENT[QUESTIONS[q]]),
     });
   }
 
@@ -285,13 +277,25 @@ export default function GroupQuiz() {
   }
 
   if (step.kind === "reveal") {
-    const id = QUESTIONS[step.q] as (typeof VOTE_QUESTIONS)[number];
+    const id = QUESTIONS[step.q];
     const { outcome } = step;
-    const agreed = outcome.kind === "unanimous";
+    const agreed =
+      outcome.kind === "unanimous" || outcome.kind === "auto";
 
-    const message = agreed
+    // A quién le da igual (su voto no cuenta)
+    const shrugged = names.filter((_, i) =>
+      INDIFFERENT[id].includes(step.picks[i])
+    );
+
+    const message = outcome.kind === "unanimous"
       ? "¡Coincidís todos! 🎉"
-      : outcome.kind === "majority"
+      : outcome.kind === "auto"
+        ? `😌 ${
+            shrugged.length === 1
+              ? `A ${shrugged[0]} le da igual`
+              : `A ${formatNames(shrugged)} les da igual`
+          }: gana ${labelOf(id, outcome.winner ?? "")}`
+        : outcome.kind === "majority"
         ? `🗳️ Gana la mayoría: ${labelOf(id, outcome.winner ?? "")}`
         : "🤔 Empate… ¡piedra, papel o tijera!";
 
@@ -307,7 +311,8 @@ export default function GroupQuiz() {
             <li
               key={name}
               className={`flex items-center justify-between rounded-xl border px-4 py-3 ${
-                agreed || step.picks[i] === outcome.winner
+                outcome.kind === "unanimous" ||
+                step.picks[i] === outcome.winner
                   ? "border-emerald-400/40 bg-emerald-500/10"
                   : "border-white/10 bg-black/30"
               }`}
@@ -363,7 +368,7 @@ export default function GroupQuiz() {
   }
 
   if (step.kind === "duel") {
-    const id = QUESTIONS[step.q] as (typeof VOTE_QUESTIONS)[number];
+    const id = QUESTIONS[step.q];
     const challenger = step.contenders[step.next];
 
     return (
@@ -406,7 +411,6 @@ export default function GroupQuiz() {
 
   if (step.kind === "summary") {
     const percent = compatibility(rounds);
-    const avoided = mergeRestrictions(avoid);
 
     return (
       <Panel
@@ -431,19 +435,13 @@ export default function GroupQuiz() {
 
               <span className="shrink-0 text-sm text-zinc-400">
                 {round.kind === "unanimous" && "🟢 Coincidís"}
+                {round.kind === "auto" && "😌 Sin discusión"}
                 {round.kind === "majority" && "🗳️ Mayoría"}
                 {round.kind === "duel" && `✊ Ganó ${round.by}`}
               </span>
             </li>
           ))}
 
-          <li className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-zinc-200">
-            {avoided.length > 0
-              ? `Evitaremos: ${avoided
-                  .map((v) => labelOf("restrictions", v).replace("🚫 ", ""))
-                  .join(", ")}`
-              : "Nadie quiere evitar nada 👍"}
-          </li>
         </ul>
 
         <div className="mt-6 text-center">
@@ -468,7 +466,10 @@ export default function GroupQuiz() {
 
   return (
     <div className="mt-2">
-      <Recommendations profile={profile} />
+      <Recommendations
+        profile={profile}
+        audience={formatNames(names)}
+      />
     </div>
   );
 }

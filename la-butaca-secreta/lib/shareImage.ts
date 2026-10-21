@@ -21,6 +21,8 @@ type Options = {
   siteName: string;
   siteUrl: string;
   fontFamily?: string;
+  // Para quién son las sugerencias ("Ana y Luis"); sin esto, "Mis sugerencias"
+  audience?: string;
   // Logo de la web y pósters de fondo (los mismos que usa la web)
   logo?: DrawableImage | null;
   backdrops?: (DrawableImage | null)[];
@@ -279,9 +281,22 @@ export function drawShareImage(
   }
 
   // ---------- Título con el degradado de la web ----------
-  ctx.font = `800 104px ${font}`;
+  const title = options.audience
+    ? `Sugerencias para ${options.audience}`
+    : "Mis sugerencias";
 
-  const title = "Mis sugerencias";
+  // Los títulos largos (varios nombres) se encogen para caber
+  let titleSize = 104;
+
+  ctx.font = `800 ${titleSize}px ${font}`;
+
+  while (
+    titleSize > 48 &&
+    ctx.measureText(title).width > W - 140
+  ) {
+    titleSize -= 4;
+    ctx.font = `800 ${titleSize}px ${font}`;
+  }
 
   const titleW = ctx.measureText(title).width;
 

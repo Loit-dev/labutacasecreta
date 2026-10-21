@@ -7,7 +7,8 @@ import {
   companyFor,
   compatibility,
   compatibilityText,
-  mergeRestrictions,
+  formatNames,
+  INDIFFERENT,
   resolveRound,
   rpsWinner,
   tally,
@@ -65,6 +66,62 @@ describe("votación del grupo", () => {
     assert.deepEqual(outcome.contenders, [0, 1]);
   });
 
+  test("si a alguien le da igual, gana lo que eligió el otro", () => {
+    const outcome = resolveRound(
+      ["anything", "laugh"],
+      INDIFFERENT.mood
+    );
+
+    assert.equal(outcome.kind, "auto");
+    assert.equal(outcome.winner, "laugh");
+  });
+
+  test("«sorpréndeme» también cede ante una elección concreta", () => {
+    const outcome = resolveRound(
+      ["think", "surprise"],
+      INDIFFERENT.mood
+    );
+
+    assert.equal(outcome.kind, "auto");
+    assert.equal(outcome.winner, "think");
+  });
+
+  test("los que pasan no cuentan en la mayoría ni en el desempate", () => {
+    const tied = resolveRound(
+      ["laugh", "think", "anything"],
+      INDIFFERENT.mood
+    );
+
+    assert.equal(tied.kind, "tie");
+    assert.deepEqual(tied.contenders, [0, 1]);
+
+    const majority = resolveRound(
+      ["laugh", "laugh", "think", "anything"],
+      INDIFFERENT.mood
+    );
+
+    assert.equal(majority.kind, "majority");
+    assert.equal(majority.winner, "laugh");
+  });
+
+  test("si a todos les da igual, no hay desempate", () => {
+    const same = resolveRound(["any", "any"], INDIFFERENT.freshness);
+
+    assert.equal(same.kind, "unanimous");
+
+    const mixed = resolveRound(
+      ["anything", "surprise", "anything"],
+      INDIFFERENT.mood
+    );
+
+    assert.equal(mixed.kind, "auto");
+    assert.equal(mixed.winner, "anything");
+  });
+
+  test("sin lista de «me da igual» todo cuenta como voto", () => {
+    assert.equal(resolveRound(["a", "b"]).kind, "tie");
+  });
+
   test("tally cuenta los votos", () => {
     assert.deepEqual([...tally(["a", "b", "a"])], [
       ["a", 2],
@@ -102,6 +159,15 @@ describe("compatibilidad", () => {
     assert.equal(compatibility(rounds), 50);
   });
 
+  test("cuando a alguien le da igual, nadie ha tenido que ceder", () => {
+    const rounds = [
+      round("mood", "auto", "laugh"),
+      round("preferredGenre", "duel", "comedy"),
+    ];
+
+    assert.equal(compatibility(rounds), 50);
+  });
+
   test("sin preguntas es 0", () => {
     assert.equal(compatibility([]), 0);
   });
@@ -116,20 +182,13 @@ describe("compatibilidad", () => {
   });
 });
 
-describe("restricciones y perfil", () => {
-  test("lo que evita cualquiera se evita para todos, sin repetir", () => {
-    assert.deepEqual(
-      mergeRestrictions([["terror"], ["violence"], ["terror"], ["none"]]).sort(),
-      ["terror", "violence"]
-    );
-  });
-
+describe("perfil del grupo", () => {
   test("con 2 personas es pareja y con más, amigos", () => {
     assert.equal(companyFor(2), "partner");
     assert.equal(companyFor(3), "friends");
   });
 
-  test("el perfil del grupo recoge las respuestas ganadoras", () => {
+  test("el perfil recoge las respuestas ganadoras", () => {
     const profile = buildGroupProfile(
       [
         round("contentType", "unanimous", "tv"),
@@ -137,7 +196,6 @@ describe("restricciones y perfil", () => {
         round("preferredGenre", "majority", "comedy"),
         round("freshness", "unanimous", "new"),
       ],
-      [["terror"], []],
       2
     );
 
@@ -147,15 +205,22 @@ describe("restricciones y perfil", () => {
       mood: "laugh",
       preferredGenre: "comedy",
       freshness: "new",
-      restrictions: ["terror"],
     });
   });
 
-  test("si nadie evita nada, las restricciones son 'none'", () => {
-    const profile = buildGroupProfile([], [[], []], 3);
+  test("con tres personas la compañía es «amigos»", () => {
+    assert.equal(buildGroupProfile([], 3).company, "friends");
+  });
+});
 
-    assert.deepEqual(profile.restrictions, ["none"]);
-    assert.equal(profile.company, "friends");
+describe("formatNames", () => {
+  test("une los nombres como se dice en español", () => {
+    assert.equal(formatNames(["Ana"]), "Ana");
+    assert.equal(formatNames(["Ana", "Luis"]), "Ana y Luis");
+    assert.equal(
+      formatNames(["Ana", "Luis", "Eva"]),
+      "Ana, Luis y Eva"
+    );
   });
 });
 

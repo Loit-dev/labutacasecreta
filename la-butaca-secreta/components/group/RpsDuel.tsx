@@ -57,6 +57,8 @@ export default function RpsDuel({ names, stakes, onDone }: Props) {
 
   const revealed = a !== null && b !== null;
 
+  const decided = revealed && result !== undefined && result !== null;
+
   let status = "Cada uno toca su mano. No se ve hasta que elijáis los dos.";
 
   if (revealed && isTie) {
@@ -74,7 +76,13 @@ export default function RpsDuel({ names, stakes, onDone }: Props) {
       <p
         role="status"
         aria-live="polite"
-        className="mt-3 text-center text-sm text-zinc-300"
+        className={
+          decided
+            ? "mt-4 text-center text-3xl font-extrabold text-emerald-300 md:text-4xl"
+            : revealed
+              ? "mt-4 text-center text-2xl font-bold text-white"
+              : "mt-3 text-center text-sm text-zinc-300"
+        }
       >
         {status}
       </p>

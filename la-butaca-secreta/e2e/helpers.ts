@@ -101,10 +101,13 @@ export async function mockApi(page: Page): Promise<Captured> {
 }
 
 /** Contesta siempre la primera opción hasta que salen las recomendaciones. */
-export async function completeQuiz(page: Page) {
+export async function completeQuiz(
+  page: Page,
+  mode: RegExp = /^Solo/
+) {
   await page.goto("/");
 
-  await page.getByRole("button", { name: /Solo/ }).click();
+  await page.getByRole("button", { name: mode }).click();
 
   const log = page.locator('[role="log"] > div');
 

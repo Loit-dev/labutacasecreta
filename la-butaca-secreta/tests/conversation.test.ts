@@ -33,6 +33,22 @@ describe("ConversationEngine", () => {
     assert.equal(engine.getMessages().length > 0, true);
   });
 
+  test("preset de «familia» se conserva hasta el final", () => {
+    const engine = new ConversationEngine();
+
+    engine.preset("company", "family");
+
+    for (
+      let node = engine.getNextNode();
+      node;
+      node = engine.getNextNode()
+    ) {
+      engine.answer(node.id, node.options[0].value, "respuesta");
+    }
+
+    assert.equal(engine.getProfile().company, "family");
+  });
+
   test("las restricciones se guardan como lista", () => {
     const engine = new ConversationEngine();
 
