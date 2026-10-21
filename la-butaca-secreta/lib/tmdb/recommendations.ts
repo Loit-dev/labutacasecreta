@@ -1,10 +1,6 @@
 import {
-  getMovieCredits,
-  getMovieDetails,
-  getMovieProviders,
-  getTVCredits,
-  getTVDetails,
-  getTVProviders,
+  getMovieFull,
+  getTVFull,
 } from "./api";
 
 import {
@@ -19,39 +15,15 @@ export async function enrichRecommendation(
   movie: TMDBMovie,
   type: "movie" | "tv"
 ) {
-  if (type === "movie") {
-    const [
-      details,
-      providers,
-      credits,
-    ] = await Promise.all([
-      getMovieDetails(movie.id),
-      getMovieProviders(movie.id),
-      getMovieCredits(movie.id),
-    ]);
-
-    return mapRecommendation(
-      movie,
-      details,
-      providers,
-      credits
-    );
-  }
-
-  const [
-    details,
-    providers,
-    credits,
-  ] = await Promise.all([
-    getTVDetails(movie.id),
-    getTVProviders(movie.id),
-    getTVCredits(movie.id),
-  ]);
+  const details =
+    type === "movie"
+      ? await getMovieFull(movie.id)
+      : await getTVFull(movie.id);
 
   return mapRecommendation(
     movie,
     details,
-    providers,
-    credits
+    details["watch/providers"],
+    details.credits
   );
 }

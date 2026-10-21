@@ -1,18 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { UserProfile } from "@/lib/conversation/types";
-import { RecommendationEngine } from "@/lib/recommendation/engine";
+import {
+  DiscoveryMode,
+  UserProfile,
+} from "@/lib/conversation/types";
+import {
+  RecommendationEngine,
+} from "@/lib/recommendation/engine";
+import { RecommendationFilters } from "@/lib/recommendation/filters";
 import { sortByScore } from "@/lib/recommendation/scoring";
 import { diversify } from "@/lib/recommendation/diversity";
+import { buildRecommendationReason } from "@/lib/recommendation/prompt";
 import {
   discoverMovies,
   discoverTV,
-  getMovieCredits,
-  getMovieDetails,
-  getMovieProviders,
-  getTVCredits,
-  getTVDetails,
-  getTVProviders,
+  getMovieFull,
+  getTVFull,
 } from "@/lib/tmdb/api";
 
 import {
@@ -20,283 +23,413 @@ import {
   mapToScoredItem,
 } from "@/lib/tmdb/mapper";
 
+import {
+  TMDBFullDetails,
+  TMDBMovie,
+} from "@/lib/tmdb/types";
+
+// Siempre dinámico: depende de los parámetros de la URL.
+export const dynamic = "force-dynamic";
+
 // IDs permitidos estrictamente: Netflix (8), Prime (119), Disney+ (337), Max (1899, 384)
-const ALLOWED_PROVIDER_IDS = [8, 119, 337, 1899, 384];
+const ALLOWED_PROVIDER_IDS = [
+  8, 119, 337, 1899, 384,
+];
 
-export async function GET(request: NextRequest) {
-  try {
-    const params = request.nextUrl.searchParams;
+const DISCOVERY_MODES: DiscoveryMode[] = [
+  "impact",
+  "relax",
+  "hidden-gem",
+  "surprise",
+];
 
-    const profile: UserProfile = {
-      contentType:
-        params.get("type") === "tv"
-          ? "tv"
-          : "movie",
+// Páginas de "discover" que se piden por intento (20 títulos por página)
+const DISCOVER_PAGES = [1, 2, 3, 4, 5, 6, 7];
 
-      mood: params.get("mood") ?? undefined,
+// Con menos candidatos que esto, se amplían los filtros
+const MIN_CANDIDATES = 30;
 
-      preferredGenre: params.get("preferredGenre") ?? undefined,
+// Candidatos que pasan a la fase de detalle (1 llamada a TMDb por candidato)
+const MAX_CANDIDATES = 40;
 
-      company: params.get("company") ?? undefined,
+// Llamadas simultáneas a TMDb al enriquecer candidatos
+const ENRICH_CONCURRENCY = 10;
 
-      duration: params.get("duration") ?? undefined,
+// Máximo de recomendaciones devueltas (4 tandas de 3)
+const MAX_RECOMMENDATIONS = 12;
 
-      pace: params.get("pace") ?? undefined,
+// ======================================================
+// HELPERS
+// ======================================================
 
-      freshness:
-        params.get("freshness") ?? undefined,
+function parseProfile(
+  params: URLSearchParams
+): UserProfile {
+  const discoveryMode = params.get(
+    "discoveryMode"
+  ) as DiscoveryMode | null;
 
-      discoveryMode:
-        (params.get("discoveryMode") as
-          | "impact"
-          | "relax"
-          | "hidden-gem"
-          | "surprise") ?? undefined,
+  return {
+    contentType:
+      params.get("type") === "tv"
+        ? "tv"
+        : "movie",
 
-      language:
-        params.get("language") ?? undefined,
+    mood: params.get("mood") ?? undefined,
 
-      animation:
-        params.get("animation") ?? undefined,
+    preferredGenre:
+      params.get("preferredGenre") ??
+      undefined,
 
-      restrictions: params
-        .get("restrictions")
-        ?.split(",")
-        .filter(Boolean),
-    };
+    company: params.get("company") ?? undefined,
 
-    console.log(profile);
+    duration:
+      params.get("duration") ?? undefined,
 
-    const engine =
-      new RecommendationEngine(profile);
+    pace: params.get("pace") ?? undefined,
 
-    const filters = engine.build();
+    freshness:
+      params.get("freshness") ?? undefined,
 
-    async function fetchPages(
-      currentFilters: typeof filters
-    ) {
-      return Promise.all(
-        [1, 2, 3, 4, 5, 6, 7].map((page) =>
-          currentFilters.type === "movie"
-            ? discoverMovies(
-                currentFilters,
-                page
-              )
-            : discoverTV(
-                currentFilters,
-                page
-              )
-        )
-      );
-    }
+    // Solo aceptamos valores conocidos
+    discoveryMode:
+      discoveryMode &&
+      DISCOVERY_MODES.includes(discoveryMode)
+        ? discoveryMode
+        : undefined,
 
-    let pages = await fetchPages(
-      filters
-    );
+    language:
+      params.get("language") ?? undefined,
 
-    let items = pages.flatMap(
-      (page) => page.results
-    );
+    animation:
+      params.get("animation") ?? undefined,
 
-    // Ampliar automáticamente el rango temporal si hay pocos resultados
-    if (
-      items.length < 30 &&
-      filters.releaseAfter === "2022-01-01"
-    ) {
-      pages = await fetchPages({
+    restrictions: params
+      .get("restrictions")
+      ?.split(",")
+      .filter(Boolean),
+  };
+}
+
+function shiftYears(
+  date: string,
+  years: number
+) {
+  const year = Number(date.substring(0, 4));
+
+  return `${year - years}${date.substring(4)}`;
+}
+
+/**
+ * Lista de intentos, del más preciso al más amplio.
+ * Se detiene en cuanto uno devuelve candidatos suficientes.
+ */
+function buildAttempts(
+  filters: RecommendationFilters
+): RecommendationFilters[] {
+  const attempts: RecommendationFilters[] = [
+    filters,
+  ];
+
+  // 1) Ampliar el rango de fechas en "algo nuevo"
+  if (filters.releaseAfter) {
+    for (const years of [2, 4]) {
+      attempts.push({
         ...filters,
-        releaseAfter: "2020-01-01",
+        releaseAfter: shiftYears(
+          filters.releaseAfter,
+          years
+        ),
       });
-
-      items = pages.flatMap(
-        (page) => page.results
-      );
     }
+  }
 
-    if (
-      items.length < 30 &&
-      filters.releaseAfter === "2022-01-01"
-    ) {
-      pages = await fetchPages({
-        ...filters,
-        releaseAfter: "2018-01-01",
-      });
+  // 2) Quitar los ajustes de "qué busco hoy" (nota / nº de votos)
+  if (
+    filters.sortBy ||
+    filters.minVotes ||
+    filters.maxVotes ||
+    filters.minRating
+  ) {
+    attempts.push({
+      ...filters,
+      sortBy: undefined,
+      minVotes: undefined,
+      maxVotes: undefined,
+      minRating: undefined,
+      releaseAfter: filters.releaseAfter
+        ? shiftYears(filters.releaseAfter, 4)
+        : undefined,
+    });
+  }
 
-      items = pages.flatMap(
-        (page) => page.results
-      );
-    }
+  return attempts;
+}
 
-    const uniqueItems = Array.from(
-      new Map(
-        items.map((item) => [
-          item.id,
-          item,
-        ])
-      ).values()
-    );
+async function fetchCandidates(
+  filters: RecommendationFilters
+): Promise<TMDBMovie[]> {
+  const pages = await Promise.all(
+    DISCOVER_PAGES.map((page) =>
+      filters.type === "movie"
+        ? discoverMovies(filters, page)
+        : discoverTV(filters, page)
+    )
+  );
 
-    console.log("Unique:", uniqueItems.length);
+  const items = pages.flatMap(
+    (page) => page.results
+  );
 
-    const scored = sortByScore(
-      uniqueItems.map(mapToScoredItem),
-      {
-        profile,
+  // Sin duplicados
+  return Array.from(
+    new Map(
+      items.map((item) => [item.id, item])
+    ).values()
+  );
+}
+
+/**
+ * Ejecuta `task` sobre cada elemento con un máximo de
+ * `limit` llamadas simultáneas. Si una falla, se descarta
+ * ese elemento (devuelve null) sin tumbar toda la petición.
+ */
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  limit: number,
+  task: (item: T) => Promise<R>
+): Promise<(R | null)[]> {
+  const results: (R | null)[] = new Array(
+    items.length
+  ).fill(null);
+
+  let next = 0;
+
+  async function worker() {
+    while (next < items.length) {
+      const index = next++;
+
+      try {
+        results[index] = await task(
+          items[index]
+        );
+      } catch (error) {
+        console.error(
+          "No se pudo enriquecer un candidato:",
+          error
+        );
       }
+    }
+  }
+
+  await Promise.all(
+    Array.from(
+      {
+        length: Math.min(limit, items.length),
+      },
+      worker
+    )
+  );
+
+  return results;
+}
+
+// ======================================================
+// GET /api/tmdb
+// ======================================================
+
+export async function GET(
+  request: NextRequest
+) {
+  try {
+    const profile = parseProfile(
+      request.nextUrl.searchParams
     );
 
-    const candidates = scored
-      .slice(0, 40)
-      .map(
-        (item) =>
-          uniqueItems.find(
-            (movie) =>
-              movie.id === item.id
-          )!
+    const filters = new RecommendationEngine(
+      profile
+    ).build();
+
+    // ----------------------------------------------
+    // 1) Candidatos (con intentos cada vez más amplios)
+    // ----------------------------------------------
+
+    let uniqueItems: TMDBMovie[] = [];
+
+    for (const attempt of buildAttempts(
+      filters
+    )) {
+      const found = await fetchCandidates(
+        attempt
       );
 
-    const enriched = await Promise.all(
-      candidates.map(async (movie) => {
-        if (filters.type === "movie") {
-          const [
-            details,
-            providers,
-            credits,
-          ] = await Promise.all([
-            getMovieDetails(movie.id),
-            getMovieProviders(movie.id),
-            getMovieCredits(movie.id),
-          ]);
+      if (found.length > uniqueItems.length) {
+        uniqueItems = found;
+      }
 
-          return {
-            movie,
-            details,
-            providers,
-            credits,
-          };
-        }
+      if (uniqueItems.length >= MIN_CANDIDATES) {
+        break;
+      }
+    }
 
-        const [
-          details,
-          providers,
-          credits,
-        ] = await Promise.all([
-          getTVDetails(movie.id),
-          getTVProviders(movie.id),
-          getTVCredits(movie.id),
-        ]);
+    if (uniqueItems.length === 0) {
+      return NextResponse.json([]);
+    }
 
-        return {
-          movie,
-          details,
-          providers,
-          credits,
-        };
-      })
+    // ----------------------------------------------
+    // 2) Primera puntuación (sin detalles) y top N
+    // ----------------------------------------------
+
+    const byId = new Map(
+      uniqueItems.map((item) => [item.id, item])
     );
 
-    // FILTRO ESTRICTO: Solo permite elementos que estén disponibles en Netflix, Prime, Disney+ o Max
-    const finalPool = enriched.filter(
-      (item) => {
-        const providers =
-          item.providers.results?.ES?.flatrate;
+    const candidates = sortByScore(
+      uniqueItems.map(mapToScoredItem),
+      { profile }
+    )
+      .slice(0, MAX_CANDIDATES)
+      .map((scored) => byId.get(scored.id)!);
 
-        if (!Array.isArray(providers) || providers.length === 0) {
-          return false;
+    // ----------------------------------------------
+    // 3) Detalles + créditos + plataformas (1 llamada)
+    // ----------------------------------------------
+
+    const enriched = (
+      await mapWithConcurrency(
+        candidates,
+        ENRICH_CONCURRENCY,
+        async (movie) => {
+          const details: TMDBFullDetails =
+            filters.type === "movie"
+              ? await getMovieFull(movie.id)
+              : await getTVFull(movie.id);
+
+          return { movie, details };
         }
+      )
+    ).filter(
+      (entry): entry is NonNullable<typeof entry> =>
+        entry !== null
+    );
 
-        return providers.some((p) =>
-          ALLOWED_PROVIDER_IDS.includes(p.provider_id)
+    // ----------------------------------------------
+    // 4) Filtro estricto: solo Netflix, Prime, Disney+ o Max
+    // ----------------------------------------------
+
+    const finalPool = enriched.filter(
+      ({ details }) => {
+        const flatrate =
+          details["watch/providers"]?.results
+            ?.ES?.flatrate;
+
+        return (
+          Array.isArray(flatrate) &&
+          flatrate.some((provider) =>
+            ALLOWED_PROVIDER_IDS.includes(
+              provider.provider_id
+            )
+          )
         );
       }
     );
-
-    console.log("FinalPool:", finalPool.length);
 
     if (finalPool.length === 0) {
       return NextResponse.json([]);
     }
 
+    // ----------------------------------------------
+    // 5) Segunda puntuación (ya con duración y plataformas)
+    // ----------------------------------------------
+
     const rescored = sortByScore(
-      finalPool.map(
-        ({
-          movie,
-          details,
-          providers,
-          credits,
-        }) => ({
-          ...mapToScoredItem(movie),
+      finalPool.map(({ movie, details }) => ({
+        ...mapToScoredItem(movie),
 
-          runtime:
-            details.runtime ??
-            details.episode_run_time?.[0] ??
-            0,
+        runtime:
+          details.runtime ??
+          details.episode_run_time?.[0] ??
+          0,
 
-          providers:
-            providers.results?.ES?.flatrate?.map(
-              (provider) =>
-                provider.provider_name
-            ) ?? [],
+        providers:
+          details[
+            "watch/providers"
+          ]?.results?.ES?.flatrate?.map(
+            (provider) =>
+              provider.provider_name
+          ) ?? [],
 
-          director: credits.crew.find(
+        director:
+          details.credits?.crew?.find(
             (person) =>
               person.job === "Director"
           )?.name,
 
-          cast:
-            credits.cast
-              .slice(0, 5)
-              .map((actor) => actor.name) ??
-            [],
-        })
-      ),
-      {
-        profile,
+        cast:
+          details.credits?.cast
+            ?.slice(0, 5)
+            .map((actor) => actor.name) ?? [],
+      })),
+      { profile }
+    );
+
+    // ----------------------------------------------
+    // 6) Variedad y resultado final
+    // ----------------------------------------------
+
+    const poolById = new Map(
+      finalPool.map((entry) => [
+        entry.movie.id,
+        entry,
+      ])
+    );
+
+    let selected = diversify(
+      rescored,
+      MAX_RECOMMENDATIONS
+    );
+
+    // Si la diversificación no devuelve nada, usamos el ranking tal cual
+    if (selected.length === 0) {
+      selected = rescored.slice(
+        0,
+        MAX_RECOMMENDATIONS
+      );
+    }
+
+    let recommendations = selected.map(
+      (item) => {
+        const { movie, details } =
+          poolById.get(item.id)!;
+
+        return {
+          ...mapRecommendation(
+            movie,
+            details,
+            details["watch/providers"],
+            details.credits
+          ),
+
+          reason: buildRecommendationReason(
+            profile,
+            {
+              genreIds: movie.genre_ids,
+              voteAverage: movie.vote_average,
+              voteCount: movie.vote_count,
+            }
+          ),
+        };
       }
     );
 
-    console.log("Rescored:", rescored.length);
-
-    const selected = diversify(
-      rescored,
-      12
-    );
-
-    console.log("Selected:", selected.length);
-
-    let recommendations =
-      selected.map((item) => {
-        const data = finalPool.find(
-          (entry) =>
-            entry.movie.id === item.id
-        )!;
-
-        return mapRecommendation(
-          data.movie,
-          data.details,
-          data.providers,
-          data.credits
-        );
-      });
-
-    // Fallback en caso de que la diversificación no devuelva elementos
-    if (recommendations.length === 0) {
-      recommendations = finalPool
-        .slice(0, 12)
-        .map((data) =>
-          mapRecommendation(
-            data.movie,
-            data.details,
-            data.providers,
-            data.credits
-          )
-        );
-    }
-
-    // AJUSTE A MÚLTIPLOS DE 3: Recorta el array para que la longitud sea 3, 6, 9 o 12
-    const remainder = recommendations.length % 3;
-    if (remainder !== 0) {
-      recommendations = recommendations.slice(0, recommendations.length - remainder);
+    // Tandas completas de 3. Solo se recorta si hay al menos 3:
+    // con 1 o 2 resultados antes se devolvía una lista vacía.
+    if (recommendations.length > 3) {
+      recommendations = recommendations.slice(
+        0,
+        recommendations.length -
+          (recommendations.length % 3)
+      );
     }
 
     return NextResponse.json(recommendations);

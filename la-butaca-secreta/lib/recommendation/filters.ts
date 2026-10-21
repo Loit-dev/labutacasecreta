@@ -15,6 +15,15 @@ export interface RecommendationFilters {
   releaseAfter?: string;
 
   releaseBefore?: string;
+
+  // Ajustes del "pool" de candidatos según lo que busca el usuario
+  sortBy?: "popularity.desc" | "vote_average.desc";
+
+  minVotes?: number;
+
+  maxVotes?: number;
+
+  minRating?: number;
 }
 
 const PreferredGenreMap: Record<
@@ -129,13 +138,39 @@ export function buildFilters(
 
   switch (profile.freshness) {
     case "new":
-      filters.releaseAfter =
-        "2022-01-01";
+      // "Nuevo" = últimos ~3 años (se calcula con el año actual,
+      // para que no se quede anticuado con el tiempo).
+      filters.releaseAfter = `${
+        new Date().getFullYear() - 3
+      }-01-01`;
       break;
 
     case "classic":
       filters.releaseBefore =
         "2005-12-31";
+      break;
+  }
+
+  // ============================
+  // Qué busca hoy
+  //
+  // Cambia el "pool" de candidatos: sin esto, TMDb siempre
+  // devolvería lo más popular y una "joya oculta" nunca
+  // llegaría a aparecer entre los candidatos.
+  // ============================
+
+  switch (profile.discoveryMode) {
+    case "impact":
+      filters.sortBy = "vote_average.desc";
+      filters.minVotes = 1000;
+      filters.minRating = 7.5;
+      break;
+
+    case "hidden-gem":
+      filters.sortBy = "vote_average.desc";
+      filters.minVotes = 100;
+      filters.maxVotes = 5000;
+      filters.minRating = 7;
       break;
   }
 
@@ -196,11 +231,6 @@ export function buildFilters(
       (id) =>
         !filters.withGenres.includes(id)
     );
-
-  console.log(
-    "FILTERS:",
-    filters
-  );
 
   return filters;
 }

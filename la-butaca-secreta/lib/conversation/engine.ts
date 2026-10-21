@@ -62,7 +62,14 @@ export class ConversationEngine {
     value: string,
     label: string
   ): ConversationNode | null {
-    this.context.profile[field] = value as never;
+    if (field === "restrictions") {
+      // "restrictions" es una lista en UserProfile. Antes se guardaba
+      // como texto, así que nunca llegaba a la API (Array.isArray fallaba)
+      // y las restricciones del usuario se ignoraban.
+      this.context.profile.restrictions = [value];
+    } else {
+      this.context.profile[field] = value as never;
+    }
 
     if (!this.context.answeredNodes.includes(field)) {
       this.context.answeredNodes.push(field);

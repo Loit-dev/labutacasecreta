@@ -11,6 +11,7 @@ type Props = {
   overview: string;
   poster: string;
   providers?: {name: string; logo: string;}[];
+  reason?: string;
 };
 
 export default function RecommendationCard({
@@ -24,11 +25,12 @@ export default function RecommendationCard({
   overview,
   poster,
   providers = [],
+  reason,
 }: Props) {
   return (
     <article className="flex h-full flex-col overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900 shadow-xl">
        <div className="relative h-58 w-full overflow-hidden">
-        <Image src={poster} alt={title} fill className="object-contain bg-black" sizes="(max-width: 768px) 100vw, 33vw" />
+        <Image src={poster} alt={title} fill unoptimized={poster.endsWith(".svg")} className="object-contain bg-black" sizes="(max-width: 768px) 100vw, 33vw" />
         {providers.length > 0 && (
   <div
     className="
@@ -96,6 +98,12 @@ export default function RecommendationCard({
               </span>
             ))}
           </div>
+        )}
+
+        {reason && (
+          <p className="text-xs italic leading-relaxed text-yellow-200/80">
+            💡 {reason}
+          </p>
         )}
 
         <p className="line-clamp-2 text-sm leading-relaxed text-zinc-300">
