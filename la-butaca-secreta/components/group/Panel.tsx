@@ -8,6 +8,8 @@ type Props = {
   eyebrow?: string;
   children: ReactNode;
   tone?: "neutral" | "good";
+  /** Título grande, para las pantallas de juego */
+  large?: boolean;
 };
 
 /**
@@ -19,6 +21,7 @@ export default function Panel({
   eyebrow,
   children,
   tone = "neutral",
+  large = false,
 }: Props) {
   const heading = useRef<HTMLHeadingElement>(null);
 
@@ -43,7 +46,9 @@ export default function Panel({
       <h2
         ref={heading}
         tabIndex={-1}
-        className="mt-1 text-center text-xl font-bold text-white outline-none"
+        className={`mt-1 text-center font-bold text-white outline-none ${
+          large ? "text-2xl md:text-3xl" : "text-xl"
+        }`}
         style={{ fontFamily: "var(--font-manrope)" }}
       >
         {title}

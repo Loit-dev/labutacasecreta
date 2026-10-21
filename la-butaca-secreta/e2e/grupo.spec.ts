@@ -152,7 +152,7 @@ test.describe("Modo acompañado", () => {
     await vote(page, names, [0, 0]);
 
     await expect(
-      page.getByRole("heading", { name: /Coincidís todos/ })
+      page.getByRole("heading", { name: "¡Coincidís! 🎉" })
     ).toBeVisible();
 
     await page.getByRole("button", { name: "Siguiente" }).click();
@@ -284,6 +284,18 @@ test.describe("Modo acompañado", () => {
     await expect(
       page.getByRole("button", { name: /A jugar/ })
     ).toHaveCount(0);
+  });
+
+  test("con tres o más personas se dice «Coincidís todos»", async ({ page }) => {
+    const names = ["Ana", "Luis", "Eva"];
+
+    await startGroup(page, names);
+
+    await vote(page, names, [0, 0, 0]);
+
+    await expect(
+      page.getByRole("heading", { name: "¡Coincidís todos! 🎉" })
+    ).toBeVisible();
   });
 
   test("los nombres vacíos se sustituyen por Persona N", async ({ page }) => {

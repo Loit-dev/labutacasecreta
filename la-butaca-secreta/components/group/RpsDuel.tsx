@@ -78,9 +78,9 @@ export default function RpsDuel({ names, stakes, onDone }: Props) {
         aria-live="polite"
         className={
           decided
-            ? "mt-4 text-center text-3xl font-extrabold text-emerald-300 md:text-4xl"
+            ? "mt-4 text-center text-2xl font-bold text-emerald-300 md:text-3xl"
             : revealed
-              ? "mt-4 text-center text-2xl font-bold text-white"
+              ? "mt-4 text-center text-2xl font-bold text-white md:text-3xl"
               : "mt-3 text-center text-sm text-zinc-300"
         }
       >

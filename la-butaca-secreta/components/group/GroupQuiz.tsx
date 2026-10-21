@@ -288,7 +288,9 @@ export default function GroupQuiz() {
     );
 
     const message = outcome.kind === "unanimous"
-      ? "¡Coincidís todos! 🎉"
+      ? names.length === 2
+        ? "¡Coincidís! 🎉"
+        : "¡Coincidís todos! 🎉"
       : outcome.kind === "auto"
         ? `😌 ${
             shrugged.length === 1
@@ -375,6 +377,7 @@ export default function GroupQuiz() {
       <Panel
         key={`duel-${step.q}-${step.next}`}
         eyebrow="Desempate"
+        large
         title={`${names[step.champion]} contra ${names[challenger]}`}
       >
         <RpsDuel
