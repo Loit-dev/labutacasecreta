@@ -1,0 +1,45 @@
+name: CI
+
+# Se ejecuta en cada pull request y en cada cambio que llega a main.
+# Los tipos y los tests deben pasar; el lint es informativo por ahora.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: la-butaca-secreta
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: la-butaca-secreta/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Tipos (TypeScript)
+        run: npm run typecheck
+
+      - name: Tests
+        run: npm test
+
+      # Informativo: el proyecto aún no se ha limpiado de avisos de lint.
+      # Cuando esté limpio, quitar "continue-on-error" para que bloquee.
+      - name: Lint
+        run: npm run lint
+        continue-on-error: true
