@@ -31,7 +31,7 @@ export default function PlatformPicker({
   }
 
   return (
-    <div data-platform-picker className="mt-8">
+    <div data-platform-picker className="mt-5 md:mt-8">
       <p
         className="text-center text-sm font-semibold text-zinc-200"
         style={{ fontFamily: "var(--font-manrope)" }}

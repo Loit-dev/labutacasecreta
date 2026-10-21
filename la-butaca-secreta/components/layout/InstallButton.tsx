@@ -60,7 +60,7 @@ export default function InstallButton() {
   };
 
   return (
-    <div className="mb-3">
+    <div className="mb-3 mt-1">
       <button
         onClick={onClick}
         aria-expanded={event ? undefined : hint}

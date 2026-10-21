@@ -348,7 +348,8 @@ export async function discoverCalendar(
   params.set("with_watch_monetization_types", "flatrate");
 
   if (type === "movie") {
-    params.set("region", WATCH_REGION);
+    // Sin «region»: vale que el estreno digital sea en cualquier país;
+    // la fecha buena se comprueba después (España o, si no hay, EE. UU.)
     params.set("with_release_type", "4");
     params.set("release_date.gte", options.from);
     params.set("release_date.lte", options.to);
@@ -370,25 +371,33 @@ interface TMDBReleaseDates {
   }[];
 }
 
-/** Fecha de estreno digital en España («AAAA-MM-DD»), si la hay. */
-export async function getSpanishDigitalDate(
+/**
+ * Fecha de estreno digital («AAAA-MM-DD»): la de España y, si TMDb no la
+ * tiene, la de EE. UU. (muchas plataformas estrenan el mismo día en todo
+ * el mundo, pero en TMDb solo está apuntada la de EE. UU.).
+ */
+export async function getDigitalDate(
   id: number
-): Promise<string | null> {
+): Promise<{ date: string; region: "ES" | "US" } | null> {
   const data = await request<TMDBReleaseDates>(
     `/movie/${id}/release_dates`,
     CALENDAR_REVALIDATE
   );
 
-  const spain = data.results?.find(
-    (entry) => entry.iso_3166_1 === WATCH_REGION
-  );
+  for (const region of [WATCH_REGION, "US"] as const) {
+    const entry = data.results?.find(
+      (result) => result.iso_3166_1 === region
+    );
 
-  const digital = spain?.release_dates
-    .filter((release) => release.type === 4)
-    .map((release) => release.release_date.substring(0, 10))
-    .sort()[0];
+    const digital = entry?.release_dates
+      .filter((release) => release.type === 4)
+      .map((release) => release.release_date.substring(0, 10))
+      .sort()[0];
 
-  return digital ?? null;
+    if (digital) return { date: digital, region };
+  }
+
+  return null;
 }
 
 interface TMDBProviderList {

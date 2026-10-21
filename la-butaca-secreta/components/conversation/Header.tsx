@@ -4,13 +4,14 @@ export default function Header() {
       <h1
         className="
           mx-auto
-          mt-4
+          mt-1
           max-w-4xl
-          text-4xl
+          text-3xl
           font-extrabold
           tracking-tight
           leading-none
           text-white
+          sm:mt-4
           sm:text-5xl
         "
         style={{
@@ -27,7 +28,7 @@ export default function Header() {
         </span>
       </h1>
 
-      <p className="mx-auto mt-4 max-w-xl text-lg text-zinc-400">
+      <p className="mx-auto mt-2 max-w-xl text-sm text-zinc-400 sm:mt-4 sm:text-lg">
         Cuéntame qué te apetece y encontraré algo para ti.
       </p>
     </header>

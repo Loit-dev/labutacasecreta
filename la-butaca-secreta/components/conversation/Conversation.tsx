@@ -67,7 +67,7 @@ export default function Conversation() {
 
       <main
         id="contenido"
-        className="relative flex min-h-screen items-center justify-center px-6 py-10"
+        className="relative flex items-center justify-center px-4 py-4 md:min-h-screen md:px-6 md:py-10"
       >
         <section
           className="
@@ -144,12 +144,12 @@ export default function Conversation() {
             aria-labelledby="tab-recommender"
             hidden={tab !== "recommender"}
           >
-            <div className="border-b border-white/10 px-8 pt-8 pb-8">
+            <div className="border-b border-white/10 px-5 pt-5 pb-5 md:px-8 md:pt-8 md:pb-8">
               <Header />
             </div>
 
             {mode === null && (
-              <div className="px-8 py-6">
+              <div className="px-5 py-4 md:px-8 md:py-6">
                 <ModeSelect
                   onSelect={chooseMode}
                   platforms={platforms}
@@ -163,7 +163,7 @@ export default function Conversation() {
             )}
 
             {mode === "group" && (
-              <div className="px-8 py-6">
+              <div className="px-5 py-4 md:px-8 md:py-6">
                 <GroupQuiz platforms={platformsValue} />
               </div>
             )}
