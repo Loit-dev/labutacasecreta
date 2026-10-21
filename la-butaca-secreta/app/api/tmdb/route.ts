@@ -46,20 +46,29 @@ const DISCOVERY_MODES: DiscoveryMode[] = [
   "surprise",
 ];
 
-// Páginas de "discover" que se piden por intento (20 títulos por página)
-const DISCOVER_PAGES = [1, 2, 3, 4, 5, 6, 7];
-
-// Con menos candidatos que esto, se amplían los filtros
-const MIN_CANDIDATES = 30;
-
-// Candidatos que pasan a la fase de detalle (1 llamada a TMDb por candidato)
-const MAX_CANDIDATES = 40;
+// Dos modos de búsqueda:
+// - "quick": una primera tanda rápida (pocas páginas y candidatos) para
+//   que el usuario vea algo enseguida.
+// - "full": la búsqueda completa (4 tandas de 3), que se pide justo después.
+// Cada página de "discover" trae 20 títulos y cada candidato cuesta
+// 1 llamada a TMDb para sus detalles.
+const SEARCH_MODES = {
+  quick: {
+    pages: [1, 2, 3],
+    minCandidates: 10,
+    maxCandidates: 15,
+    trios: 1,
+  },
+  full: {
+    pages: [1, 2, 3, 4, 5, 6, 7],
+    minCandidates: 30,
+    maxCandidates: 40,
+    trios: 4,
+  },
+} as const;
 
 // Llamadas simultáneas a TMDb al enriquecer candidatos
 const ENRICH_CONCURRENCY = 10;
-
-// Máximo de recomendaciones devueltas (4 tandas de 3)
-const MAX_RECOMMENDATIONS = 12;
 
 // ======================================================
 // HELPERS
@@ -112,6 +121,25 @@ function parseProfile(
       ?.split(",")
       .filter(Boolean),
   };
+}
+
+/**
+ * Lee una lista de números positivos separados por comas
+ * ("12,34,56"), ignorando lo que no lo sea y limitando el tamaño.
+ */
+function parseIdList(
+  value: string | null,
+  max: number
+): number[] {
+  if (!value) return [];
+
+  return value
+    .split(",")
+    .map(Number)
+    .filter(
+      (id) => Number.isInteger(id) && id > 0
+    )
+    .slice(0, max);
 }
 
 function shiftYears(
@@ -170,10 +198,11 @@ function buildAttempts(
 }
 
 async function fetchCandidates(
-  filters: RecommendationFilters
+  filters: RecommendationFilters,
+  pageNumbers: readonly number[]
 ): Promise<TMDBMovie[]> {
   const pages = await Promise.all(
-    DISCOVER_PAGES.map((page) =>
+    pageNumbers.map((page) =>
       filters.type === "movie"
         ? discoverMovies(filters, page)
         : discoverTV(filters, page)
@@ -245,8 +274,27 @@ export async function GET(
   request: NextRequest
 ) {
   try {
-    const profile = parseProfile(
-      request.nextUrl.searchParams
+    const params = request.nextUrl.searchParams;
+
+    const profile = parseProfile(params);
+
+    const mode =
+      SEARCH_MODES[
+        params.get("quick") === "1"
+          ? "quick"
+          : "full"
+      ];
+
+    // Títulos que no queremos volver a ver ("ya la vi", ya mostrados...)
+    const excluded = new Set(
+      parseIdList(params.get("exclude"), 300)
+    );
+
+    // Géneros de los títulos que el usuario ha rechazado
+    // (se repite un género tantas veces como veces se rechazó)
+    const dislikedGenres = parseIdList(
+      params.get("avoid"),
+      100
     );
 
     const filters = new RecommendationEngine(
@@ -262,15 +310,15 @@ export async function GET(
     for (const attempt of buildAttempts(
       filters
     )) {
-      const found = await fetchCandidates(
-        attempt
-      );
+      const found = (
+        await fetchCandidates(attempt, mode.pages)
+      ).filter((item) => !excluded.has(item.id));
 
       if (found.length > uniqueItems.length) {
         uniqueItems = found;
       }
 
-      if (uniqueItems.length >= MIN_CANDIDATES) {
+      if (uniqueItems.length >= mode.minCandidates) {
         break;
       }
     }
@@ -289,9 +337,9 @@ export async function GET(
 
     const candidates = sortByScore(
       uniqueItems.map(mapToScoredItem),
-      { profile }
+      { profile, dislikedGenres }
     )
-      .slice(0, MAX_CANDIDATES)
+      .slice(0, mode.maxCandidates)
       .map((scored) => byId.get(scored.id)!);
 
     // ----------------------------------------------
@@ -373,7 +421,7 @@ export async function GET(
             ?.slice(0, 5)
             .map((actor) => actor.name) ?? [],
       })),
-      { profile }
+      { profile, dislikedGenres }
     );
 
     // ----------------------------------------------
@@ -390,7 +438,7 @@ export async function GET(
     // Tandas de 3: 🥇 🥈 por encaje (con variedad) y 🥉 sorpresa
     const trios = buildTrios(
       rescored,
-      MAX_RECOMMENDATIONS / 3
+      mode.trios
     );
 
     const recommendations = trios.map(
@@ -405,6 +453,8 @@ export async function GET(
             details["watch/providers"],
             details.credits
           ),
+
+          role: entry.role,
 
           reason:
             entry.role === "surprise"

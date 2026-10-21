@@ -143,6 +143,10 @@ export interface Recommendation {
   director?: string;
   cast: string[];
   reason?: string;
+  // "main" = 🥇/🥈 por encaje, "surprise" = 🥉
+  role?: "main" | "surprise";
+  // Ids de género de TMDb (para aprender de lo que el usuario rechaza)
+  genreIds: number[];
   tagline?: string;
   // Clave de YouTube del tráiler (si existe)
   trailerKey?: string;
@@ -292,6 +296,8 @@ export function mapRecommendation(
     platforms,
 
     director,
+
+    genreIds: item.genre_ids ?? [],
 
     tagline: details?.tagline || undefined,
 

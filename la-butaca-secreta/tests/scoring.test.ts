@@ -1,0 +1,208 @@
+import { describe, test } from "node:test";
+import assert from "node:assert/strict";
+
+import { sortByScore } from "@/lib/recommendation/scoring";
+import { scoreFeedback } from "@/lib/recommendation/scoring/feedback";
+import { scoreProviders } from "@/lib/recommendation/scoring/providers";
+import { scoreDuration } from "@/lib/recommendation/scoring/duration";
+import { scoreFreshness } from "@/lib/recommendation/scoring/freshness";
+import type { ScoredItem } from "@/lib/recommendation/scoring/types";
+
+function make(overrides: Partial<ScoredItem> = {}): ScoredItem {
+  return {
+    id: 1,
+    title: "Título",
+    genres: [18],
+    voteAverage: 7,
+    voteCount: 1000,
+    popularity: 50,
+    runtime: 100,
+    releaseDate: "2020-01-01",
+    providers: ["Netflix"],
+    score: 0,
+    ...overrides,
+  };
+}
+
+describe("sortByScore", () => {
+  test("el género elegido pesa más que la popularidad", () => {
+    const comedy = make({
+      id: 1,
+      genres: [35],
+      voteAverage: 6.5,
+      popularity: 1,
+    });
+
+    const drama = make({
+      id: 2,
+      genres: [18],
+      voteAverage: 8.6,
+      popularity: 900,
+    });
+
+    const [first] = sortByScore([drama, comedy], {
+      profile: { preferredGenre: "comedy" },
+    });
+
+    assert.equal(first.id, 1);
+  });
+
+  test("en familia, el terror se hunde", () => {
+    const horror = make({ id: 1, genres: [27] });
+    const family = make({ id: 2, genres: [10751, 16] });
+
+    const [first] = sortByScore([horror, family], {
+      profile: { company: "family" },
+    });
+
+    assert.equal(first.id, 2);
+  });
+
+  test("devuelve los títulos ordenados de mayor a menor puntuación", () => {
+    const scored = sortByScore(
+      [
+        make({ id: 1, voteAverage: 6 }),
+        make({ id: 2, voteAverage: 9 }),
+        make({ id: 3, voteAverage: 7.6 }),
+      ],
+      { profile: {} }
+    );
+
+    const scores = scored.map((item) => item.score);
+
+    assert.deepEqual(
+      scores,
+      [...scores].sort((a, b) => b - a)
+    );
+  });
+});
+
+describe("scoreProviders", () => {
+  test("sin plataformas no se recomienda", () => {
+    assert.equal(
+      scoreProviders(make({ providers: [] }), { profile: {} }),
+      -100
+    );
+  });
+
+  test("más plataformas, más puntos", () => {
+    const one = scoreProviders(
+      make({ providers: ["Netflix"] }),
+      { profile: {} }
+    );
+
+    const three = scoreProviders(
+      make({ providers: ["Netflix", "Prime Video", "Max"] }),
+      { profile: {} }
+    );
+
+    assert.ok(three > one);
+  });
+});
+
+describe("scoreDuration", () => {
+  test("«corta» premia las películas cortas y castiga las largas", () => {
+    const profile = { duration: "short" };
+
+    assert.ok(
+      scoreDuration(make({ runtime: 85 }), { profile }) >
+        scoreDuration(make({ runtime: 120 }), { profile })
+    );
+
+    assert.ok(
+      scoreDuration(make({ runtime: 170 }), { profile }) < 0
+    );
+  });
+
+  test("sin duración conocida no puntúa", () => {
+    assert.equal(
+      scoreDuration(make({ runtime: 0 }), {
+        profile: { duration: "short" },
+      }),
+      0
+    );
+  });
+});
+
+describe("scoreFreshness", () => {
+  test("«nuevo» premia lo reciente", () => {
+    const year = new Date().getFullYear();
+
+    assert.ok(
+      scoreFreshness(make({ releaseDate: `${year}-01-01` }), {
+        profile: { freshness: "new" },
+      }) >
+        scoreFreshness(make({ releaseDate: "2010-01-01" }), {
+          profile: { freshness: "new" },
+        })
+    );
+  });
+
+  test("«clásico» premia lo antiguo", () => {
+    assert.ok(
+      scoreFreshness(make({ releaseDate: "1972-01-01" }), {
+        profile: { freshness: "classic" },
+      }) >
+        scoreFreshness(make({ releaseDate: "2019-01-01" }), {
+          profile: { freshness: "classic" },
+        })
+    );
+  });
+});
+
+describe("scoreFeedback (aprender de lo rechazado)", () => {
+  test("sin rechazos no cambia nada", () => {
+    assert.equal(
+      scoreFeedback(make({ genres: [27] }), { profile: {} }),
+      0
+    );
+  });
+
+  test("penaliza los géneros rechazados, más cuantas más veces", () => {
+    const horror = make({ genres: [27] });
+
+    const once = scoreFeedback(horror, {
+      profile: {},
+      dislikedGenres: [27],
+    });
+
+    const twice = scoreFeedback(horror, {
+      profile: {},
+      dislikedGenres: [27, 27],
+    });
+
+    assert.ok(once < 0);
+    assert.ok(twice < once);
+  });
+
+  test("tiene un tope", () => {
+    const penalty = scoreFeedback(make({ genres: [27, 53] }), {
+      profile: {},
+      dislikedGenres: Array(50).fill(27).concat(Array(50).fill(53)),
+    });
+
+    assert.ok(penalty >= -24);
+  });
+
+  test("el género elegido por el usuario no se penaliza", () => {
+    const thriller = make({ genres: [53] });
+
+    assert.equal(
+      scoreFeedback(thriller, {
+        profile: { preferredGenre: "thriller" },
+        dislikedGenres: [53, 53, 53],
+      }),
+      0
+    );
+  });
+
+  test("no afecta a títulos de otros géneros", () => {
+    assert.equal(
+      scoreFeedback(make({ genres: [35] }), {
+        profile: {},
+        dislikedGenres: [27, 27],
+      }),
+      0
+    );
+  });
+});

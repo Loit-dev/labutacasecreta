@@ -3,7 +3,7 @@ import {
   ScoredItem,
 } from "./types";
 
-const GenreMap: Record<
+export const GenreMap: Record<
   string,
   number[]
 > = {
