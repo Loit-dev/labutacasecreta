@@ -6,9 +6,7 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: "*",
-      // TEMPORAL (solo para una prueba de recomendaciones): se permite
-      // leer /api/tmdb. Se revierte justo después.
-      allow: ["/", "/api/tmdb"],
+      allow: "/",
       // La API no tiene contenido que indexar
       disallow: "/api/",
     },
