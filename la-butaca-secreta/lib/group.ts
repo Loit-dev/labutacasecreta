@@ -166,15 +166,23 @@ export interface Round {
   winner: string;
 }
 
-/** Porcentaje de preguntas en las que nadie tuvo que ceder. */
-export function compatibility(rounds: Round[]) {
-  if (rounds.length === 0) return 0;
+/**
+ * Porcentaje de preguntas en las que todos coincidieron de verdad.
+ *
+ * Solo cuentan las preguntas en las que todos tenían una opinión: si a
+ * alguien le daba igual, no hay coincidencia (ni desacuerdo) que medir.
+ * Si a todos les dio igual todo, no hay nada que medir y devuelve null.
+ */
+export function compatibility(rounds: Round[]): number | null {
+  const opinionated = rounds.filter((round) => round.kind !== "auto");
 
-  const agreed = rounds.filter(
-    (round) => round.kind === "unanimous" || round.kind === "auto"
+  if (opinionated.length === 0) return null;
+
+  const agreed = opinionated.filter(
+    (round) => round.kind === "unanimous"
   ).length;
 
-  return Math.round((agreed / rounds.length) * 100);
+  return Math.round((agreed / opinionated.length) * 100);
 }
 
 /** Frase para el marcador, según el porcentaje. */

@@ -159,17 +159,30 @@ describe("compatibilidad", () => {
     assert.equal(compatibility(rounds), 50);
   });
 
-  test("cuando a alguien le da igual, nadie ha tenido que ceder", () => {
+  test("las preguntas en las que a alguien le da igual no cuentan como coincidencia", () => {
     const rounds = [
+      round("contentType", "unanimous", "movie"),
       round("mood", "auto", "laugh"),
       round("preferredGenre", "duel", "comedy"),
+      round("freshness", "auto", "new"),
     ];
 
+    // Solo había opinión de todos en 2 preguntas y coincidieron en 1
     assert.equal(compatibility(rounds), 50);
   });
 
-  test("sin preguntas es 0", () => {
-    assert.equal(compatibility([]), 0);
+  test("si a todos les dio igual todo, no hay porcentaje", () => {
+    assert.equal(
+      compatibility([
+        round("mood", "auto", "laugh"),
+        round("freshness", "auto", "new"),
+      ]),
+      null
+    );
+  });
+
+  test("sin preguntas no hay porcentaje", () => {
+    assert.equal(compatibility([]), null);
   });
 
   test("el texto cambia según el porcentaje y el tamaño del grupo", () => {

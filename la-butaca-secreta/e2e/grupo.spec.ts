@@ -203,6 +203,10 @@ test.describe("Modo acompañado", () => {
 
     await expect(page.getByText("✊ Ganó Ana")).toBeVisible();
 
+    // Con dos personas no se habla de «grupo»
+    await expect(page.getByText("Resultado de los dos")).toBeVisible();
+    await expect(page.getByText(/grupo|todos/i)).toHaveCount(0);
+
     await page
       .getByRole("button", { name: "Ver recomendaciones" })
       .click();
