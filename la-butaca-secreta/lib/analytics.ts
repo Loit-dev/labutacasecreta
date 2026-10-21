@@ -25,7 +25,9 @@ export type EventName =
   | "share_done"
   | "list_add"
   | "list_remove"
-  | "list_open";
+  | "list_open"
+  | "share_link_copy"
+  | "share_link_open";
 
 type Value = string | number | boolean;
 

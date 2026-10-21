@@ -102,6 +102,13 @@ export default function PrivacyPage() {
           nuestro servidor los descarga de TMDb y te los
           entrega, sin guardar nada.
         </p>
+
+        <p>
+          También puedes copiar un enlace que abre las mismas
+          tres recomendaciones. El enlace solo contiene los
+          números de identificación de esos títulos; quien lo
+          abra verá las recomendaciones, sin ningún dato tuyo.
+        </p>
       </section>
 
       <section>

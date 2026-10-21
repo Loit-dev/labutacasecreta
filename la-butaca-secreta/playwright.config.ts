@@ -25,12 +25,26 @@ export default defineConfig({
     trace: "retain-on-failure",
   },
 
-  webServer: {
-    command: "npm run start",
-    url: "http://localhost:3000",
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-  },
+  webServer: [
+    // TMDb de mentira (para abrir enlaces compartidos sin token)
+    {
+      command: "node e2e/mock-tmdb.mjs",
+      url: "http://localhost:4010/health",
+      reuseExistingServer: !process.env.CI,
+      timeout: 30_000,
+    },
+    {
+      command: "npm run start",
+      url: "http://localhost:3000",
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+      env: {
+        TMDB_API_TOKEN: "token-de-prueba",
+        TMDB_BASE_URL: "http://localhost:4010/3",
+        TMDB_IMAGE_URL: "http://localhost:4010/img",
+      },
+    },
+  ],
 
   projects: [
     {

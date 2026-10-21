@@ -12,6 +12,7 @@ import {
   type ShareKind,
 } from "@/lib/share";
 import { createShareImage } from "@/lib/shareImage";
+import { buildShareCode, shareUrl } from "@/lib/shareLink";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 
 type Props = {
@@ -48,6 +49,27 @@ export default function ShareDialog({
   });
 
   const [message, setMessage] = useState("");
+
+  // Enlace que abre exactamente estas recomendaciones (si hay ids)
+  const [link, setLink] = useState("");
+
+  useEffect(() => {
+    const entries = items
+      .filter((item) => item.id)
+      .map((item) => ({
+        id: item.id as number,
+        role: item.role === "surprise" ? ("surprise" as const) : ("main" as const),
+      }));
+
+    if (entries.length === items.length && entries.length > 0) {
+      setLink(
+        shareUrl(
+          window.location.origin,
+          buildShareCode(kind, entries)
+        )
+      );
+    }
+  }, [items, kind]);
 
   // Crea la imagen al abrirse
   useEffect(() => {
@@ -90,7 +112,8 @@ export default function ShareDialog({
 
   const text = buildShareText(
     items.map((item) => item.title),
-    kind
+    kind,
+    link || SITE_URL
   );
 
   const canShare =
@@ -121,6 +144,22 @@ export default function ShareDialog({
 
       setMessage(
         "No he podido abrir el menú de compartir. Descarga la imagen y envíala tú."
+      );
+    }
+  }
+
+  async function copyLink() {
+    if (!link) return;
+
+    try {
+      await navigator.clipboard.writeText(link);
+
+      setMessage("Enlace copiado. Pégalo donde quieras.");
+
+      track("share_link_copy", { type: kind });
+    } catch {
+      setMessage(
+        "No he podido copiarlo solo: selecciona el enlace y cópialo."
       );
     }
   }
@@ -227,6 +266,25 @@ export default function ShareDialog({
             Descargar imagen
           </button>
         </div>
+
+        {link && (
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <input
+              readOnly
+              value={link}
+              aria-label="Enlace para compartir estas recomendaciones"
+              onFocus={(event) => event.currentTarget.select()}
+              className="min-w-0 flex-1 rounded-xl border border-zinc-700 bg-black/40 px-3 py-2.5 text-xs text-zinc-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            />
+
+            <button
+              onClick={copyLink}
+              className="rounded-xl border border-zinc-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            >
+              Copiar enlace
+            </button>
+          </div>
+        )}
 
         <p
           role="status"

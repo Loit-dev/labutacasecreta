@@ -8,6 +8,7 @@ import { SITE_NAME, SITE_URL } from "@/lib/site";
 export type ShareKind = "movie" | "tv";
 
 export type ShareItem = {
+  id?: number;
   title: string;
   year?: number;
   rating?: number;
@@ -42,15 +43,16 @@ export function posterSource(
 /** Texto que acompaña a la imagen al compartirla. */
 export function buildShareText(
   titles: string[],
-  kind: ShareKind
+  kind: ShareKind,
+  link: string = SITE_URL
 ): string {
   const what = kind === "tv" ? "series" : "películas";
 
   const list = titles.filter(Boolean).join(", ");
 
   return list
-    ? `Mis sugerencias de ${what} para hoy: ${list}. Encuentra las tuyas en ${SITE_NAME}: ${SITE_URL}`
-    : `Encuentra tus ${what} para hoy en ${SITE_NAME}: ${SITE_URL}`;
+    ? `Mis sugerencias de ${what} para hoy: ${list}. Míralas aquí, en ${SITE_NAME}: ${link}`
+    : `Encuentra tus ${what} para hoy en ${SITE_NAME}: ${link}`;
 }
 
 export const SHARE_FILE_NAME = "mis-sugerencias-la-butaca-secreta.png";

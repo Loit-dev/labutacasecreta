@@ -132,3 +132,72 @@ describe("wrapLines", () => {
     assert.deepEqual(wrapLines(measure, "   ", 100, 2), []);
   });
 });
+
+import {
+  buildShareCode,
+  parseShareCode,
+  shareUrl,
+} from "@/lib/shareLink";
+
+describe("enlaces para compartir", () => {
+  test("ida y vuelta", () => {
+    const code = buildShareCode("tv", [
+      { id: 101, role: "main" },
+      { id: 202, role: "main" },
+      { id: 303, role: "surprise" },
+    ]);
+
+    assert.equal(code, "tv-101m-202m-303s");
+
+    assert.deepEqual(parseShareCode(code), {
+      type: "tv",
+      entries: [
+        { id: 101, role: "main" },
+        { id: 202, role: "main" },
+        { id: 303, role: "surprise" },
+      ],
+    });
+  });
+
+  test("rechaza lo que no tenga forma de código", () => {
+    for (const bad of [
+      "",
+      "movie",
+      "book-1m",
+      "movie-abc",
+      "movie-1x",
+      "movie-0m",
+      "movie--1m",
+      "movie-1m-",
+      "movie-1234567890m",
+      "movie-1m-2m-3m-4m-5m-6m-7m",
+      "movie-1m;drop",
+      "movie-%00m",
+      "%E0%A4%A",
+    ]) {
+      assert.equal(parseShareCode(bad), null, bad);
+    }
+  });
+
+  test("ignora títulos repetidos", () => {
+    assert.deepEqual(parseShareCode("movie-5m-5m-6s")?.entries, [
+      { id: 5, role: "main" },
+      { id: 6, role: "surprise" },
+    ]);
+  });
+
+  test("construye la dirección completa", () => {
+    assert.equal(
+      shareUrl("https://ejemplo.es/", "movie-1m"),
+      "https://ejemplo.es/r/movie-1m"
+    );
+  });
+
+  test("el texto incluye el enlace pedido", () => {
+    assert.ok(
+      buildShareText(["A"], "movie", "https://x.es/r/movie-1m").includes(
+        "https://x.es/r/movie-1m"
+      )
+    );
+  });
+});
