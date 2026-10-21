@@ -5,6 +5,7 @@ import {
   Manrope,
 } from "next/font/google";
 
+import Analytics from "@/components/layout/Analytics";
 import Footer from "@/components/layout/Footer";
 import {
   SITE_DESCRIPTION,
@@ -102,6 +103,8 @@ export default function RootLayout({
         {children}
 
         <Footer />
+
+        <Analytics />
       </body>
     </html>
   );

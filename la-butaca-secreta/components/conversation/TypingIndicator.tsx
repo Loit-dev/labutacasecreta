@@ -2,7 +2,11 @@ import Image from "next/image";
 
 export default function TypingIndicator() {
   return (
-    <div className="flex items-end gap-3">
+    <div
+      className="flex items-end gap-3"
+      role="status"
+      aria-label="La Butaca Secreta está escribiendo"
+    >
       <div
         className="
           flex
@@ -20,7 +24,7 @@ export default function TypingIndicator() {
       >
               <Image
           src="/logito.png"
-          alt="La Butaca Secreta"
+          alt=""
           width={40}
           height={40}
           className="object-contain scale-110"

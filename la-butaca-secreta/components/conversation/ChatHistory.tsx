@@ -10,7 +10,12 @@ export default function ChatHistory({
   messages,
 }: Props) {
   return (
-    <section className="space-y-6">
+    <section
+      role="log"
+      aria-label="Conversación"
+      aria-live="polite"
+      className="space-y-6"
+    >
       {messages.map((message) => {
         const isBot = message.sender === "bot";
 
@@ -41,7 +46,7 @@ export default function ChatHistory({
                 >
                   <Image
                     src="/logito.png"
-                    alt="La Butaca Secreta"
+                    alt=""
                     width={40}
                     height={40}
                     className="object-contain scale-110"
@@ -77,7 +82,7 @@ export default function ChatHistory({
                     shadow-lg
                   "
                 >
-                  👤
+                  <span aria-hidden="true">👤</span>
                 </div>
               )}
             </div>

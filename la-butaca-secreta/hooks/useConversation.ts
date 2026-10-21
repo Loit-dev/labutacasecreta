@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import { track } from "@/lib/analytics";
 import { ConversationEngine } from "@/lib/conversation/engine";
 import {
   ConversationMessage,
@@ -48,6 +49,11 @@ export function useConversation() {
 
     setIsThinking(true);
 
+    track("answer", {
+      question: currentQuestion.id,
+      value,
+    });
+
     engine.answer(
       currentQuestion.id,
       value,
@@ -70,6 +76,12 @@ export function useConversation() {
     setCurrentQuestion(next);
 
     setFinished(next === null);
+
+    if (next === null) {
+      track("quiz_completed", {
+        type: engine.getProfile().contentType,
+      });
+    }
 
     setIsThinking(false);
   }

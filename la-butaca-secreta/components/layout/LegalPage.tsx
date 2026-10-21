@@ -18,7 +18,7 @@ export default function LegalPage({
     <main className="relative z-30 mx-auto w-full max-w-3xl px-6 py-12">
       <Link
         href="/"
-        className="text-sm text-zinc-400 underline-offset-2 hover:text-white hover:underline"
+        className="text-sm text-zinc-400 underline-offset-2 hover:text-white hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
       >
         ← Volver a {SITE_NAME}
       </Link>
@@ -30,7 +30,7 @@ export default function LegalPage({
         {title}
       </h1>
 
-      <p className="mt-2 text-sm text-zinc-500">
+      <p className="mt-2 text-sm text-zinc-400">
         Última actualización: {LEGAL_UPDATED}
       </p>
 
