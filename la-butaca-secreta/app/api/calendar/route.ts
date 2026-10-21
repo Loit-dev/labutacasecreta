@@ -14,6 +14,7 @@ import {
   findTvByExternalId,
   getProviderLogos,
   getDigitalDate,
+  getFlatrateIds,
   getTvFlatrateIds,
   searchTitle,
 } from "@/lib/tmdb/api";
@@ -24,6 +25,7 @@ import {
 } from "@/lib/tvmaze";
 import type { TMDBMovie } from "@/lib/tmdb/types";
 import { DESTACADOS } from "@/data/calendar/destacados";
+import { IMPORTADOS } from "@/data/calendar/decine21";
 
 export const dynamic = "force-dynamic";
 
@@ -244,6 +246,71 @@ async function destacados(
   );
 }
 
+/**
+ * Estrenos importados de decine21 que caen en este mes. La plataforma se
+ * busca en TMDb (suscripción en España, solo las cinco nuestras); si TMDb
+ * no sabe dónde está se usa la indicada a mano o se descarta.
+ */
+async function importados(
+  from: string,
+  to: string,
+  known: Set<string>
+): Promise<CalendarEntry[]> {
+  const inMonth = IMPORTADOS.filter(
+    (item) => item.date >= from && item.date <= to
+  );
+
+  const found = await mapLimited(
+    inMonth,
+    CONCURRENCY,
+    async (item): Promise<CalendarEntry | null> => {
+      try {
+        // En temporadas nuevas el año de la fuente no es el de la serie
+        const match = await searchTitle(
+          item.type,
+          item.query,
+          item.type === "tv" && item.season ? undefined : item.year
+        );
+
+        if (!match) return null;
+        if (known.has(`${item.type}|${match.id}`)) return null;
+
+        const available = await getFlatrateIds(item.type, match.id);
+
+        const platform =
+          PLATFORMS.find((candidate) =>
+            candidate.ids.some((id) => available.includes(id))
+          )?.key ?? item.platform;
+
+        if (!platform) return null;
+
+        const note =
+          item.type === "tv" && item.season
+            ? premiereNote(item.season)
+            : "Novedad en la plataforma";
+
+        const entry = toEntry(
+          match,
+          item.type,
+          item.date,
+          platform,
+          note
+        );
+
+        known.add(`${item.type}|${match.id}`);
+
+        return entry;
+      } catch {
+        return null;
+      }
+    }
+  );
+
+  return found.filter(
+    (entry): entry is CalendarEntry => entry !== null
+  );
+}
+
 export async function GET(request: NextRequest) {
   const month = parseMonth(
     request.nextUrl.searchParams.get("month")
@@ -359,13 +426,21 @@ export async function GET(request: NextRequest) {
 
     const merged = mergeSources(tmdbEntries, tvmaze);
 
-    const extra = await destacados(
-      from,
-      to,
-      new Set(merged.map((entry) => `${entry.type}|${entry.id}`))
-    ).catch(() => [] as CalendarEntry[]);
+    const known = new Set(
+      merged.map((entry) => `${entry.type}|${entry.id}`)
+    );
 
-    const entries = [...merged, ...extra];
+    const extra = await destacados(from, to, known).catch(
+      () => [] as CalendarEntry[]
+    );
+
+    for (const entry of extra) known.add(`${entry.type}|${entry.id}`);
+
+    const imported = await importados(from, to, known).catch(
+      () => [] as CalendarEntry[]
+    );
+
+    const entries = [...merged, ...extra, ...imported];
 
     // Logos de cada plataforma (si no se pueden leer, la web usa texto)
     const logos: Partial<Record<PlatformKey, string>> = {};

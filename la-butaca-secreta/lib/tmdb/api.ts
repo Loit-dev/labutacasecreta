@@ -502,3 +502,20 @@ export async function searchTitle(
 
   return data.results[0] ?? null;
 }
+
+/** Ids de proveedor en suscripción (España) de una película o serie. */
+export async function getFlatrateIds(
+  type: "movie" | "tv",
+  id: number
+): Promise<number[]> {
+  const data = await request<TMDBWatchProviders>(
+    `/${type}/${id}/watch/providers`,
+    CALENDAR_REVALIDATE
+  );
+
+  const flatrate = data.results?.[WATCH_REGION]?.flatrate;
+
+  return Array.isArray(flatrate)
+    ? flatrate.map((provider) => provider.provider_id)
+    : [];
+}
