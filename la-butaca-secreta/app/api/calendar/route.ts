@@ -15,6 +15,7 @@ import {
   getProviderLogos,
   getDigitalDate,
   getFlatrateIds,
+  getFallback,
   getTvFlatrateIds,
   searchTitle,
 } from "@/lib/tmdb/api";
@@ -25,6 +26,8 @@ import {
 } from "@/lib/tvmaze";
 import type { TMDBMovie } from "@/lib/tmdb/types";
 import { DESTACADOS } from "@/data/calendar/destacados";
+import { translateToSpanish } from "@/lib/translate";
+import { getFallbackPoster } from "@/lib/posterFallback";
 import { IMPORTADOS } from "@/data/calendar/decine21";
 
 export const dynamic = "force-dynamic";
@@ -289,13 +292,41 @@ async function importados(
             ? premiereNote(item.season)
             : "Novedad en la plataforma";
 
-        const entry = toEntry(
+        let entry = toEntry(
           match,
           item.type,
           item.date,
           platform,
           note
         );
+
+        // Completa póster/sinopsis que falten con la ficha en inglés
+        if (!entry.poster || !entry.overview) {
+          try {
+            const fallback = await getFallback(item.type, match.id);
+
+            const overview = entry.overview
+              ? entry.overview
+              : await translateToSpanish(fallback.overview);
+
+            let poster =
+              entry.poster ??
+              (fallback.poster_path
+                ? `${POSTER_BASE}${fallback.poster_path}`
+                : null);
+
+            if (!poster) {
+              poster = await getFallbackPoster(
+                item.type,
+                entry.title
+              );
+            }
+
+            entry = { ...entry, poster, overview };
+          } catch {
+            // Sin ficha de repuesto: se queda como está
+          }
+        }
 
         known.add(`${item.type}|${match.id}`);
 

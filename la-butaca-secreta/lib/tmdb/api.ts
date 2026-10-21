@@ -519,3 +519,22 @@ export async function getFlatrateIds(
     ? flatrate.map((provider) => provider.provider_id)
     : [];
 }
+
+/**
+ * Cuando a una ficha le falta póster o sinopsis en español (habitual en
+ * títulos poco conocidos), se completa con la ficha en inglés de TMDb.
+ */
+export async function getFallback(
+  type: "movie" | "tv",
+  id: number
+): Promise<{ overview: string; poster_path: string | null }> {
+  const data = await request<{
+    overview?: string;
+    poster_path?: string | null;
+  }>(`/${type}/${id}?language=en-US`, CALENDAR_REVALIDATE);
+
+  return {
+    overview: data.overview ?? "",
+    poster_path: data.poster_path ?? null,
+  };
+}
