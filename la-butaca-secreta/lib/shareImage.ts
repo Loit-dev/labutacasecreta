@@ -52,9 +52,6 @@ const BACKDROP_FILES = [
   "/share/lastofus.jpg",
 ];
 
-const POSTER_W = 300;
-const POSTER_H = 450;
-const GAP = 30;
 
 const ROLES = {
   first: { label: "MI APUESTA", color: "#facc15" },
@@ -252,30 +249,17 @@ export function drawShareImage(
   const logo = options.logo;
 
   if (logo && logo.width > 0 && logo.height > 0) {
-    const logoH = 190;
+    const logoH = 180;
     const logoW = (logo.width / logo.height) * logoH;
     const logoX = W / 2 - logoW / 2;
-    const logoY = 260;
+    const logoY = 235;
 
-    // Brillo rojo detrás
+    // Sin marco ni resplandor: el fondo negro del logo se funde con la
+    // imagen (modo «screen»)
     ctx.save();
-    ctx.shadowColor = "rgba(239,68,68,0.55)";
-    ctx.shadowBlur = 40;
-    roundedRect(ctx, logoX, logoY, logoW, logoH, 30);
-    ctx.fillStyle = "#000";
-    ctx.fill();
-    ctx.restore();
-
-    ctx.save();
-    roundedRect(ctx, logoX, logoY, logoW, logoH, 30);
-    ctx.clip();
+    ctx.globalCompositeOperation = "screen";
     ctx.drawImage(logo, logoX, logoY, logoW, logoH);
     ctx.restore();
-
-    roundedRect(ctx, logoX, logoY, logoW, logoH, 30);
-    ctx.strokeStyle = "rgba(255,255,255,0.22)";
-    ctx.lineWidth = 3;
-    ctx.stroke();
   } else {
     ctx.fillStyle = "#ef4444";
     ctx.font = `800 34px ${font}`;
@@ -290,7 +274,7 @@ export function drawShareImage(
     : "Mis sugerencias";
 
   // Los títulos largos (varios nombres) se encogen para caber
-  let titleSize = 104;
+  let titleSize = 96;
 
   ctx.font = `800 ${titleSize}px ${font}`;
 
@@ -319,7 +303,7 @@ export function drawShareImage(
   ctx.shadowColor = "rgba(0,0,0,0.6)";
   ctx.shadowBlur = 24;
   ctx.fillStyle = titleGradient;
-  ctx.fillText(title, W / 2, 600);
+  ctx.fillText(title, W / 2, 505);
   ctx.restore();
 
   ctx.fillStyle = "#e4e4e7";
@@ -334,89 +318,104 @@ export function drawShareImage(
       ? `${what} · ${options.compatibility} % de coincidencia`
       : what,
     W / 2,
-    664
+    562
   );
 
-  // ---------- Pósters ----------
+  // ---------- Pósters: abanico con la apuesta principal al centro ----------
   const shown = items.slice(0, 3);
 
-  const totalW = shown.length * POSTER_W + (shown.length - 1) * GAP;
+  // Posición en el abanico: [centro x, centro y, ancho, alto, giro]
+  const FAN: [number, number, number, number, number][] = [
+    [W / 2, 895, 390, 585, 0],
+    [218, 925, 300, 450, -7],
+    [W - 218, 925, 300, 450, 7],
+  ];
 
-  const startX = (W - totalW) / 2;
+  // Foco de luz detrás de los pósters
+  const spot = ctx.createRadialGradient(W / 2, 895, 0, W / 2, 895, 620);
 
-  const POSTERS_TOP = 730;
+  spot.addColorStop(0, "rgba(251,146,60,0.28)");
+  spot.addColorStop(1, "rgba(251,146,60,0)");
 
-  let mainsBefore = 0;
+  ctx.fillStyle = spot;
+  ctx.fillRect(0, 270, W, 1260);
 
-  shown.forEach((item, index) => {
-    const x = startX + index * (POSTER_W + GAP);
-    const y = POSTERS_TOP;
+  // Se dibujan primero los laterales y al final el principal (encima)
+  const order = shown.map((_, i) => i).sort((x, y) => y - x);
 
-    const role = roleOf(item, mainsBefore);
+  const roles: (typeof ROLES)[keyof typeof ROLES][] = [];
 
-    if (item.role !== "surprise") mainsBefore++;
+  {
+    let mains = 0;
+
+    shown.forEach((item) => {
+      roles.push(roleOf(item, mains));
+      if (item.role !== "surprise") mains++;
+    });
+  }
+
+  order.forEach((index) => {
+    const [cx, cy, w, h, angle] = FAN[index];
+    const role = roles[index];
+    const item = shown[index];
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate((angle * Math.PI) / 180);
 
     // Brillo del color de su etiqueta
     ctx.save();
-    ctx.shadowColor = `${role.color}88`;
-    ctx.shadowBlur = 44;
-    ctx.shadowOffsetY = 10;
-    roundedRect(ctx, x, y, POSTER_W, POSTER_H, 24);
+    ctx.shadowColor = `${role.color}99`;
+    ctx.shadowBlur = index === 0 ? 70 : 44;
+    ctx.shadowOffsetY = 14;
+    roundedRect(ctx, -w / 2, -h / 2, w, h, 26);
     ctx.fillStyle = "#18181b";
     ctx.fill();
     ctx.restore();
 
-    // Póster (recortado a la forma, rellenando todo el hueco)
     ctx.save();
-    roundedRect(ctx, x, y, POSTER_W, POSTER_H, 24);
+    roundedRect(ctx, -w / 2, -h / 2, w, h, 26);
     ctx.clip();
 
     const img = images[index];
 
     if (img && img.width > 0 && img.height > 0) {
-      const scale = Math.max(
-        POSTER_W / img.width,
-        POSTER_H / img.height
-      );
-
-      const dw = img.width * scale;
-      const dh = img.height * scale;
+      const scale = Math.max(w / img.width, h / img.height);
 
       ctx.drawImage(
         img,
-        x + (POSTER_W - dw) / 2,
-        y + (POSTER_H - dh) / 2,
-        dw,
-        dh
+        (-img.width * scale) / 2,
+        (-img.height * scale) / 2,
+        img.width * scale,
+        img.height * scale
       );
     } else {
-      const fallback = ctx.createLinearGradient(x, y, x, y + POSTER_H);
+      const fallback = ctx.createLinearGradient(0, -h / 2, 0, h / 2);
 
       fallback.addColorStop(0, "#27272a");
       fallback.addColorStop(1, "#18181b");
 
       ctx.fillStyle = fallback;
-      ctx.fillRect(x, y, POSTER_W, POSTER_H);
+      ctx.fillRect(-w / 2, -h / 2, w, h);
 
       ctx.fillStyle = "#a1a1aa";
       ctx.font = `600 28px ${font}`;
-      ctx.fillText("Sin póster", x + POSTER_W / 2, y + POSTER_H / 2);
+      ctx.fillText("Sin póster", 0, 10);
     }
 
     ctx.restore();
 
-    // Borde del color de la etiqueta
-    roundedRect(ctx, x + 1.5, y + 1.5, POSTER_W - 3, POSTER_H - 3, 24);
-    ctx.strokeStyle = `${role.color}aa`;
-    ctx.lineWidth = 3;
+    roundedRect(ctx, -w / 2 + 2, -h / 2 + 2, w - 4, h - 4, 26);
+    ctx.strokeStyle = `${role.color}cc`;
+    ctx.lineWidth = index === 0 ? 5 : 3;
     ctx.stroke();
 
     // Insignia en la esquina: 1, 2 o ★ (sorpresa)
-    const badgeX = x + 34;
-    const badgeY = y + 34;
+    const bx = -w / 2 + 38;
+    const by = -h / 2 + 38;
 
     ctx.beginPath();
-    ctx.arc(badgeX, badgeY, 27, 0, Math.PI * 2);
+    ctx.arc(bx, by, 29, 0, Math.PI * 2);
     ctx.fillStyle = role.color;
     ctx.fill();
     ctx.lineWidth = 3;
@@ -424,62 +423,84 @@ export function drawShareImage(
     ctx.stroke();
 
     ctx.fillStyle = "#111111";
-    ctx.font = `800 30px ${font}`;
+    ctx.font = `800 32px ${font}`;
     ctx.fillText(
-      item.role === "surprise" ? "★" : String(mainsBefore),
-      badgeX,
-      badgeY + 11
+      item.role === "surprise"
+        ? "★"
+        : String(roles.slice(0, index + 1).filter((_, i) => shown[i].role !== "surprise").length),
+      bx,
+      by + 11
     );
 
-    const cx = x + POSTER_W / 2;
+    ctx.restore();
+  });
 
-    // Etiqueta (píldora)
-    ctx.font = `800 22px ${font}`;
-    spaced.letterSpacing = "3px";
+  // ---------- Lista: una fila por título ----------
+  const ROW_TOP = 1236;
+  const ROW_H = 90;
 
-    const labelW = ctx.measureText(role.label).width + 40;
-    const pillY = y + POSTER_H + 26;
+  shown.forEach((item, index) => {
+    const role = roles[index];
+    const y = ROW_TOP + index * ROW_H;
+    const x = 90;
+    const rowW = W - 180;
 
-    roundedRect(ctx, cx - labelW / 2, pillY, labelW, 40, 20);
-    ctx.fillStyle = `${role.color}26`;
+    roundedRect(ctx, x, y, rowW, ROW_H - 12, 24);
+    ctx.fillStyle = "rgba(24,24,27,0.72)";
     ctx.fill();
-    ctx.strokeStyle = `${role.color}aa`;
+    ctx.strokeStyle = `${role.color}55`;
     ctx.lineWidth = 2;
     ctx.stroke();
 
+    // Etiqueta de color
+    ctx.textAlign = "left";
+    ctx.font = `800 20px ${font}`;
+    spaced.letterSpacing = "2px";
+
+    const labelW = ctx.measureText(role.label).width + 32;
+
+    roundedRect(ctx, x + 22, y + 19, labelW, 40, 20);
+    ctx.fillStyle = `${role.color}26`;
+    ctx.fill();
+    ctx.strokeStyle = `${role.color}aa`;
+    ctx.stroke();
+
     ctx.fillStyle = role.color;
-    ctx.fillText(role.label, cx + 1, pillY + 28);
+    ctx.fillText(role.label, x + 38, y + 46);
     resetSpacing();
 
-    // Título (máximo 2 líneas)
-    ctx.fillStyle = "#ffffff";
-    ctx.font = `800 32px ${font}`;
-
-    const lines = wrapLines(
-      (text) => ctx.measureText(text).width,
-      item.title,
-      POSTER_W,
-      2
-    );
-
-    lines.forEach((line, i) => {
-      ctx.fillText(line, cx, pillY + 88 + i * 40);
-    });
-
-    // Nota y año
+    // Título (una línea) y nota/año a la derecha
     const meta = [
       item.rating ? `★ ${String(item.rating).replace(".", ",")}` : "",
       item.year ? String(item.year) : "",
     ]
       .filter(Boolean)
-      .join("  ·  ");
+      .join(" · ");
 
-    if (meta) {
-      ctx.fillStyle = "#d4d4d8";
-      ctx.font = `500 26px ${font}`;
-      ctx.fillText(meta, cx, pillY + 88 + lines.length * 40 + 8);
-    }
+    ctx.textAlign = "right";
+    ctx.fillStyle = "#d4d4d8";
+    ctx.font = `600 26px ${font}`;
+    ctx.fillText(meta, x + rowW - 24, y + 48);
+
+    const metaW = meta ? ctx.measureText(meta).width + 24 : 0;
+    const titleX = x + 22 + labelW + 20;
+    const titleMax = x + rowW - 24 - metaW - titleX;
+
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#ffffff";
+    ctx.font = `800 32px ${font}`;
+
+    const [line = ""] = wrapLines(
+      (text) => ctx.measureText(text).width,
+      item.title,
+      titleMax,
+      1
+    );
+
+    ctx.fillText(line, titleX, y + 48);
   });
+
+  ctx.textAlign = "center";
 
   // ---------- Pie ----------
   const url = options.siteUrl.replace(/^https?:\/\//, "");
@@ -488,7 +509,7 @@ export function drawShareImage(
 
   const pillW = ctx.measureText(url).width + 90;
   const pillX = W / 2 - pillW / 2;
-  const footY = H - 450;
+  const footY = 1520;
 
   const pillGradient = ctx.createLinearGradient(pillX, 0, pillX + pillW, 0);
 
