@@ -27,6 +27,9 @@ export default function Footer() {
       <p className="mt-1">
         This product uses the TMDB API but is not
         endorsed or certified by TMDB.
+        <br />
+        Este producto usa la API de TMDb, pero TMDb ni lo
+        respalda ni lo certifica.
       </p>
 
       <p className="mt-2">

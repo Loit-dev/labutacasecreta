@@ -36,9 +36,7 @@ export default function LegalNoticePage() {
 
         <ul>
           <li>
-            This product uses the TMDB API but is not
-            endorsed or certified by TMDB. Los datos de
-            películas y series proceden de{" "}
+            Los datos de películas y series proceden de{" "}
             <a
               href="https://www.themoviedb.org/"
               target="_blank"
@@ -46,7 +44,10 @@ export default function LegalNoticePage() {
             >
               The Movie Database (TMDb)
             </a>
-            .
+            . Este producto usa la API de TMDb, pero TMDb ni
+            lo respalda ni lo certifica (aviso oficial:
+            «This product uses the TMDB API but is not
+            endorsed or certified by TMDB»).
           </li>
           <li>
             Los datos de disponibilidad en plataformas
