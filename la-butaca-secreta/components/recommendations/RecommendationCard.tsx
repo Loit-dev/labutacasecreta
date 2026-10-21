@@ -13,6 +13,8 @@ type Props = {
   providers?: {name: string; logo: string;}[];
   reason?: string;
   onDetails?: () => void;
+  onSeen?: () => void;
+  onReject?: () => void;
 };
 
 export default function RecommendationCard({
@@ -28,6 +30,8 @@ export default function RecommendationCard({
   providers = [],
   reason,
   onDetails,
+  onSeen,
+  onReject,
 }: Props) {
   return (
     <article className="flex h-full flex-col overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900 shadow-xl">
@@ -130,6 +134,30 @@ export default function RecommendationCard({
 >
   Ver detalles
 </button>
+
+        {(onSeen || onReject) && (
+          <div className="flex gap-2">
+            {onSeen && (
+              <button
+                onClick={onSeen}
+                title="No volveré a recomendártela"
+                className="flex-1 rounded-lg border border-zinc-700 px-2 py-2 text-xs font-medium text-zinc-300 transition-colors hover:border-zinc-500 hover:bg-zinc-800 hover:text-white"
+              >
+                👁 Ya la vi
+              </button>
+            )}
+
+            {onReject && (
+              <button
+                onClick={onReject}
+                title="Buscaré algo distinto"
+                className="flex-1 rounded-lg border border-zinc-700 px-2 py-2 text-xs font-medium text-zinc-300 transition-colors hover:border-zinc-500 hover:bg-zinc-800 hover:text-white"
+              >
+                👎 No me apetece
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </article>
   );

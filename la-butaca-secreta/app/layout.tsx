@@ -1,9 +1,17 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import {
   Geist,
   Geist_Mono,
   Manrope,
 } from "next/font/google";
+
+import Footer from "@/components/layout/Footer";
+import {
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  SITE_TAGLINE,
+  SITE_URL,
+} from "@/lib/site";
 
 import "./globals.css";
 
@@ -23,9 +31,55 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: "La Butaca Secreta",
-  description:
-    "Encuentra películas y series perfectas para ti.",
+  metadataBase: new URL(SITE_URL),
+
+  title: {
+    default: `${SITE_NAME} · ${SITE_TAGLINE}`,
+    template: `%s · ${SITE_NAME}`,
+  },
+
+  description: SITE_DESCRIPTION,
+
+  applicationName: SITE_NAME,
+
+  keywords: [
+    "qué ver hoy",
+    "recomendaciones de películas",
+    "recomendaciones de series",
+    "Netflix",
+    "Prime Video",
+    "Disney+",
+    "Max",
+    "Filmin",
+  ],
+
+  alternates: {
+    canonical: "/",
+  },
+
+  openGraph: {
+    type: "website",
+    locale: "es_ES",
+    siteName: SITE_NAME,
+    title: `${SITE_NAME} · ${SITE_TAGLINE}`,
+    description: SITE_DESCRIPTION,
+    url: "/",
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: `${SITE_NAME} · ${SITE_TAGLINE}`,
+    description: SITE_DESCRIPTION,
+  },
+
+  robots: {
+    index: true,
+    follow: true,
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#09090b",
 };
 
 export default function RootLayout({
@@ -46,6 +100,8 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         {children}
+
+        <Footer />
       </body>
     </html>
   );

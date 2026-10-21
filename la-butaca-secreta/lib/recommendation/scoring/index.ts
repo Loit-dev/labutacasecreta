@@ -8,6 +8,7 @@ import { scoreDiscoveryMode } from "./discoveryMode";
 import { scoreFreshness } from "./freshness";
 import { scoreAudience } from "./audience";
 import { scoreGenre } from "./genre";
+import { scoreFeedback } from "./feedback";
 
 export function scoreItem(
   item: ScoredItem,
@@ -46,6 +47,9 @@ export function scoreItem(
 
   // ⭐ Nuevo / clásico
   score += scoreFreshness(item, context) * 2;
+
+  // 👎 Géneros que el usuario ha ido rechazando
+  score += scoreFeedback(item, context);
 
   // 📈 Calidad/popularidad general
   // Tiene peso deliberadamente bajo:
