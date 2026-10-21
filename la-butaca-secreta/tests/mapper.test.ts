@@ -5,6 +5,7 @@ import {
   mapRecommendation,
   mapToScoredItem,
 } from "@/lib/tmdb/mapper";
+import { ALLOWED_PROVIDER_IDS } from "@/lib/tmdb/api";
 import type { TMDBMovie } from "@/lib/tmdb/types";
 
 const movie: TMDBMovie = {
@@ -99,6 +100,22 @@ describe("mapRecommendation", () => {
 
     assert.equal(result.platforms.length, 1);
     assert.equal(result.platforms[0].name, "Prime Video");
+  });
+
+  test("los planes con anuncios cuentan como la misma plataforma", () => {
+    const result = mapRecommendation(
+      movie,
+      undefined,
+      watch(
+        provider(1796, "Netflix Standard with Ads"),
+        provider(2100, "Amazon Prime Video with Ads")
+      )
+    );
+
+    assert.deepEqual(
+      result.platforms.map((p) => p.name),
+      ["Netflix", "Prime Video"]
+    );
   });
 
   test("descarta plataformas sin logo", () => {
@@ -216,5 +233,12 @@ describe("mapToScoredItem", () => {
 
     assert.equal(scored.title, "Una serie");
     assert.equal(scored.releaseDate, "2011-04-17");
+  });
+});
+
+describe("plataformas permitidas", () => {
+  test("incluye los planes con anuncios de Netflix y Prime", () => {
+    assert.ok(ALLOWED_PROVIDER_IDS.includes(1796));
+    assert.ok(ALLOWED_PROVIDER_IDS.includes(2100));
   });
 });
