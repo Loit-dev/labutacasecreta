@@ -28,6 +28,9 @@ export interface RecommendationFilters {
   maxVotes?: number;
 
   minRating?: number;
+
+  // Plataformas (ids de TMDb) donde buscar; sin esto, todas las permitidas
+  providerIds?: number[];
 }
 
 const PreferredGenreMap: Record<

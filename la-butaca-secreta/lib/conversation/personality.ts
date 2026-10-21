@@ -61,14 +61,14 @@ export function getThinkingMessage() {
 const reactions: ReactionMap = {
   contentType: {
     movie: [
-      "Perfecto, hoy toca cine. 🍿",
+      "Hoy toca cine. 🍿",
       "Buena elección. Vamos a buscar una película que merezca la pena.",
       "Me gusta el plan. 🎬",
       "Película entonces. Vamos allá.",
     ],
 
     tv: [
-      "Perfecto, una buena serie siempre es un gran plan. 📺",
+      "Una buena serie siempre es un gran plan. 📺",
       "Vamos a encontrar una serie que enganche desde el primer episodio.",
       "Serie elegida. Ahora viene lo interesante.",
       "Buena elección. Hay auténticas joyas esperándote.",
@@ -77,7 +77,7 @@ const reactions: ReactionMap = {
 
   company: {
     alone: [
-      "Perfecto. Buscaré algo pensado para disfrutar a tu ritmo.",
+      "Buscaré algo pensado para disfrutar a tu ritmo.",
       "Esta sesión es solo para ti. 🍿",
       "Entonces puedo ser un poco más atrevido con las recomendaciones.",
     ],
@@ -91,13 +91,13 @@ const reactions: ReactionMap = {
     friends: [
       "Con amigos siempre apetecen cosas con ritmo. 😎",
       "Vamos a buscar algo que funcione en grupo.",
-      "Perfecto. Toca noche de sofá y palomitas.",
+      "Toca noche de sofá y palomitas. 🍿",
     ],
 
     family: [
       "Buscaré algo que funcione para toda la familia.",
       "Vamos a intentar que nadie proteste por la elección. 😄",
-      "Perfecto. Que todos disfruten es el objetivo.",
+      "Que todos disfruten es el objetivo.",
     ],
   },
 
@@ -115,7 +115,7 @@ const reactions: ReactionMap = {
     ],
 
     tension: [
-      "Perfecto... hoy quieres emoción.",
+      "Hoy quieres emoción. Entendido.",
       "Vamos a buscar algo que te mantenga pegado al sofá.",
       "Creo que tengo varias opciones muy interesantes.",
     ],
@@ -135,13 +135,13 @@ export function getReaction(
   const fieldReactions = reactions[field];
 
   if (!fieldReactions) {
-    return "Perfecto.";
+    return random(["Anotado.", "Vamos allá.", "Entendido."]);
   }
 
   const values = fieldReactions[value];
 
   if (!values?.length) {
-    return "Entendido.";
+    return random(["Anotado.", "Vamos allá.", "Entendido."]);
   }
 
   return random(values);

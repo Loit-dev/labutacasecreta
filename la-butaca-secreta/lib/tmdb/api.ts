@@ -106,7 +106,12 @@ function buildDiscoverQuery(
 
   // Filtro estricto por plataformas en suscripción activa (flatrate)
   params.set("watch_region", WATCH_REGION);
-  params.set("with_watch_providers", STREAMING_PROVIDERS);
+  params.set(
+    "with_watch_providers",
+    filters.providerIds?.length
+      ? filters.providerIds.join("|")
+      : STREAMING_PROVIDERS
+  );
   params.set("with_watch_monetization_types", "flatrate");
 
   // Por defecto popularidad (mezcla estrenos y títulos conocidos);

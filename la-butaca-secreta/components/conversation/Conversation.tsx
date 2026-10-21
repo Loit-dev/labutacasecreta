@@ -1,11 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import GroupQuiz from "@/components/group/GroupQuiz";
 import PosterWall from "@/components/layout/PosterWall";
 import MyListButton from "@/components/list/MyListButton";
 import { track } from "@/lib/analytics";
+import {
+  ALL_PLATFORM_KEYS,
+  readPlatforms,
+  savePlatforms,
+  serializePlatforms,
+  type PlatformKey,
+} from "@/lib/platforms";
 
 import Header from "./Header";
 import ModeSelect, { type Mode } from "./ModeSelect";
@@ -13,6 +20,23 @@ import SoloChat from "./SoloChat";
 
 export default function Conversation() {
   const [mode, setMode] = useState<Mode | null>(null);
+
+  const [platforms, setPlatforms] = useState<PlatformKey[]>([
+    ...ALL_PLATFORM_KEYS,
+  ]);
+
+  // Las plataformas elegidas se recuerdan entre visitas
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPlatforms(readPlatforms());
+  }, []);
+
+  function changePlatforms(next: PlatformKey[]) {
+    setPlatforms(next);
+    savePlatforms(next);
+  }
+
+  const platformsValue = serializePlatforms(platforms);
 
   function chooseMode(next: Mode) {
     track("mode_selected", { mode: next });
@@ -71,15 +95,21 @@ export default function Conversation() {
 
           {mode === null && (
             <div className="px-8 py-6">
-              <ModeSelect onSelect={chooseMode} />
+              <ModeSelect
+                onSelect={chooseMode}
+                platforms={platforms}
+                onPlatformsChange={changePlatforms}
+              />
             </div>
           )}
 
-          {mode === "solo" && <SoloChat />}
+          {mode === "solo" && (
+            <SoloChat platforms={platformsValue} />
+          )}
 
           {mode === "group" && (
             <div className="px-8 py-6">
-              <GroupQuiz />
+              <GroupQuiz platforms={platformsValue} />
             </div>
           )}
         </section>

@@ -54,5 +54,16 @@ export function scoreMood(
     });
   }
 
+  // «Reírme» sin comedia entre sus géneros no encaja, aunque sea
+  // buena película (un thriller político no es para desconectar)
+  if (mood === "laugh" && !item.genres.includes(35)) {
+    score -= 30;
+  }
+
+  // Y para desconectar, mejor que no sea una maratón
+  if (mood === "laugh" && item.runtime && item.runtime > 150) {
+    score -= 10;
+  }
+
   return score;
 }

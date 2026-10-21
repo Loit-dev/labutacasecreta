@@ -9,6 +9,7 @@ import {
 } from "@/lib/recommendation/engine";
 import { recentPoolFilters } from "@/lib/recommendation/eras";
 import { RecommendationFilters } from "@/lib/recommendation/filters";
+import { providerIdsFor } from "@/lib/platforms";
 import { sortByScore } from "@/lib/recommendation/scoring";
 import {
   buildSurpriseReason,
@@ -116,6 +117,8 @@ function parseProfile(
 
     animation:
       params.get("animation") ?? undefined,
+
+    platforms: params.get("platforms") ?? undefined,
 
     restrictions: params
       .get("restrictions")
@@ -305,9 +308,10 @@ export async function GET(
       100
     );
 
-    const filters = new RecommendationEngine(
-      profile
-    ).build();
+    const filters: RecommendationFilters = {
+      ...new RecommendationEngine(profile).build(),
+      providerIds: providerIdsFor(profile.platforms),
+    };
 
     // ----------------------------------------------
     // 1) Candidatos (con intentos cada vez más amplios)
@@ -385,7 +389,7 @@ export async function GET(
         return (
           Array.isArray(flatrate) &&
           flatrate.some((provider) =>
-            ALLOWED_PROVIDER_IDS.includes(
+            (filters.providerIds ?? ALLOWED_PROVIDER_IDS).includes(
               provider.provider_id
             )
           )
