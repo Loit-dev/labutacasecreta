@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import PosterWall from "@/components/layout/PosterWall";
 import MyListButton from "@/components/list/MyListButton";
 import SharedRecommendations from "@/components/recommendations/SharedRecommendations";
+import { formatNames } from "@/lib/group";
 import { parseShareCode } from "@/lib/shareLink";
 import { SITE_NAME } from "@/lib/site";
 import { getSharedRecommendations } from "@/lib/tmdb/shared";
@@ -22,9 +23,17 @@ export async function generateMetadata({
 
   const what = set?.type === "tv" ? "series" : "películas";
 
-  const title = "Mis sugerencias";
+  const audience = set?.group
+    ? formatNames(set.group.names)
+    : null;
 
-  const description = `Mira las ${what} que me han recomendado en ${SITE_NAME} y haz tu propio cuestionario.`;
+  const title = audience
+    ? `Sugerencias para ${audience}`
+    : "Mis sugerencias";
+
+  const description = set?.group
+    ? `${set.group.percent} % de coincidencia. Mira las ${what} que ${SITE_NAME} ha elegido para ${audience} y haz tu propio cuestionario.`
+    : `Mira las ${what} que me han recomendado en ${SITE_NAME} y haz tu propio cuestionario.`;
 
   return {
     title,
@@ -45,6 +54,10 @@ export default async function SharedPage({ params }: Props) {
 
   const items = await getSharedRecommendations(set);
 
+  const audience = set.group
+    ? formatNames(set.group.names)
+    : null;
+
   return (
     <>
       <PosterWall />
@@ -58,12 +71,19 @@ export default async function SharedPage({ params }: Props) {
               className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl"
               style={{ fontFamily: "var(--font-manrope)" }}
             >
-              Te han compartido sus sugerencias
+              {audience
+                ? `Sugerencias para ${audience}`
+                : "Te han compartido sus sugerencias"}
             </h1>
 
             <p className="mt-3 text-zinc-300">
-              {set.type === "tv" ? "Series" : "Películas"} que{" "}
-              {SITE_NAME} le ha recomendado a alguien.
+              {set.group
+                ? `${set.group.percent} % de coincidencia · ${
+                    set.type === "tv" ? "Series" : "Películas"
+                  } que ${SITE_NAME} ha elegido para ellos.`
+                : `${
+                    set.type === "tv" ? "Series" : "Películas"
+                  } que ${SITE_NAME} le ha recomendado a alguien.`}
             </p>
           </header>
 

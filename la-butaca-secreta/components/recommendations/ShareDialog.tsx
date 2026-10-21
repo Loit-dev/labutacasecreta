@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 
 import { useDialog } from "@/hooks/useDialog";
 import { track } from "@/lib/analytics";
+import { formatNames } from "@/lib/group";
 import {
   SHARE_FILE_NAME,
   buildShareText,
@@ -18,8 +19,8 @@ import { SITE_NAME, SITE_URL } from "@/lib/site";
 type Props = {
   items: ShareItem[];
   kind: ShareKind;
-  // Para quién son ("Ana y Luis"), si se ha usado el modo acompañado
-  audience?: string;
+  // Quiénes han elegido y cuánto han coincidido (modo acompañado)
+  group?: { names: string[]; percent: number };
   onClose: () => void;
 };
 
@@ -42,9 +43,12 @@ function siteFont() {
 export default function ShareDialog({
   items,
   kind,
-  audience,
+  group,
   onClose,
 }: Props) {
+  const audience = group ? formatNames(group.names) : undefined;
+  const percent = group?.percent;
+
   const dialogRef = useDialog<HTMLDivElement>(onClose);
 
   const [state, setState] = useState<State>({
@@ -68,11 +72,11 @@ export default function ShareDialog({
       setLink(
         shareUrl(
           window.location.origin,
-          buildShareCode(kind, entries)
+          buildShareCode(kind, entries, group)
         )
       );
     }
-  }, [items, kind]);
+  }, [items, kind, group]);
 
   // Crea la imagen al abrirse
   useEffect(() => {
@@ -86,6 +90,7 @@ export default function ShareDialog({
       siteUrl: SITE_URL,
       fontFamily: siteFont(),
       audience,
+      compatibility: percent,
     })
       .then((blob) => {
         if (cancelled) return;
@@ -109,7 +114,7 @@ export default function ShareDialog({
 
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [items, kind, audience]);
+  }, [items, kind, audience, percent]);
 
   const file =
     state.status === "ready" ? state.file : null;
@@ -118,7 +123,8 @@ export default function ShareDialog({
     items.map((item) => item.title),
     kind,
     link || SITE_URL,
-    audience
+    audience,
+    percent
   );
 
   const canShare =

@@ -45,14 +45,18 @@ export function buildShareText(
   titles: string[],
   kind: ShareKind,
   link: string = SITE_URL,
-  audience?: string
+  audience?: string,
+  percent?: number
 ): string {
   const what = kind === "tv" ? "series" : "películas";
 
   const list = titles.filter(Boolean).join(", ");
 
   if (list && audience) {
-    return `Sugerencias de ${what} para ${audience}: ${list}. Míralas aquí, en ${SITE_NAME}: ${link}`;
+    const match =
+      percent === undefined ? "" : ` (${percent} % de coincidencia)`;
+
+    return `Sugerencias de ${what} para ${audience}${match}: ${list}. Míralas aquí, en ${SITE_NAME}: ${link}`;
   }
 
   return list

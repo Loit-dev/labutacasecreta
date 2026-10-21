@@ -85,6 +85,12 @@ export default function GroupQuiz() {
     [rounds, names.length]
   );
 
+  // Se calcula una sola vez para no regenerar la imagen de compartir
+  const group = useMemo(
+    () => ({ names, percent: compatibility(rounds) }),
+    [names, rounds]
+  );
+
   // ============================
   // Preparación
   // ============================
@@ -473,7 +479,7 @@ export default function GroupQuiz() {
     <div className="mt-2">
       <Recommendations
         profile={profile}
-        audience={formatNames(names)}
+        group={group}
       />
     </div>
   );

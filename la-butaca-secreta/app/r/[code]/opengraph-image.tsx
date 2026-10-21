@@ -1,5 +1,6 @@
 import { ImageResponse } from "next/og";
 
+import { formatNames } from "@/lib/group";
 import { parseShareCode } from "@/lib/shareLink";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { getSharedRecommendations } from "@/lib/tmdb/shared";
@@ -59,6 +60,12 @@ export default async function SharedOpenGraphImage({
 
   const what = set?.type === "tv" ? "Series" : "Películas";
 
+  const group = set?.group;
+
+  const title = group
+    ? `Sugerencias para ${formatNames(group.names)}`
+    : "Mis sugerencias";
+
   return new ImageResponse(
     (
       <div
@@ -96,12 +103,12 @@ export default async function SharedOpenGraphImage({
             style={{
               display: "flex",
               marginTop: 24,
-              fontSize: 78,
+              fontSize: group ? 54 : 78,
               fontWeight: 800,
               lineHeight: 1.05,
             }}
           >
-            Mis sugerencias
+            {title}
           </div>
 
           <div
@@ -114,6 +121,20 @@ export default async function SharedOpenGraphImage({
           >
             {what} para ver hoy
           </div>
+
+          {group ? (
+            <div
+              style={{
+                display: "flex",
+                marginTop: 14,
+                fontSize: 34,
+                fontWeight: 700,
+                color: "#fb923c",
+              }}
+            >
+              {group.percent} % de coincidencia
+            </div>
+          ) : null}
 
           <div
             style={{
