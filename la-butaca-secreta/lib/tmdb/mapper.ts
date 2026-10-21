@@ -14,13 +14,17 @@ const IMAGE_URL =
 
 const PLACEHOLDER_POSTER = "/placeholder-poster.svg";
 
-// Plataformas principales primero, para que no queden fuera
-// al mostrar solo los 3 primeros logos.
-const PROVIDER_PRIORITY = [
+// Plataformas que se muestran (y su orden). Cualquier otra se oculta
+// para no llenar la tarjeta con servicios minoritarios.
+const MAIN_PLATFORMS = [
   "Netflix",
   "Prime Video",
   "Disney+",
   "Max",
+  "Movistar+",
+  "Filmin",
+  "Apple TV+",
+  "SkyShowtime",
 ];
 
 const GENRES: Record<number, string> = {
@@ -112,11 +116,7 @@ function normalizeProviderName(providerName: string) {
 }
 
 function priorityOf(name: string) {
-  const index = PROVIDER_PRIORITY.indexOf(name);
-
-  return index === -1
-    ? PROVIDER_PRIORITY.length
-    : index;
+  return MAIN_PLATFORMS.indexOf(name);
 }
 
 export interface Recommendation {
@@ -237,10 +237,15 @@ export function mapRecommendation(
         ];
       })
     ).values()
-  ).sort(
-    (a, b) =>
-      priorityOf(a.name) - priorityOf(b.name)
-  );
+  )
+    // Solo las plataformas principales, en orden de importancia
+    .filter(
+      (platform) => priorityOf(platform.name) !== -1
+    )
+    .sort(
+      (a, b) =>
+        priorityOf(a.name) - priorityOf(b.name)
+    );
 
   return {
     id: item.id,

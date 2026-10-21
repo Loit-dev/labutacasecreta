@@ -262,16 +262,6 @@ export default function DetailsModal({
                 </a>
               )}
 
-              {movie.watchLink && (
-                <a
-                  href={movie.watchLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-zinc-400 underline-offset-2 hover:text-white hover:underline"
-                >
-                  Ver más opciones →
-                </a>
-              )}
             </div>
 
             <p className="text-[11px] text-zinc-600">
