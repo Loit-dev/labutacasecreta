@@ -75,7 +75,7 @@ export default function SoloChat({
 ]);
 
   return (
-          <div className="px-8 py-6">
+          <div className="px-5 py-4 md:px-8 md:py-6">
             <ChatHistory messages={messages} />
 
             {isThinking && (

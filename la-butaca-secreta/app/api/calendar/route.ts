@@ -13,7 +13,7 @@ import {
   discoverCalendar,
   findTvByExternalId,
   getProviderLogos,
-  getSpanishDigitalDate,
+  getDigitalDate,
   getTvFlatrateIds,
 } from "@/lib/tmdb/api";
 import {
@@ -63,7 +63,8 @@ function toEntry(
   item: TMDBMovie,
   type: "movie" | "tv",
   date: string,
-  platform: PlatformKey
+  platform: PlatformKey,
+  note?: string
 ): CalendarEntry {
   return {
     id: item.id,
@@ -77,6 +78,7 @@ function toEntry(
     rating: Math.round((item.vote_average ?? 0) * 10) / 10,
     popularity: item.popularity ?? 0,
     platforms: [platform],
+    ...(note ? { note } : {}),
   };
 }
 
@@ -222,7 +224,7 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        // Películas: la fecha buena es la del estreno digital en España
+        // Películas: la fecha buena es la del estreno digital
         const dated = await mapLimited(
           page.results,
           CONCURRENCY,
@@ -230,23 +232,38 @@ export async function GET(request: NextRequest) {
             try {
               return {
                 item,
-                date: await getSpanishDigitalDate(item.id),
+                digital: await getDigitalDate(item.id),
               };
             } catch {
-              return { item, date: null };
+              return { item, digital: null };
             }
           }
         );
 
         return dated
           .filter(
-            (entry): entry is { item: TMDBMovie; date: string } =>
-              !!entry.date &&
-              entry.date >= from &&
-              entry.date <= to
+            (
+              entry
+            ): entry is {
+              item: TMDBMovie;
+              digital: { date: string; region: "ES" | "US" | "OTHER" };
+            } =>
+              !!entry.digital &&
+              entry.digital.date >= from &&
+              entry.digital.date <= to
           )
-          .map(({ item, date }) =>
-            toEntry(item, "movie", date, platform.key)
+          .map(({ item, digital }) =>
+            toEntry(
+              item,
+              "movie",
+              digital.date,
+              platform.key,
+              digital.region === "US"
+                ? "Fecha de estreno en EE. UU."
+                : digital.region === "OTHER"
+                  ? "Fecha de estreno digital en otro país"
+                  : undefined
+            )
           );
       })
     );
