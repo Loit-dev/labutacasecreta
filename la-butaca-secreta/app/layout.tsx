@@ -69,6 +69,17 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
+
+  // Icono al «Añadir a pantalla de inicio» (iPhone)
+  icons: {
+    apple: "/icons/apple-touch-icon.png",
+  },
+
+  appleWebApp: {
+    capable: true,
+    title: "Butaca Secreta",
+    statusBarStyle: "black-translucent",
+  },
 };
 
 export const viewport: Viewport = {
