@@ -10,9 +10,10 @@ import { RecommendationFilters } from "@/lib/recommendation/filters";
 
 // Plataformas en las que se buscan y permiten recomendaciones.
 // IDs de TMDB: Netflix (8), Prime Video (119), Disney+ (337),
-// Max (1899 y 384) y Filmin (63).
+// Max (1899 y 384) y Filmin (63). Incluye también los planes con
+// anuncios de Netflix (1796) y Prime Video (2100).
 export const ALLOWED_PROVIDER_IDS = [
-  8, 119, 337, 1899, 384, 63,
+  8, 1796, 119, 2100, 337, 1899, 384, 63,
 ];
 
 // Formato de TMDB para "cualquiera de estas": ids separados por |
