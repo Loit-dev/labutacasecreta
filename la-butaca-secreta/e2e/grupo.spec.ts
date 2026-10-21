@@ -119,7 +119,7 @@ test.describe("Modo acompañado", () => {
 
     // Lo que ha elegido no se ve hasta que elige el otro
     await expect(page.getByText("✔ Listo")).toBeVisible();
-    await expect(page.getByText("✊")).toHaveCount(0);
+    await expect(page.getByLabel(/eligió/)).toHaveCount(0);
 
     await page.getByRole("button", { name: "Luis: Piedra" }).click();
 
@@ -176,7 +176,7 @@ test.describe("Modo acompañado", () => {
     await vote(page, names, [0, 0, 1]);
 
     await expect(
-      page.getByRole("heading", { name: /Gana la mayoría: Película/ })
+      page.getByRole("heading", { name: /Gana la mayoría: .*Película/ })
     ).toBeVisible();
 
     await expect(
