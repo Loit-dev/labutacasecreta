@@ -165,7 +165,7 @@ test.describe("Flujo completo", () => {
       ).toBeVisible();
 
       await expect(
-        page.getByText("This product uses the TMDB API")
+        page.getByText("This product uses the TMDB API").first()
       ).toBeVisible();
 
       await expect(
