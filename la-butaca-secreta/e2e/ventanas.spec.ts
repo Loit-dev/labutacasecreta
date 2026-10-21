@@ -82,7 +82,7 @@ test.describe("Ventanas (detalles y compartir)", () => {
       h: img.naturalHeight,
     }));
 
-    expect(size).toEqual({ w: 1080, h: 1350 });
+    expect(size).toEqual({ w: 1080, h: 1920 });
 
     const downloadPromise = page.waitForEvent("download");
 

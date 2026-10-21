@@ -42,7 +42,7 @@ export default function RecommendationCard({
       aria-label={title}
       className="flex h-full flex-col overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900 shadow-xl"
     >
-       <div className="relative h-58 w-full overflow-hidden">
+       <div className="relative h-44 w-full overflow-hidden md:h-58">
         <Image src={poster} alt={title} fill unoptimized={poster.endsWith(".svg")} className="object-contain bg-black" sizes="(max-width: 768px) 100vw, 33vw" />
         {providers.length > 0 && (
   <div
@@ -79,7 +79,7 @@ export default function RecommendationCard({
 )}
       </div>
 
-      <div className="flex flex-1 flex-col space-y-3 p-4">
+      <div className="flex flex-1 flex-col space-y-2.5 p-4 md:space-y-3">
         <div>
           <div className="text-xs font-semibold uppercase tracking-wider text-yellow-400">
             <span aria-hidden="true">{badge}</span>{" "}
@@ -124,7 +124,7 @@ export default function RecommendationCard({
           </p>
         )}
 
-        <p className="line-clamp-2 text-sm leading-relaxed text-zinc-300">
+        <p className="line-clamp-2 hidden text-sm leading-relaxed text-zinc-300 md:block">
           {overview}
         </p>
 
@@ -151,34 +151,35 @@ export default function RecommendationCard({
   Ver detalles
 </button>
 
-        {onToggleSave && (
-          <button
-            onClick={onToggleSave}
-            aria-pressed={saved}
-            aria-label={
-              saved
-                ? `Guardada, quitar de mi lista: ${title}`
-                : `Guardar en mi lista: ${title}`
-            }
-            className={`w-full rounded-lg border px-2 py-2 text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
-              saved
-                ? "border-yellow-500/70 bg-yellow-400/10 text-yellow-300 hover:bg-yellow-400/20"
-                : "border-zinc-700 text-zinc-300 hover:border-zinc-500 hover:bg-zinc-800 hover:text-white"
-            }`}
-          >
-            <span aria-hidden="true">{saved ? "✓" : "🔖"}</span>{" "}
-            {saved ? "Guardada en mi lista" : "Guardar para ver luego"}
-          </button>
-        )}
-
-        {(onSeen || onReject) && (
+        {(onToggleSave || onSeen || onReject) && (
           <div className="flex gap-2">
+            {onToggleSave && (
+              <button
+                onClick={onToggleSave}
+                aria-pressed={saved}
+                aria-label={
+                  saved
+                    ? `Guardada, quitar de mi lista: ${title}`
+                    : `Guardar en mi lista: ${title}`
+                }
+                title="Guardar para ver luego"
+                className={`flex-1 rounded-lg border px-1 py-2 text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
+                  saved
+                    ? "border-yellow-500/70 bg-yellow-400/10 text-yellow-300 hover:bg-yellow-400/20"
+                    : "border-zinc-700 text-zinc-300 hover:border-zinc-500 hover:bg-zinc-800 hover:text-white"
+                }`}
+              >
+                <span aria-hidden="true">{saved ? "✓" : "🔖"}</span>{" "}
+                {saved ? "Guardada" : "Guardar"}
+              </button>
+            )}
+
             {onSeen && (
               <button
                 onClick={onSeen}
                 aria-label={`Ya la vi: ${title}`}
                 title="No volveré a recomendártela"
-                className="flex-1 rounded-lg border border-zinc-700 px-2 py-2 text-xs font-medium text-zinc-300 transition-colors hover:border-zinc-500 hover:bg-zinc-800 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                className="flex-1 rounded-lg border border-zinc-700 px-1 py-2 text-xs font-medium text-zinc-300 transition-colors hover:border-zinc-500 hover:bg-zinc-800 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
               >
                 <span aria-hidden="true">👁</span> Ya la vi
               </button>
@@ -189,7 +190,7 @@ export default function RecommendationCard({
                 onClick={onReject}
                 aria-label={`No me apetece: ${title}`}
                 title="Buscaré algo distinto"
-                className="flex-1 rounded-lg border border-zinc-700 px-2 py-2 text-xs font-medium text-zinc-300 transition-colors hover:border-zinc-500 hover:bg-zinc-800 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                className="flex-1 rounded-lg border border-zinc-700 px-1 py-2 text-xs font-medium text-zinc-300 transition-colors hover:border-zinc-500 hover:bg-zinc-800 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
               >
                 <span aria-hidden="true">👎</span> No me apetece
               </button>
