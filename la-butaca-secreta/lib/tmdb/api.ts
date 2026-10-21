@@ -7,6 +7,7 @@ import {
 } from "./types";
 
 import { RecommendationFilters } from "@/lib/recommendation/filters";
+import { toTvFilters } from "./tvGenres";
 
 // Plataformas en las que se buscan y permiten recomendaciones.
 // IDs de TMDB: Netflix (8), Prime Video (119), Disney+ (337),
@@ -215,7 +216,7 @@ export async function discoverTV(
 ) {
   const endpoint =
     `/discover/tv?${buildDiscoverQuery(
-      filters,
+      toTvFilters(filters),
       page
     )}`;
 

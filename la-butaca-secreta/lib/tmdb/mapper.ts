@@ -1,3 +1,4 @@
+import { normalizeTvGenreIds } from "./tvGenres";
 import { ScoredItem } from "@/lib/recommendation/scoring/types";
 
 import {
@@ -31,6 +32,7 @@ const GENRES: Record<number, string> = {
   12: "Aventura",
   14: "Fantasía",
   16: "Animación",
+  99: "Documental",
   18: "Drama",
   27: "Terror",
   28: "Acción",
@@ -174,6 +176,15 @@ function pickTrailer(videos: TMDBVideo[] = []) {
 }
 
 
+// Las series usan otros géneros: se pasan a los de película
+function genreIdsOf(item: TMDBMovie): number[] {
+  const ids = item.genre_ids ?? [];
+
+  return item.title === undefined && item.name !== undefined
+    ? normalizeTvGenreIds(ids)
+    : ids;
+}
+
 export function mapToScoredItem(
   item: TMDBMovie
 ): ScoredItem {
@@ -185,7 +196,7 @@ export function mapToScoredItem(
       item.name ??
       "Sin título",
 
-    genres: item.genre_ids,
+    genres: genreIdsOf(item),
 
     voteAverage: item.vote_average,
 
@@ -277,13 +288,24 @@ export function mapRecommendation(
       0,
 
     genres:
-      details?.genres?.length
-        ? details.genres.map(
-            (genre) => genre.name
-          )
-        : item.genre_ids
-            .map((id) => GENRES[id])
-            .filter(Boolean),
+      item.title === undefined && item.name !== undefined
+        ? genreIdsOf({
+            ...item,
+            genre_ids: details?.genres?.length
+              ? details.genres.map((genre) => genre.id)
+              : item.genre_ids,
+          })
+            .map(
+              (id) =>
+                GENRES[id] ??
+                details?.genres?.find((g) => g.id === id)?.name
+            )
+            .filter((name): name is string => Boolean(name))
+        : details?.genres?.length
+          ? details.genres.map((genre) => genre.name)
+          : item.genre_ids
+              .map((id) => GENRES[id])
+              .filter(Boolean),
 
     overview: item.overview,
 
@@ -297,7 +319,7 @@ export function mapRecommendation(
 
     director,
 
-    genreIds: item.genre_ids ?? [],
+    genreIds: genreIdsOf(item),
 
     tagline: details?.tagline || undefined,
 
