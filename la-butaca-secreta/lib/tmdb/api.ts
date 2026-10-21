@@ -373,12 +373,12 @@ interface TMDBReleaseDates {
 
 /**
  * Fecha de estreno digital («AAAA-MM-DD»): la de España y, si TMDb no la
- * tiene, la de EE. UU. (muchas plataformas estrenan el mismo día en todo
+ * tiene, la de EE. UU. o, si tampoco, la más temprana de cualquier país (muchas plataformas estrenan el mismo día en todo
  * el mundo, pero en TMDb solo está apuntada la de EE. UU.).
  */
 export async function getDigitalDate(
   id: number
-): Promise<{ date: string; region: "ES" | "US" } | null> {
+): Promise<{ date: string; region: "ES" | "US" | "OTHER" } | null> {
   const data = await request<TMDBReleaseDates>(
     `/movie/${id}/release_dates`,
     CALENDAR_REVALIDATE
@@ -397,7 +397,14 @@ export async function getDigitalDate(
     if (digital) return { date: digital, region };
   }
 
-  return null;
+  // Último recurso: el estreno digital más temprano en cualquier país
+  const others = (data.results ?? [])
+    .flatMap((entry) => entry.release_dates)
+    .filter((release) => release.type === 4)
+    .map((release) => release.release_date.substring(0, 10))
+    .sort();
+
+  return others[0] ? { date: others[0], region: "OTHER" } : null;
 }
 
 interface TMDBProviderList {

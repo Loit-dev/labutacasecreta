@@ -246,7 +246,7 @@ export async function GET(request: NextRequest) {
               entry
             ): entry is {
               item: TMDBMovie;
-              digital: { date: string; region: "ES" | "US" };
+              digital: { date: string; region: "ES" | "US" | "OTHER" };
             } =>
               !!entry.digital &&
               entry.digital.date >= from &&
@@ -260,7 +260,9 @@ export async function GET(request: NextRequest) {
               platform.key,
               digital.region === "US"
                 ? "Fecha de estreno en EE. UU."
-                : undefined
+                : digital.region === "OTHER"
+                  ? "Fecha de estreno digital en otro país"
+                  : undefined
             )
           );
       })
