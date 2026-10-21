@@ -34,7 +34,10 @@ export default function RecommendationCard({
   onReject,
 }: Props) {
   return (
-    <article className="flex h-full flex-col overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900 shadow-xl">
+    <article
+      aria-label={title}
+      className="flex h-full flex-col overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900 shadow-xl"
+    >
        <div className="relative h-58 w-full overflow-hidden">
         <Image src={poster} alt={title} fill unoptimized={poster.endsWith(".svg")} className="object-contain bg-black" sizes="(max-width: 768px) 100vw, 33vw" />
         {providers.length > 0 && (
@@ -75,7 +78,8 @@ export default function RecommendationCard({
       <div className="flex flex-1 flex-col space-y-3 p-4">
         <div>
           <div className="text-xs font-semibold uppercase tracking-wider text-yellow-400">
-            {badge} {badgeTitle}
+            <span aria-hidden="true">{badge}</span>{" "}
+            {badgeTitle}
           </div>
 
           <h2 className="mt-2 line-clamp-2 text-lg font-bold text-white">
@@ -84,7 +88,11 @@ export default function RecommendationCard({
         </div>
 
         <div className="flex flex-wrap gap-3 text-sm text-zinc-400">
-          <span>⭐ {rating}</span>
+          <span>
+            <span aria-hidden="true">⭐</span>
+            <span className="sr-only">Nota </span>{" "}
+            {rating}
+          </span>
 
           {runtime ? (
             <span>{runtime} min</span>
@@ -108,7 +116,7 @@ export default function RecommendationCard({
 
         {reason && (
           <p className="text-xs italic leading-relaxed text-yellow-200/80">
-            💡 {reason}
+            <span aria-hidden="true">💡</span> {reason}
           </p>
         )}
 
@@ -118,6 +126,7 @@ export default function RecommendationCard({
 
         <button
   onClick={onDetails}
+  aria-label={`Ver detalles de ${title}`}
   className="
     mt-auto
     w-full
@@ -130,6 +139,9 @@ export default function RecommendationCard({
     text-white
     transition-colors
     hover:bg-red-500
+    focus-visible:outline-2
+    focus-visible:outline-offset-2
+    focus-visible:outline-white
   "
 >
   Ver detalles
@@ -140,20 +152,22 @@ export default function RecommendationCard({
             {onSeen && (
               <button
                 onClick={onSeen}
+                aria-label={`Ya la vi: ${title}`}
                 title="No volveré a recomendártela"
-                className="flex-1 rounded-lg border border-zinc-700 px-2 py-2 text-xs font-medium text-zinc-300 transition-colors hover:border-zinc-500 hover:bg-zinc-800 hover:text-white"
+                className="flex-1 rounded-lg border border-zinc-700 px-2 py-2 text-xs font-medium text-zinc-300 transition-colors hover:border-zinc-500 hover:bg-zinc-800 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
               >
-                👁 Ya la vi
+                <span aria-hidden="true">👁</span> Ya la vi
               </button>
             )}
 
             {onReject && (
               <button
                 onClick={onReject}
+                aria-label={`No me apetece: ${title}`}
                 title="Buscaré algo distinto"
-                className="flex-1 rounded-lg border border-zinc-700 px-2 py-2 text-xs font-medium text-zinc-300 transition-colors hover:border-zinc-500 hover:bg-zinc-800 hover:text-white"
+                className="flex-1 rounded-lg border border-zinc-700 px-2 py-2 text-xs font-medium text-zinc-300 transition-colors hover:border-zinc-500 hover:bg-zinc-800 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
               >
-                👎 No me apetece
+                <span aria-hidden="true">👎</span> No me apetece
               </button>
             )}
           </div>

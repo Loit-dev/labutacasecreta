@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export default function Footer() {
   return (
-    <footer className="relative z-30 mx-auto w-full max-w-4xl px-6 pb-8 pt-2 text-center text-xs leading-relaxed text-zinc-500">
+    <footer className="relative z-30 mx-auto w-full max-w-4xl px-6 pb-8 pt-2 text-center text-xs leading-relaxed text-zinc-400">
       <a
         href="https://www.themoviedb.org/"
         target="_blank"
@@ -27,7 +27,7 @@ export default function Footer() {
           href="https://www.themoviedb.org/"
           target="_blank"
           rel="noopener noreferrer"
-          className="underline-offset-2 hover:text-zinc-300 hover:underline"
+          className="underline-offset-2 hover:text-zinc-300 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
           TMDb
         </a>
@@ -36,7 +36,7 @@ export default function Footer() {
           href="https://www.justwatch.com/"
           target="_blank"
           rel="noopener noreferrer"
-          className="underline-offset-2 hover:text-zinc-300 hover:underline"
+          className="underline-offset-2 hover:text-zinc-300 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
           JustWatch
         </a>
@@ -53,14 +53,14 @@ export default function Footer() {
       <p className="mt-2">
         <Link
           href="/privacidad"
-          className="underline-offset-2 hover:text-zinc-300 hover:underline"
+          className="underline-offset-2 hover:text-zinc-300 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
           Privacidad
         </Link>
         {" · "}
         <Link
           href="/aviso-legal"
-          className="underline-offset-2 hover:text-zinc-300 hover:underline"
+          className="underline-offset-2 hover:text-zinc-300 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
           Aviso legal
         </Link>

@@ -50,6 +50,10 @@ export default function AnswerButton({
         hover:-translate-y-0.5
         hover:border-red-500/60
         hover:shadow-[0_0_20px_rgba(239,68,68,0.15)]
+
+        focus-visible:outline-2
+        focus-visible:outline-offset-2
+        focus-visible:outline-white
       "
     >
       <div
@@ -111,18 +115,24 @@ export default function AnswerButton({
           `}
         >
           {isMovie && (
-            <span className="shrink-0 text-2xl">
+            <span
+              className="shrink-0 text-2xl"
+              aria-hidden="true"
+            >
               🎬
             </span>
           )}
 
           {isSeries && (
-            <span className="shrink-0 text-2xl">
+            <span
+              className="shrink-0 text-2xl"
+              aria-hidden="true"
+            >
               📺
             </span>
           )}
 
-          <h3
+          <span
             className="
               text-base
               font-semibold
@@ -138,17 +148,18 @@ export default function AnswerButton({
             {label
               .replace("🎬 ", "")
               .replace("📺 ", "")}
-          </h3>
+          </span>
         </div>
 
         {!centered && (
           <span
+            aria-hidden="true"
             className="
               ml-3
               shrink-0
 
               text-lg
-              text-zinc-500
+              text-zinc-400
 
               transition-all
               duration-300

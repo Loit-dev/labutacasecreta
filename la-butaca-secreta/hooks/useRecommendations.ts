@@ -8,6 +8,7 @@ import {
   useState,
 } from "react";
 
+import { track } from "@/lib/analytics";
 import type { UserProfile } from "@/lib/conversation/types";
 import {
   countAvailable,
@@ -207,6 +208,8 @@ export function useRecommendations(
     setExhausted(false);
     setLoadingMore(false);
 
+    const startedAt = Date.now();
+
     async function load() {
       try {
         const quick = await fetchBatch(
@@ -220,6 +223,12 @@ export function useRecommendations(
         append(quick);
 
         // Ya se puede enseñar algo mientras llega el resto
+        track("results_shown", {
+          type,
+          count: quick.length,
+          ms: Date.now() - startedAt,
+        });
+
         setPhase("ready");
         setLoadingMore(true);
 
@@ -239,6 +248,7 @@ export function useRecommendations(
             quick.length === 0
           ) {
             setExhausted(true);
+            track("results_exhausted", { type });
           }
         } catch (error) {
           if (controller.signal.aborted) return;
@@ -256,6 +266,8 @@ export function useRecommendations(
         if (controller.signal.aborted) return;
 
         console.error(error);
+
+        track("results_error", { type });
 
         setErrorDetail(
           error instanceof Error
@@ -275,7 +287,7 @@ export function useRecommendations(
     load();
 
     return () => controller.abort();
-  }, [profile, attempt, append, excludeParam]);
+  }, [profile, attempt, append, excludeParam, type]);
 
   // ----------------------------------------------
   // Pedir más (sin repetir nada y aprendiendo de lo rechazado)
@@ -307,6 +319,7 @@ export function useRecommendations(
 
       if (more.length === 0) {
         setExhausted(true);
+        track("results_exhausted", { type });
       } else {
         append(more);
       }
@@ -322,7 +335,7 @@ export function useRecommendations(
         setLoadingMore(false);
       }
     }
-  }, [profile, excludeParam, append]);
+  }, [profile, excludeParam, append, type]);
 
   // ----------------------------------------------
   // Lo que se ve ahora
@@ -362,12 +375,16 @@ export function useRecommendations(
 
   // "Dame otras 3": las que se ven pasan a la historia
   const next = useCallback(() => {
+    track("more_clicked", { type });
+
     hide(visible.map((item) => item.id));
-  }, [hide, visible]);
+  }, [hide, visible, type]);
 
   // "Ya la vi": no vuelve a salir, tampoco en próximas visitas
   const markSeen = useCallback(
     (item: Recommendation) => {
+      track("seen_clicked", { type, id: item.id, role: item.role });
+
       addSeen(type, item.id);
 
       setSeenCount(readSeen(type).length);
@@ -381,6 +398,8 @@ export function useRecommendations(
   // géneros puntúan un poco menos en lo que queda de sesión
   const reject = useCallback(
     (item: Recommendation) => {
+      track("reject_clicked", { type, id: item.id, role: item.role });
+
       dislikedRef.current = [
         ...dislikedRef.current,
         ...item.genreIds,
@@ -388,10 +407,12 @@ export function useRecommendations(
 
       hide([item.id]);
     },
-    [hide]
+    [hide, type]
   );
 
   const forgetSeen = useCallback(() => {
+    track("forget_seen", { type });
+
     clearSeen(type);
 
     setSeenCount(0);

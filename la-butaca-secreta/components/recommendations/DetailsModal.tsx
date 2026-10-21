@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import { createPortal } from "react-dom";
 
+import { useDialog } from "@/hooks/useDialog";
+import { track } from "@/lib/analytics";
 import type { Recommendation } from "@/lib/tmdb/mapper";
 
 type Props = {
@@ -22,41 +24,8 @@ export default function DetailsModal({
   const [showTrailer, setShowTrailer] =
     useState(false);
 
-  const closeRef =
-    useRef<HTMLButtonElement>(null);
-
-  // Cerrar con Escape, bloquear el scroll del fondo y llevar el foco al modal
-  useEffect(() => {
-    const previousFocus =
-      document.activeElement as HTMLElement | null;
-
-    const previousOverflow =
-      document.body.style.overflow;
-
-    document.body.style.overflow = "hidden";
-
-    closeRef.current?.focus();
-
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        onClose();
-      }
-    }
-
-    window.addEventListener("keydown", onKeyDown);
-
-    return () => {
-      window.removeEventListener(
-        "keydown",
-        onKeyDown
-      );
-
-      document.body.style.overflow =
-        previousOverflow;
-
-      previousFocus?.focus();
-    };
-  }, [onClose]);
+  // Foco, Tab, Escape y scroll del fondo (ver useDialog)
+  const dialogRef = useDialog<HTMLDivElement>(onClose);
 
   const trailerSearch = `https://www.youtube.com/results?search_query=${encodeURIComponent(
     `${movie.title} ${movie.year} tráiler`
@@ -75,21 +44,26 @@ export default function DetailsModal({
       onClick={onClose}
     >
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
-        aria-labelledby="details-title"
+        aria-label={
+          showTrailer
+            ? `Tráiler de ${movie.title}`
+            : `Detalles de ${movie.title}`
+        }
+        tabIndex={-1}
         className="relative max-h-[96dvh] w-full max-w-xl overflow-y-auto overscroll-contain rounded-3xl border border-zinc-800 bg-zinc-900 p-4 shadow-2xl sm:p-5"
         onClick={(event) =>
           event.stopPropagation()
         }
       >
         <button
-          ref={closeRef}
           onClick={onClose}
           aria-label="Cerrar"
-          className="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/70 text-white backdrop-blur hover:bg-black"
+          className="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/70 text-white backdrop-blur hover:bg-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
-          ✕
+          <span aria-hidden="true">✕</span>
         </button>
 
         {showTrailer && movie.trailerKey ? (
@@ -106,7 +80,7 @@ export default function DetailsModal({
 
             <button
               onClick={() => setShowTrailer(false)}
-              className="rounded-xl border border-zinc-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800"
+              className="rounded-xl border border-zinc-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
               ← Volver a los detalles
             </button>
@@ -130,18 +104,22 @@ export default function DetailsModal({
 
               <div className="min-w-0 flex-1 space-y-2">
                 <div className="text-xs font-semibold uppercase tracking-wider text-yellow-400">
-                  {badge} {badgeTitle}
+                  <span aria-hidden="true">{badge}</span>{" "}
+                  {badgeTitle}
                 </div>
 
                 <h2
-                  id="details-title"
                   className="text-xl font-bold leading-tight text-white sm:text-2xl"
                 >
                   {movie.title}
                 </h2>
 
                 <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm text-zinc-300">
-                  <span>⭐ {movie.rating}</span>
+                  <span>
+                    <span aria-hidden="true">⭐</span>
+                    <span className="sr-only">Nota </span>{" "}
+                    {movie.rating}
+                  </span>
 
                   {movie.runtime ? (
                     <span>{movie.runtime} min</span>
@@ -179,7 +157,7 @@ export default function DetailsModal({
               <p className="text-xs leading-relaxed text-zinc-400">
                 {movie.director && (
                   <>
-                    <span className="text-zinc-500">
+                    <span className="text-zinc-400">
                       Dirige:
                     </span>{" "}
                     {movie.director}
@@ -190,7 +168,7 @@ export default function DetailsModal({
 
                 {cast && (
                   <>
-                    <span className="text-zinc-500">
+                    <span className="text-zinc-400">
                       Con:
                     </span>{" "}
                     {cast}
@@ -201,13 +179,14 @@ export default function DetailsModal({
 
             {movie.reason && (
               <p className="rounded-xl bg-yellow-400/10 px-3 py-2 text-xs italic leading-relaxed text-yellow-200">
-                💡 {movie.reason}
+                <span aria-hidden="true">💡</span>{" "}
+                {movie.reason}
               </p>
             )}
 
             {/* Plataformas */}
             <div>
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
                 Disponible en
               </h3>
 
@@ -244,27 +223,33 @@ export default function DetailsModal({
             <div className="flex flex-wrap items-center gap-3">
               {movie.trailerKey ? (
                 <button
-                  onClick={() =>
-                    setShowTrailer(true)
-                  }
-                  className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-500"
+                  onClick={() => {
+                    track("trailer_open", { id: movie.id });
+
+                    setShowTrailer(true);
+                  }}
+                  className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                 >
-                  ▶ Ver tráiler
+                  <span aria-hidden="true">▶</span> Ver tráiler
                 </button>
               ) : (
                 <a
                   href={trailerSearch}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-500"
+                  className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                 >
-                  🔎 Buscar tráiler
+                  <span aria-hidden="true">🔎</span> Buscar tráiler
+                  <span className="sr-only">
+                    {" "}
+                    (se abre en una pestaña nueva)
+                  </span>
                 </a>
               )}
 
             </div>
 
-            <p className="text-[11px] text-zinc-600">
+            <p className="text-[11px] text-zinc-400">
               Datos: TMDb · Plataformas: JustWatch
             </p>
           </div>

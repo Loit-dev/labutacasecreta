@@ -17,11 +17,12 @@ export default function PrivacyPage() {
 
         <p>
           {SITE_NAME} no tiene cuentas de usuario, no te
-          pide datos personales, no usa cookies propias ni
-          herramientas de analítica o publicidad. Tus
-          respuestas sirven únicamente para buscar
-          recomendaciones y no se guardan en ninguna base de
-          datos.
+          pide datos personales y no usa cookies ni
+          publicidad. Medimos el uso de la web con una
+          analítica sin cookies y sin datos personales (más
+          abajo te lo explicamos). Tus respuestas sirven para
+          buscar recomendaciones y no se guardan asociadas a
+          ti en ninguna base de datos.
         </p>
       </section>
 
@@ -50,6 +51,41 @@ export default function PrivacyPage() {
           títulos. Puedes borrarlo en cualquier momento con
           el enlace «Olvidar mis títulos vistos» o limpiando
           los datos del sitio en tu navegador.
+        </p>
+      </section>
+
+      <section>
+        <h2>Analítica de uso</h2>
+
+        <p>
+          Usamos <strong>Vercel Web Analytics</strong> para
+          saber cuánta gente visita la web y cómo se usa, y así
+          mejorarla. No usa cookies, no te identifica ni te
+          sigue entre sitios web. Recoge datos agregados como
+          la página visitada, de dónde llegas, el país, el
+          tipo de dispositivo y el navegador.
+        </p>
+
+        <p>
+          También contamos acciones de forma anónima: qué
+          opciones se eligen en el cuestionario, cuántas veces
+          se pulsa «Ya la vi», «No me apetece», «Dame otras 3»
+          o «Compartir», y los números de identificación de los
+          títulos implicados. Nunca se asocian a una persona
+          concreta.
+        </p>
+      </section>
+
+      <section>
+        <h2>Imagen para compartir</h2>
+
+        <p>
+          El botón «Compartir» crea una imagen con tus tres
+          recomendaciones directamente en tu navegador. No se
+          sube a ningún servidor nuestro: tú decides si la
+          descargas o la envías. Para dibujar los pósters,
+          nuestro servidor los descarga de TMDb y te los
+          entrega, sin guardar nada.
         </p>
       </section>
 
@@ -123,9 +159,9 @@ export default function PrivacyPage() {
         <h2>Cambios</h2>
 
         <p>
-          Si en el futuro añadimos analítica, cuentas u otras
-          funciones que traten datos personales, actualizaremos
-          esta página antes de activarlas.
+          Si en el futuro añadimos cuentas u otras funciones
+          que traten datos personales, actualizaremos esta
+          página antes de activarlas.
         </p>
       </section>
     </LegalPage>

@@ -10,9 +10,12 @@ import {
 import DetailsModal from "./DetailsModal";
 import RecommendationCard from "./RecommendationCard";
 import RecommendationSkeleton from "./RecommendationSkeleton";
+import ShareDialog from "./ShareDialog";
 
 import { useRecommendations } from "@/hooks/useRecommendations";
+import { track } from "@/lib/analytics";
 import { UserProfile } from "@/lib/conversation/types";
+import { posterSource, type ShareItem } from "@/lib/share";
 import type { Recommendation } from "@/lib/tmdb/mapper";
 
 type Props = {
@@ -95,8 +98,22 @@ export default function Recommendations({
     number | null
   >(null);
 
+  const [shareItems, setShareItems] = useState<
+    ShareItem[] | null
+  >(null);
+
+  // Texto para lectores de pantalla (avisa de lo que cambia)
+  const [announcement, setAnnouncement] = useState("");
+
+  const type = profile.contentType ?? "movie";
+
   const sectionRef = useRef<HTMLElement>(null);
   const scrolledRef = useRef(false);
+
+  const closeShare = useCallback(
+    () => setShareItems(null),
+    []
+  );
 
   // Estable: la ventana de detalles lo usa en un efecto
   const closeDetails = useCallback(
@@ -133,7 +150,34 @@ export default function Recommendations({
   const nextBatch = () => {
     setActiveIndex(0);
     setDetailsId(null);
+    setAnnouncement("Aquí tienes otras recomendaciones.");
     next();
+  };
+
+  const openShare = () => {
+    const items: ShareItem[] = visible
+      .slice(0, 3)
+      .map((movie) => ({
+        title: movie.title,
+        year: movie.year,
+        rating: movie.rating,
+        role: movie.role,
+        posterUrl: posterSource(movie.poster),
+      }));
+
+    track("share_open", { type, count: items.length });
+
+    setShareItems(items);
+  };
+
+  // Al quitar una tarjeta, el botón pulsado desaparece: el foco se
+  // lleva a la sección y se avisa de lo ocurrido.
+  const removed = (title: string) => {
+    setAnnouncement(
+      `«${title}» quitada de la lista. Te propongo otra.`
+    );
+
+    sectionRef.current?.focus();
   };
 
   const minSwipeDistance = 50;
@@ -211,19 +255,19 @@ export default function Recommendations({
   if (phase === "error") {
     return (
       <div className="space-y-3 text-center">
-        <p className="text-red-400">
+        <p role="alert" className="text-red-400">
           No se pudieron cargar las recomendaciones.
         </p>
 
         {errorDetail && (
-          <p className="break-words text-xs text-zinc-500">
+          <p className="break-words text-xs text-zinc-400">
             Detalle técnico: {errorDetail}
           </p>
         )}
 
         <button
           onClick={retry}
-          className="rounded-xl border border-zinc-700 bg-zinc-900/80 px-5 py-3 text-sm font-medium text-white transition-all hover:border-red-500/50 hover:bg-zinc-800"
+          className="rounded-xl border border-zinc-700 bg-zinc-900/80 px-5 py-3 text-sm font-medium text-white transition-all hover:border-red-500/50 hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
           🔄 Reintentar
         </button>
@@ -247,7 +291,7 @@ export default function Recommendations({
 
         <button
           onClick={() => window.location.reload()}
-          className="rounded-xl border border-zinc-700 bg-zinc-900/80 px-5 py-3 text-sm font-medium text-white transition-all hover:border-red-500/50 hover:bg-zinc-800"
+          className="rounded-xl border border-zinc-700 bg-zinc-900/80 px-5 py-3 text-sm font-medium text-white transition-all hover:border-red-500/50 hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
           🎬 Empezar de nuevo
         </button>
@@ -256,7 +300,7 @@ export default function Recommendations({
           <div>
             <button
               onClick={forgetSeen}
-              className="text-xs text-zinc-500 underline underline-offset-2 hover:text-zinc-300"
+              className="text-xs text-zinc-400 underline underline-offset-2 hover:text-zinc-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
               Olvidar mis títulos vistos ({seenCount})
             </button>
@@ -294,9 +338,22 @@ export default function Recommendations({
         poster={movie.poster}
         providers={movie.providers}
         reason={movie.reason}
-        onDetails={() => setDetailsId(movie.id)}
-        onSeen={() => markSeen(movie)}
-        onReject={() => reject(movie)}
+        onDetails={() => {
+          track("details_open", {
+            id: movie.id,
+            role: movie.role,
+          });
+
+          setDetailsId(movie.id);
+        }}
+        onSeen={() => {
+          markSeen(movie);
+          removed(movie.title);
+        }}
+        onReject={() => {
+          reject(movie);
+          removed(movie.title);
+        }}
       />
     );
   };
@@ -318,12 +375,22 @@ export default function Recommendations({
     <section
       ref={sectionRef}
       id="recommendations"
-      className="scroll-mt-4 scroll-mb-4 space-y-8"
+      aria-labelledby="recommendations-title"
+      tabIndex={-1}
+      className="scroll-mt-4 scroll-mb-4 space-y-8 outline-none"
     >
+      <p role="status" className="sr-only">
+        {announcement}
+      </p>
+
       <div className="text-center">
-        <h1 className="text-2xl font-bold text-white md:text-3xl">
-          🎬 Creo que estas tres pueden ser justo lo que buscas.
-        </h1>
+        <h2
+          id="recommendations-title"
+          className="text-2xl font-bold text-white md:text-3xl"
+        >
+          <span aria-hidden="true">🎬</span> Creo que estas
+          tres pueden ser justo lo que buscas.
+        </h2>
 
         <p className="mt-3 text-sm text-zinc-400 md:text-base">
           Seleccionadas especialmente para ti.
@@ -332,11 +399,20 @@ export default function Recommendations({
 
       {/* MOBILE */}
       <div
+        role="region"
+        aria-roledescription="carrusel"
+        aria-label="Recomendaciones"
         className="md:hidden"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
+        <p className="sr-only" aria-live="polite">
+          {visible[current]
+            ? `Recomendación ${current + 1} de ${visible.length}: ${visible[current].title}`
+            : ""}
+        </p>
+
         {visible[current] && (
           <div
             key={visible[current].id}
@@ -347,23 +423,26 @@ export default function Recommendations({
             <button
               onClick={prevMovie}
               aria-label="Anterior"
-              className="absolute left-3 top-3 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-black/70 text-white backdrop-blur"
+              className="absolute left-3 top-3 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-black/70 text-white backdrop-blur focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
-              ←
+              <span aria-hidden="true">←</span>
             </button>
 
             <button
               onClick={nextMovie}
               aria-label="Siguiente"
-              className="absolute right-3 top-3 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-black/70 text-white backdrop-blur"
+              className="absolute right-3 top-3 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-black/70 text-white backdrop-blur focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
-              →
+              <span aria-hidden="true">→</span>
             </button>
           </div>
         )}
 
         {visible.length > 1 && (
-          <div className="mt-4 flex justify-center gap-2">
+          <div
+            className="mt-4 flex justify-center gap-2"
+            aria-hidden="true"
+          >
             {visible.map((movie, index) => (
               <div
                 key={movie.id}
@@ -383,56 +462,50 @@ export default function Recommendations({
         {visible.map(renderCard)}
       </div>
 
-      {hasMore && (
+      <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
         <button
-          onClick={nextBatch}
-          disabled={
-            available <= visible.length &&
-            loadingMore
-          }
-          className="
-            mx-auto
-            mt-6
-            block
-
-            rounded-xl
-            border
-            border-zinc-700
-
-            bg-zinc-900/80
-
-            px-5
-            py-3
-
-            text-sm
-            font-medium
-            text-white
-
-            transition-all
-
-            hover:border-red-500/50
-            hover:bg-zinc-800
-
-            disabled:cursor-wait
-            disabled:opacity-60
-          "
+          onClick={openShare}
+          className="rounded-xl bg-red-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
-          🔄 Dame otras 3 recomendaciones
+          <span aria-hidden="true">📤</span> Compartir mis
+          sugerencias
         </button>
-      )}
+
+        {hasMore && (
+          <button
+            onClick={nextBatch}
+            disabled={
+              available <= visible.length &&
+              loadingMore
+            }
+            className="rounded-xl border border-zinc-700 bg-zinc-900/80 px-5 py-3 text-sm font-medium text-white transition-all hover:border-red-500/50 hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:cursor-wait disabled:opacity-60"
+          >
+            <span aria-hidden="true">🔄</span> Dame otras 3
+            recomendaciones
+          </button>
+        )}
+      </div>
 
       {seenCount > 0 && (
-        <p className="text-center text-xs text-zinc-500">
+        <p className="text-center text-xs text-zinc-400">
           Has marcado {seenCount}{" "}
           {seenCount === 1 ? "título" : "títulos"} como
           {seenCount === 1 ? " visto" : " vistos"} ·{" "}
           <button
             onClick={forgetSeen}
-            className="underline underline-offset-2 hover:text-zinc-300"
+            className="underline underline-offset-2 hover:text-zinc-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
           >
             Olvidar mis títulos vistos
           </button>
         </p>
+      )}
+
+      {shareItems && (
+        <ShareDialog
+          items={shareItems}
+          kind={type}
+          onClose={closeShare}
+        />
       )}
 
       {detailsMovie && detailsBadge && (
