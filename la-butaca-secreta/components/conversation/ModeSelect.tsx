@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import type { PlatformKey } from "@/lib/platforms";
 
 import PlatformPicker from "./PlatformPicker";
@@ -71,6 +73,37 @@ export default function ModeSelect({
           </button>
         ))}
       </div>
+
+      <Link
+        href="/hoy"
+        className="group mt-3 flex items-center justify-between rounded-2xl border border-zinc-800 bg-zinc-900/60 px-5 py-4 text-left transition-all duration-300 hover:-translate-y-0.5 hover:border-yellow-500/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+      >
+        <span className="flex items-center gap-3">
+          <span className="text-2xl" aria-hidden="true">
+            ⚡
+          </span>
+
+          <span>
+            <span
+              className="block text-sm font-semibold text-white"
+              style={{ fontFamily: "var(--font-manrope)" }}
+            >
+              La carta de hoy
+            </span>
+
+            <span className="block text-xs text-zinc-400">
+              Sin preguntas: 3 propuestas al momento.
+            </span>
+          </span>
+        </span>
+
+        <span
+          aria-hidden="true"
+          className="text-zinc-500 transition-colors group-hover:text-white"
+        >
+          →
+        </span>
+      </Link>
 
       <PlatformPicker
         selected={platforms}

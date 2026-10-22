@@ -12,6 +12,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const pages = [
     { path: "", priority: 1 },
+    { path: "/hoy", priority: 0.6 },
     { path: "/privacidad", priority: 0.2 },
     { path: "/aviso-legal", priority: 0.2 },
   ];
