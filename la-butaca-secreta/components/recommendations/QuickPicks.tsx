@@ -6,12 +6,14 @@ import Link from "next/link";
 import DetailsModal from "./DetailsModal";
 import RecommendationCard from "./RecommendationCard";
 import RecommendationSkeleton from "./RecommendationSkeleton";
+import ShareDialog from "./ShareDialog";
 import { badgeFor } from "./badges";
 
 import { useWatchlist } from "@/hooks/useWatchlist";
 import { track } from "@/lib/analytics";
 import { UserProfile } from "@/lib/conversation/types";
 import { inferredProfile } from "@/lib/memory";
+import { posterSource, type ShareItem } from "@/lib/share";
 import type { Recommendation } from "@/lib/tmdb/mapper";
 import { readSeen } from "@/lib/viewed";
 
@@ -115,6 +117,7 @@ export default function QuickPicks() {
   const [items, setItems] = useState<Recommendation[]>([]);
   const [phase, setPhase] = useState<Phase>("loading");
   const [detailsId, setDetailsId] = useState<number | null>(null);
+  const [shareItems, setShareItems] = useState<ShareItem[] | null>(null);
 
   const watchlist = useWatchlist();
 
@@ -230,6 +233,21 @@ export default function QuickPicks() {
     });
   };
 
+  const openShare = () => {
+    const shared: ShareItem[] = items.map((movie) => ({
+      id: movie.id,
+      title: movie.title,
+      year: movie.year,
+      rating: movie.rating,
+      role: movie.role,
+      posterUrl: posterSource(movie.poster),
+    }));
+
+    track("share_open", { type, count: shared.length, source: "today" });
+
+    setShareItems(shared);
+  };
+
   if (phase === "loading") {
     return <RecommendationSkeleton compact />;
   }
@@ -237,7 +255,7 @@ export default function QuickPicks() {
   if (phase === "error") {
     return (
       <p className="text-center text-sm text-red-400" role="alert">
-        No he podido preparar la carta de hoy. Prueba otra vez en un rato.
+        No he podido preparar la Butaca Exprés. Prueba otra vez en un rato.
       </p>
     );
   }
@@ -270,7 +288,7 @@ export default function QuickPicks() {
     <div className="space-y-6">
       <div className="text-center">
         <h1 className="text-xl font-bold text-white md:text-2xl">
-          <span aria-hidden="true">⚡</span> La carta de hoy
+          <span aria-hidden="true">⚡</span> Butaca Exprés
         </h1>
 
         <p className="mt-1 text-xs text-zinc-400 md:text-sm">
@@ -313,6 +331,16 @@ export default function QuickPicks() {
         })}
       </div>
 
+      <div className="flex flex-wrap items-center justify-center gap-2">
+        <button
+          onClick={openShare}
+          className="rounded-full bg-red-600 px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-black/60 transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white md:rounded-xl md:px-5 md:py-3 md:text-sm"
+        >
+          <span aria-hidden="true">📤</span> Compartir mis
+          sugerencias
+        </button>
+      </div>
+
       <div className="text-center">
         <Link
           href="/"
@@ -321,6 +349,14 @@ export default function QuickPicks() {
           ¿Prefieres contestar el cuestionario completo?
         </Link>
       </div>
+
+      {shareItems && (
+        <ShareDialog
+          items={shareItems}
+          kind={type}
+          onClose={() => setShareItems(null)}
+        />
+      )}
 
       {detailsMovie && detailsBadge && (
         <DetailsModal

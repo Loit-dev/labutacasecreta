@@ -5,7 +5,7 @@
  * o «vistos». Sirve para dos cosas:
  * - Precargar (o saltarse) alguna pregunta del cuestionario cuando ya
  *   hay bastante seguridad sobre lo que suele elegir.
- * - Dar un perfil de partida al modo rápido («La carta de hoy»), que
+ * - Dar un perfil de partida al modo rápido («Butaca Exprés»), que
  *   no pregunta nada.
  *
  * No hay cuentas ni se envía nada a ningún servidor: solo cuenta,

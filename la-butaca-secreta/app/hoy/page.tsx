@@ -5,7 +5,7 @@ import PosterWall from "@/components/layout/PosterWall";
 import QuickPicks from "@/components/recommendations/QuickPicks";
 import { SITE_NAME } from "@/lib/site";
 
-const title = "La carta de hoy";
+const title = "Butaca Exprés";
 const description = `Tres propuestas al momento, sin cuestionario: lo que ${SITE_NAME} te recomienda hoy.`;
 
 export const metadata: Metadata = {

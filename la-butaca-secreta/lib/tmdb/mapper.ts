@@ -146,7 +146,7 @@ export interface Recommendation {
   cast: string[];
   reason?: string;
   // "main" = 🥇/🥈 por encaje, "surprise" = 🥉,
-  // "trending" = lo más visto ahora (solo en «La carta de hoy»)
+  // "trending" = lo más visto ahora (solo en «Butaca Exprés»)
   role?: "main" | "surprise" | "trending";
   // Ids de género de TMDb (para aprender de lo que el usuario rechaza)
   genreIds: number[];

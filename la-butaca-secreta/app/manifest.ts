@@ -30,8 +30,8 @@ export default function manifest(): MetadataRoute.Manifest {
     // (Android/escritorio); salta el cuestionario y va a 3 propuestas.
     shortcuts: [
       {
-        name: "La carta de hoy",
-        short_name: "Hoy",
+        name: "Butaca Exprés",
+        short_name: "Exprés",
         description: "3 propuestas al momento, sin cuestionario",
         url: "/hoy",
         icons: [

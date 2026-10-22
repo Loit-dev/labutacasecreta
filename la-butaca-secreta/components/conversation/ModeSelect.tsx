@@ -76,32 +76,23 @@ export default function ModeSelect({
 
       <Link
         href="/hoy"
-        className="group mt-3 flex items-center justify-between rounded-2xl border border-zinc-800 bg-zinc-900/60 px-5 py-4 text-left transition-all duration-300 hover:-translate-y-0.5 hover:border-yellow-500/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+        className="group mt-3 flex flex-col items-center gap-1 rounded-2xl border border-zinc-800 bg-zinc-900/60 px-5 py-4 text-center transition-all duration-300 hover:-translate-y-0.5 hover:border-yellow-500/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
       >
-        <span className="flex items-center gap-3">
-          <span className="text-2xl" aria-hidden="true">
+        <span className="flex items-center gap-2">
+          <span className="text-xl" aria-hidden="true">
             ⚡
           </span>
 
-          <span>
-            <span
-              className="block text-sm font-semibold text-white"
-              style={{ fontFamily: "var(--font-manrope)" }}
-            >
-              La carta de hoy
-            </span>
-
-            <span className="block text-xs text-zinc-400">
-              Sin preguntas: 3 propuestas al momento.
-            </span>
+          <span
+            className="text-sm font-semibold text-white"
+            style={{ fontFamily: "var(--font-manrope)" }}
+          >
+            Butaca Exprés
           </span>
         </span>
 
-        <span
-          aria-hidden="true"
-          className="text-zinc-500 transition-colors group-hover:text-white"
-        >
-          →
+        <span className="text-xs text-zinc-400">
+          Sin preguntas: 3 propuestas al momento.
         </span>
       </Link>
 
