@@ -35,7 +35,7 @@ export default function DetailsModal({
     `${movie.title} ${movie.year} tráiler`
   )}`;
 
-  const cast = movie.cast.slice(0, 3).join(", ");
+  const castMembers = movie.castMembers ?? [];
 
   const platforms = movie.platforms ?? [];
 
@@ -157,28 +157,51 @@ export default function DetailsModal({
                 "TMDb todavía no tiene sinopsis en español para este título."}
             </p>
 
-            {(movie.director || cast) && (
+            {movie.director && (
               <p className="text-xs leading-relaxed text-zinc-400">
-                {movie.director && (
-                  <>
-                    <span className="text-zinc-400">
-                      Dirige:
-                    </span>{" "}
-                    {movie.director}
-                  </>
-                )}
-
-                {movie.director && cast && " · "}
-
-                {cast && (
-                  <>
-                    <span className="text-zinc-400">
-                      Con:
-                    </span>{" "}
-                    {cast}
-                  </>
-                )}
+                <span className="text-zinc-400">Dirige:</span>{" "}
+                {movie.director}
               </p>
+            )}
+
+            {castMembers.length > 0 && (
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                  Reparto
+                </h3>
+
+                <ul className="mt-2 flex gap-3 overflow-x-auto pb-1 [scrollbar-width:thin]">
+                  {castMembers.map((actor) => (
+                    <li
+                      key={actor.id}
+                      className="flex w-14 shrink-0 flex-col items-center gap-1 text-center"
+                    >
+                      <div className="relative aspect-square w-14 shrink-0 overflow-hidden rounded-full bg-zinc-800">
+                        {actor.photo ? (
+                          <Image
+                            src={actor.photo}
+                            alt={actor.name}
+                            fill
+                            className="object-cover"
+                            sizes="56px"
+                          />
+                        ) : (
+                          <span
+                            aria-hidden="true"
+                            className="flex h-full w-full items-center justify-center text-lg text-zinc-500"
+                          >
+                            🎭
+                          </span>
+                        )}
+                      </div>
+
+                      <span className="w-full truncate text-[10px] font-semibold text-zinc-200">
+                        {actor.name}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
 
             {movie.reason && (
