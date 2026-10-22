@@ -82,3 +82,30 @@ export async function getSharedRecommendations(
     (item): item is Recommendation => item !== null
   );
 }
+
+/**
+ * Ficha completa de un único título (para /pelicula/[id] y
+ * /serie/[id]). Null si TMDb no lo tiene o la petición falla, para
+ * que la página pueda responder con un 404 en vez de reventar.
+ */
+export async function getTitleDetails(
+  type: "movie" | "tv",
+  id: number
+): Promise<Recommendation | null> {
+  try {
+    const details = (
+      type === "movie" ? await getMovieFull(id) : await getTVFull(id)
+    ) as DetailsWithBasics;
+
+    return mapRecommendation(
+      detailsToItem(id, details),
+      details,
+      details["watch/providers"],
+      details.credits
+    );
+  } catch (error) {
+    console.error(`No se pudo cargar ${type}/${id}:`, error);
+
+    return null;
+  }
+}

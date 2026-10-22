@@ -42,6 +42,19 @@ export default function manifest(): MetadataRoute.Manifest {
           },
         ],
       },
+      {
+        name: "Buscar",
+        short_name: "Buscar",
+        description: "Busca una película o serie por título",
+        url: "/buscar",
+        icons: [
+          {
+            src: "/icons/icon-192.png",
+            sizes: "192x192",
+            type: "image/png",
+          },
+        ],
+      },
     ],
     icons: [
       {

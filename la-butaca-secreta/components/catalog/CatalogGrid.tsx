@@ -1,9 +1,12 @@
 import Image from "next/image";
+import Link from "next/link";
 
 import type { Recommendation } from "@/lib/tmdb/mapper";
 
 type Props = {
   items: Recommendation[];
+  // Para enlazar cada póster a su ficha: /pelicula/[id] o /serie/[id]
+  detailBasePath: "/pelicula" | "/serie";
 };
 
 /**
@@ -13,13 +16,14 @@ type Props = {
  * lectura: no hay interacción de cliente, así la página entera puede
  * generarse estática.
  */
-export default function CatalogGrid({ items }: Props) {
+export default function CatalogGrid({ items, detailBasePath }: Props) {
   return (
     <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
       {items.map((item) => (
-        <article
+        <Link
           key={item.id}
-          className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900"
+          href={`${detailBasePath}/${item.id}`}
+          className="block overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900 transition-colors hover:border-zinc-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
           <div className="relative aspect-[2/3] w-full">
             <Image
@@ -43,7 +47,7 @@ export default function CatalogGrid({ items }: Props) {
               {item.rating > 0 ? `⭐ ${item.rating}` : ""}
             </p>
           </div>
-        </article>
+        </Link>
       ))}
     </div>
   );

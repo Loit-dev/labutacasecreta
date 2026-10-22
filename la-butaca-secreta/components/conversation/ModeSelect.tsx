@@ -96,6 +96,16 @@ export default function ModeSelect({
         </span>
       </Link>
 
+      <div className="mt-3 text-center">
+        <Link
+          href="/buscar"
+          className="text-xs text-zinc-400 underline underline-offset-2 hover:text-zinc-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+        >
+          <span aria-hidden="true">🔎</span> ¿Buscas un título
+          concreto?
+        </Link>
+      </div>
+
       <PlatformPicker
         selected={platforms}
         onChange={onPlatformsChange}

@@ -48,6 +48,26 @@ export function platformBySlug(
   return PLATFORMS.find((platform) => platform.key === slug);
 }
 
+/**
+ * Para enlazar desde una ficha de título (lib/tmdb/shared.ts) a su
+ * página de catálogo: busca el género del catálogo que coincide con
+ * el nombre de género que ya muestra la ficha (p. ej. "Comedia").
+ */
+export function genreSlugForLabel(label: string): string | undefined {
+  const normalized = label.trim().toLowerCase();
+
+  return CATALOG_GENRES.find((genre) => genre.label === normalized)?.slug;
+}
+
+/** Igual que genreSlugForLabel, pero con el nombre de la plataforma. */
+export function platformKeyForName(name: string): PlatformKey | undefined {
+  const normalized = name.trim().toLowerCase();
+
+  return PLATFORMS.find(
+    (platform) => platform.label.toLowerCase() === normalized
+  )?.key;
+}
+
 export function catalogParams(): {
   genero: string;
   plataforma: PlatformKey;

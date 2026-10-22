@@ -516,6 +516,21 @@ export async function searchTitle(
   return data.results[0] ?? null;
 }
 
+// ------------------------------------------------------
+// Buscador (ficha de título)
+// ------------------------------------------------------
+
+/**
+ * Busca películas y series a la vez (para el cuadro de búsqueda).
+ * Sin caché: cada combinación de letras es distinta y cachearlas
+ * llenaría la caché de datos de Next sin apenas reutilización.
+ */
+export async function searchMulti(query: string, page = 1) {
+  return request<TMDBResponse>(
+    `/search/multi?query=${encodeURIComponent(query)}&language=es-ES&include_adult=false&page=${page}`
+  );
+}
+
 /** Ids de proveedor en suscripción (España) de una película o serie. */
 export async function getFlatrateIds(
   type: "movie" | "tv",
