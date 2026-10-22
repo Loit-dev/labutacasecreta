@@ -118,6 +118,8 @@ export type ActorCredit = {
   year: number | null;
   poster: string | null;
   character?: string;
+  // Para poder reordenar en el cliente sin volver a pedir datos
+  popularity: number;
 };
 
 export type ActorDetails = {
@@ -159,6 +161,7 @@ function toActorCredit(item: TMDBCastCredit): ActorCredit {
       ) || null,
     poster: item.poster_path ? `${IMAGE_URL}${item.poster_path}` : null,
     character: item.character || undefined,
+    popularity: item.popularity,
   };
 }
 
