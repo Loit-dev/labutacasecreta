@@ -12,7 +12,7 @@ export type ShareItem = {
   title: string;
   year?: number;
   rating?: number;
-  role?: "main" | "surprise";
+  role?: "main" | "surprise" | "trending";
   // De dónde se carga el póster (ya en nuestro propio dominio)
   posterUrl?: string;
 };
