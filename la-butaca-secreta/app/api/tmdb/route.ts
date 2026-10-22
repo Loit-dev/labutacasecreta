@@ -320,6 +320,15 @@ export async function GET(
   request: NextRequest
 ) {
   try {
+    // Cada búsqueda cuesta varias decenas de llamadas a TMDb: se limita
+    // por IP para que un bucle o un script no dispare el consumo
+    if (isRateLimited(`tmdb:${clientIp(request)}`, 20, 60_000)) {
+      return NextResponse.json(
+        { error: "Demasiadas peticiones, prueba en un minuto." },
+        { status: 429 }
+      );
+    }
+
     const params = request.nextUrl.searchParams;
 
     const invalid = validationError(params);
