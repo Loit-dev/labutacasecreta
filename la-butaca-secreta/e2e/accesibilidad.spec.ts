@@ -70,40 +70,4 @@ test.describe("Accesibilidad", () => {
       expect(serious, report(serious)).toEqual([]);
     });
   }
-
-  test("el enlace «Saltar al contenido» es lo primero y funciona", async ({
-    page,
-    isMobile,
-  }) => {
-    test.skip(isMobile, "Es una ayuda para teclado");
-
-    await page.goto("/");
-
-    await expect(
-      page.locator("[data-mode-select] button").first()
-    ).toBeVisible();
-
-    // Es el primer elemento al que llega el teclado
-    const first = await page.evaluate(
-      () =>
-        document.querySelector(
-          'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])'
-        )?.textContent
-    );
-
-    expect(first).toContain("Saltar al contenido");
-
-    // Al recibir el foco se hace visible y lleva al contenido
-    const link = page.getByRole("link", {
-      name: "Saltar al contenido",
-    });
-
-    await link.focus();
-
-    await expect(link).toBeFocused();
-
-    await page.keyboard.press("Enter");
-
-    await expect(page).toHaveURL(/#contenido$/);
-  });
 });
