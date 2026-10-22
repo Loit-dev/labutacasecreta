@@ -189,6 +189,10 @@ export interface TMDBCastCredit {
   popularity: number;
 
   vote_count: number;
+
+  // Solo en las de tv: para descartar talk shows, reality y
+  // informativos, que no son "una película o serie" en este sentido.
+  genre_ids?: number[];
 }
 
 /** Respuesta de /person/{id}/combined_credits. */
