@@ -20,6 +20,12 @@ export type CalendarEntry = {
   note?: string;
   // true si dos fuentes (TMDb y TVmaze) coinciden en el día
   confirmed?: boolean;
+  // Presente solo si la fecha NO es la de estreno en España
+  // (p. ej. solo se conoce la fecha de EE. UU. o de otro país)
+  region?: "US" | "OTHER";
+  // true si no se ha podido contrastar con una ficha de TMDb
+  // (título solo encontrado a mano, p. ej. en una lista manual)
+  unverified?: boolean;
 };
 
 const MONTH_RE = /^(\d{4})-(0[1-9]|1[0-2])$/;

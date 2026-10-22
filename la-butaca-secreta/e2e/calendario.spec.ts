@@ -207,4 +207,70 @@ test.describe("Calendario de estrenos", () => {
 
     expect(await log.count()).toBe(before);
   });
+
+  test("separa las fechas internacionales y los títulos sin contrastar", async ({
+    page,
+  }) => {
+    await mockApi(page);
+
+    const { day } = today();
+
+    await page.route("**/api/calendar**", async (route) => {
+      const url = new URL(route.request().url());
+
+      await route.fulfill({
+        json: {
+          month: url.searchParams.get("month"),
+          logos: {},
+          days: {
+            [day]: [
+              entry(1, "Película España", day, ["netflix"]),
+              {
+                ...entry(2, "Película EE. UU.", day, ["prime"]),
+                note: "Fecha de estreno en EE. UU., aún sin confirmar en España",
+                region: "US",
+              },
+              {
+                ...entry(3, "Rumor sin ficha", day, ["disney"]),
+                id: -1,
+                unverified: true,
+              },
+            ],
+          },
+        },
+      });
+    });
+
+    await page.goto("/");
+
+    await page.getByRole("tab", { name: /Calendario/ }).click();
+
+    const dialog = page.getByRole("tabpanel", {
+      name: /Calendario/,
+    });
+
+    // La española se ve directamente; la internacional está recogida
+    await expect(
+      dialog.getByRole("link", { name: /Película España/ })
+    ).toBeVisible();
+
+    await expect(
+      dialog.getByRole("link", { name: /Película EE\. UU\./ })
+    ).toBeHidden();
+
+    const toggle = dialog.getByRole("button", {
+      name: /fecha internacional/,
+    });
+
+    await expect(toggle).toBeVisible();
+    await toggle.click();
+
+    await expect(
+      dialog.getByRole("link", { name: /Película EE\. UU\./ })
+    ).toBeVisible();
+
+    await expect(
+      dialog.getByText("Sin contrastar")
+    ).toBeVisible();
+  });
 });

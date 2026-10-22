@@ -71,7 +71,8 @@ function toEntry(
   type: "movie" | "tv",
   date: string,
   platform: PlatformKey,
-  note?: string
+  note?: string,
+  region?: "US" | "OTHER"
 ): CalendarEntry {
   return {
     id: item.id,
@@ -86,6 +87,7 @@ function toEntry(
     popularity: item.popularity ?? 0,
     platforms: [platform],
     ...(note ? { note } : {}),
+    ...(region ? { region } : {}),
   };
 }
 
@@ -232,6 +234,7 @@ async function destacados(
             popularity: 0,
             platforms: [item.platform],
             note,
+            unverified: true,
           };
 
       // Por delante de lo demás de su día, en el orden de la lista
@@ -422,10 +425,11 @@ export async function GET(request: NextRequest) {
               digital.date,
               platform.key,
               digital.region === "US"
-                ? "Fecha de estreno en EE. UU."
+                ? "Fecha de estreno en EE. UU., aún sin confirmar en España"
                 : digital.region === "OTHER"
-                  ? "Fecha de estreno digital en otro país"
-                  : undefined
+                  ? "Fecha de estreno digital en otro país, aún sin confirmar en España"
+                  : undefined,
+              digital.region === "ES" ? undefined : digital.region
             )
           );
       })
