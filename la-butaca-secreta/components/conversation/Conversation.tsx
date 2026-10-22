@@ -11,6 +11,7 @@ import GroupQuiz from "@/components/group/GroupQuiz";
 import PosterWall from "@/components/layout/PosterWall";
 import CalendarView from "@/components/calendar/CalendarView";
 import MyListButton from "@/components/list/MyListButton";
+import SearchBox from "@/components/search/SearchBox";
 import { track } from "@/lib/analytics";
 import {
   ALL_PLATFORM_KEYS,
@@ -27,6 +28,7 @@ import SoloChat from "./SoloChat";
 const TABS = [
   ["recommender", "🎬", "Recomendador"],
   ["calendar", "📅", "Calendario"],
+  ["search", "🔎", "Buscar"],
 ] as const;
 
 export default function Conversation() {
@@ -34,7 +36,7 @@ export default function Conversation() {
 
   // Pestañas: el Recomendador no se desmonta al ir al Calendario, así
   // que al volver todo sigue como estaba
-  const [tab, setTab] = useState<"recommender" | "calendar">(
+  const [tab, setTab] = useState<"recommender" | "calendar" | "search">(
     "recommender"
   );
 
@@ -83,6 +85,10 @@ export default function Conversation() {
     if (id === "calendar") {
       track("calendar_open");
       setCalendarOpened(true);
+    }
+
+    if (id === "search") {
+      track("search_open");
     }
 
     setTab(id);
@@ -238,6 +244,23 @@ export default function Conversation() {
             {calendarOpened && (
               <CalendarView platforms={platforms} />
             )}
+          </div>
+
+          <div
+            role="tabpanel"
+            id="panel-search"
+            aria-labelledby="tab-search"
+            hidden={tab !== "search"}
+            className="px-5 py-5 md:px-8"
+          >
+            <p className="text-sm text-zinc-400">
+              Escribe un título: te digo dónde verla, la sinopsis, la
+              nota y el reparto.
+            </p>
+
+            <div className="mt-4">
+              <SearchBox />
+            </div>
           </div>
         </section>
       </main>

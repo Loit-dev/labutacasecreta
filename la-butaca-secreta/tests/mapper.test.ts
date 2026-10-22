@@ -191,7 +191,7 @@ describe("mapRecommendation", () => {
       watch(provider(8, "Netflix")),
       {
         cast: [
-          { id: 1, name: "A", character: "", profile_path: null },
+          { id: 1, name: "A", character: "Uno", profile_path: "/a.jpg" },
           { id: 2, name: "B", character: "", profile_path: null },
         ],
         crew: [
@@ -209,6 +209,11 @@ describe("mapRecommendation", () => {
     assert.equal(result.watchLink, "https://example.test/es");
     assert.deepEqual(result.cast, ["A", "B"]);
     assert.equal(result.director, "Director X");
+
+    assert.equal(result.castMembers.length, 2);
+    assert.equal(result.castMembers[0].character, "Uno");
+    assert.ok(result.castMembers[0].photo?.endsWith("/a.jpg"));
+    assert.equal(result.castMembers[1].photo, null);
   });
 });
 

@@ -37,7 +37,8 @@ export type EventName =
   | "group_done"
   | "today_shown"
   | "search_query"
-  | "search_result_click";
+  | "search_result_click"
+  | "search_open";
 
 type Value = string | number | boolean;
 
