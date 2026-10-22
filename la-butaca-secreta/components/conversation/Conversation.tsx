@@ -40,6 +40,20 @@ export default function Conversation() {
     setPlatforms(readPlatforms());
   }, []);
 
+  // Enlaces como /?tab=calendario (p. ej. desde la página 404) abren
+  // directamente la pestaña del calendario
+  useEffect(() => {
+    if (
+      new URLSearchParams(window.location.search).get("tab") ===
+      "calendario"
+    ) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setTab("calendar");
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setCalendarOpened(true);
+    }
+  }, []);
+
   function changePlatforms(next: PlatformKey[]) {
     setPlatforms(next);
     savePlatforms(next);
