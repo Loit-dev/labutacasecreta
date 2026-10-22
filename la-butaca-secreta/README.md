@@ -20,40 +20,33 @@ Nuestro objetivo es eliminar los 30 minutos que muchas personas pierden buscando
 
 ## 🚀 Estado del proyecto
 
-🟡 En desarrollo (v0.1)
+🟢 En producción: **[labutacasecreta.vercel.app](https://labutacasecreta.vercel.app)**
 
-Actualmente estamos diseñando la experiencia antes de implementar la lógica.
+La conversación adaptativa, el modo acompañado/grupo, el calendario de estrenos, la lista de guardados, compartir resultado y la instalación como app ya funcionan en producción. Lo que sigue abierto son mejoras continuas (SEO, rendimiento, cobertura del calendario), no el MVP.
 
 ---
 
 ## 🛠️ Stack
 
-- Next.js 16
-- React 19
-- TypeScript
+- Next.js 16 (App Router) + React 19 + TypeScript
 - Tailwind CSS v4
-- App Router
+- [TMDb](https://www.themoviedb.org/) para datos de películas/series y disponibilidad por plataforma (Netflix, Prime Video, Disney+, Max, Filmin)
+- [TVmaze](https://www.tvmaze.com/) como segunda fuente para estrenos de series
+- Vercel (hosting, Speed Insights, cron/env)
+- Sin backend propio ni IA generativa: el motor de preguntas es una lógica adaptativa propia (ver `docs/CONVERSATION_ENGINE.md`), no un LLM
 
-Próximamente:
+## ✅ Calidad
 
-- TMDb
-- Supabase
-- IA
-- Vercel
+- Tests unitarios (`npm test`) y end-to-end con Playwright (`npm run test:e2e`), incluida una suite de accesibilidad
+- Auditorías propias de accesibilidad (navegación por teclado, lectores de pantalla) y de rendimiento en móvil
+- Límite de peticiones (`rate limiting`) en las rutas de API
+- Avisos legales y de privacidad en español, con atribución correcta a TMDb
 
 ---
 
 ## 📂 Documentación
 
-Toda la documentación se encuentra en la carpeta `/docs`.
-
-- PRD
-- UX
-- Arquitectura
-- Brand
-- Motor de preguntas
-- Motor de recomendación
-- Roadmap
+Toda la documentación se encuentra en la carpeta `/docs`: PRD, UX, arquitectura, marca, motor de preguntas, motor de recomendación, roadmap y más.
 
 ---
 
