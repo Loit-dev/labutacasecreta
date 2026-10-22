@@ -11,6 +11,7 @@
 
 export type EventName =
   | "answer"
+  | "answer_back"
   | "quiz_completed"
   | "results_shown"
   | "results_error"

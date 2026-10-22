@@ -88,6 +88,35 @@ describe("ConversationEngine", () => {
     assert.deepEqual(senders, ["user", "bot"]);
     assert.equal(engine.getMessages()[0].text, "Reírme");
   });
+
+  test("snapshot/restore deshace una respuesta («atrás»)", () => {
+    const engine = new ConversationEngine();
+
+    const before = engine.snapshot();
+
+    engine.answer("contentType", "movie", "Película");
+
+    assert.equal(engine.getProfile().contentType, "movie");
+    assert.ok(engine.getMessages().length > 0);
+
+    engine.restore(before);
+
+    assert.equal(engine.getProfile().contentType, undefined);
+    assert.equal(engine.getMessages().length, 0);
+  });
+
+  test("snapshot no cambia si se sigue contestando después", () => {
+    const engine = new ConversationEngine();
+
+    engine.answer("contentType", "movie", "Película");
+
+    const saved = engine.snapshot();
+
+    engine.answer("mood", "laugh", "Reírme");
+
+    assert.equal(saved.profile.mood, undefined);
+    assert.equal(engine.getProfile().mood, "laugh");
+  });
 });
 
 describe("preguntas de la conversación", () => {
