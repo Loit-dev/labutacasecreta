@@ -208,9 +208,7 @@ test.describe("Calendario de estrenos", () => {
     expect(await log.count()).toBe(before);
   });
 
-  test("separa las fechas internacionales y los títulos sin contrastar", async ({
-    page,
-  }) => {
+  test("avisa de los títulos sin contrastar en TMDb", async ({ page }) => {
     await mockApi(page);
 
     const { day } = today();
@@ -224,12 +222,6 @@ test.describe("Calendario de estrenos", () => {
           logos: {},
           days: {
             [day]: [
-              entry(1, "Película España", day, ["netflix"]),
-              {
-                ...entry(2, "Película EE. UU.", day, ["prime"]),
-                note: "Fecha de estreno en EE. UU., aún sin confirmar en España",
-                region: "US",
-              },
               {
                 ...entry(3, "Rumor sin ficha", day, ["disney"]),
                 id: -1,
@@ -249,28 +241,10 @@ test.describe("Calendario de estrenos", () => {
       name: /Calendario/,
     });
 
-    // La española se ve directamente; la internacional está recogida
     await expect(
-      dialog.getByRole("link", { name: /Película España/ })
+      dialog.getByRole("link", { name: /Rumor sin ficha/ })
     ).toBeVisible();
 
-    await expect(
-      dialog.getByRole("link", { name: /Película EE\. UU\./ })
-    ).toBeHidden();
-
-    const toggle = dialog.getByRole("button", {
-      name: /fecha internacional/,
-    });
-
-    await expect(toggle).toBeVisible();
-    await toggle.click();
-
-    await expect(
-      dialog.getByRole("link", { name: /Película EE\. UU\./ })
-    ).toBeVisible();
-
-    await expect(
-      dialog.getByText("Sin contrastar")
-    ).toBeVisible();
+    await expect(dialog.getByText("Sin contrastar")).toBeVisible();
   });
 });

@@ -188,7 +188,6 @@ export default function CalendarView({ platforms: mine }: Props) {
   const [platformTab, setPlatformTab] = useState<PlatformKey | "todas">(
     "todas"
   );
-  const [showInternational, setShowInternational] = useState(false);
 
   useEffect(() => {
     if (data[month]) return;
@@ -246,18 +245,9 @@ export default function CalendarView({ platforms: mine }: Props) {
   function select(date: string) {
     setSelected(date);
     setPlatformTab("todas");
-    setShowInternational(false);
   }
 
-  const allDayEntries = selected ? entriesOf(selected) : [];
-
-  // Solo se cuentan y se listan arriba los estrenos con fecha
-  // confirmada en España; los que solo tienen fecha de otro país se
-  // enseñan aparte, para no presentarlos como si fueran lo mismo
-  const dayEntries = allDayEntries.filter((entry) => !entry.region);
-  const internationalEntries = allDayEntries.filter(
-    (entry) => entry.region
-  );
+  const dayEntries = selected ? entriesOf(selected) : [];
 
   // Cuántos estrenos hay de cada plataforma, para el número en su pestaña
   const countsByPlatform = Object.fromEntries(
@@ -272,16 +262,12 @@ export default function CalendarView({ platforms: mine }: Props) {
     (platform) => countsByPlatform[platform] > 0
   );
 
-  function byTab(entries: CalendarEntry[]) {
-    return platformTab === "todas"
-      ? entries
-      : entries.filter((entry) =>
+  const selectedEntries =
+    platformTab === "todas"
+      ? dayEntries
+      : dayEntries.filter((entry) =>
           entry.platforms.includes(platformTab)
         );
-  }
-
-  const selectedEntries = byTab(dayEntries);
-  const selectedInternational = byTab(internationalEntries);
 
   return (
     <div className="flex flex-col gap-3">
@@ -364,12 +350,7 @@ export default function CalendarView({ platforms: mine }: Props) {
                     return <span key={cell} />;
                   }
 
-                  // Los logos del mes solo cuentan fechas confirmadas en
-                  // España (las internacionales se enseñan aparte al
-                  // abrir el día)
-                  const entries = entriesOf(date).filter(
-                    (entry) => !entry.region
-                  );
+                  const entries = entriesOf(date);
 
                   const logos = platformsOfDay(entries, mine);
 
@@ -478,42 +459,6 @@ export default function CalendarView({ platforms: mine }: Props) {
               </ul>
             )}
 
-            {selectedInternational.length > 0 && (
-              <div className="mt-3">
-                <button
-                  onClick={() =>
-                    setShowInternational((current) => !current)
-                  }
-                  aria-expanded={showInternational}
-                  className="flex w-full items-center justify-between rounded-xl border border-dashed border-amber-500/30 bg-amber-500/5 px-3 py-2 text-left text-xs font-semibold text-amber-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-                >
-                  <span>
-                    <span aria-hidden="true">🌍</span>{" "}
-                    {selectedInternational.length}{" "}
-                    {selectedInternational.length === 1
-                      ? "estreno con fecha internacional"
-                      : "estrenos con fecha internacional"}{" "}
-                    (sin confirmar en España)
-                  </span>
-
-                  <span aria-hidden="true">
-                    {showInternational ? "▲" : "▼"}
-                  </span>
-                </button>
-
-                {showInternational && (
-                  <ul className="mt-2 space-y-2">
-                    {selectedInternational.map((entry) => (
-                      <EntryItem
-                        key={`${entry.type}-${entry.id}`}
-                        entry={entry}
-                        logos={current.logos}
-                      />
-                    ))}
-                  </ul>
-                )}
-              </div>
-            )}
           </section>
         )}
 

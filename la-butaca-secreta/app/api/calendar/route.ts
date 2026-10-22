@@ -71,8 +71,7 @@ function toEntry(
   type: "movie" | "tv",
   date: string,
   platform: PlatformKey,
-  note?: string,
-  region?: "US" | "OTHER"
+  note?: string
 ): CalendarEntry {
   return {
     id: item.id,
@@ -87,7 +86,6 @@ function toEntry(
     popularity: item.popularity ?? 0,
     platforms: [platform],
     ...(note ? { note } : {}),
-    ...(region ? { region } : {}),
   };
 }
 
@@ -414,23 +412,15 @@ export async function GET(request: NextRequest) {
               item: TMDBMovie;
               digital: { date: string; region: "ES" | "US" | "OTHER" };
             } =>
+              // Solo estrenos con fecha confirmada en España; nada de
+              // EE. UU. ni de otros países
               !!entry.digital &&
+              entry.digital.region === "ES" &&
               entry.digital.date >= from &&
               entry.digital.date <= to
           )
           .map(({ item, digital }) =>
-            toEntry(
-              item,
-              "movie",
-              digital.date,
-              platform.key,
-              digital.region === "US"
-                ? "Fecha de estreno en EE. UU., aún sin confirmar en España"
-                : digital.region === "OTHER"
-                  ? "Fecha de estreno digital en otro país, aún sin confirmar en España"
-                  : undefined,
-              digital.region === "ES" ? undefined : digital.region
-            )
+            toEntry(item, "movie", digital.date, platform.key)
           );
       })
     );
