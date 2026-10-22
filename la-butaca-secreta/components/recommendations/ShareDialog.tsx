@@ -21,6 +21,9 @@ type Props = {
   kind: ShareKind;
   // Quiénes han elegido y cuánto han coincidido (modo acompañado)
   group?: { names: string[]; percent: number };
+  // Titular alternativo a "Mis sugerencias" (se ignora si hay grupo,
+  // que manda los nombres en el titular)
+  headline?: string;
   onClose: () => void;
 };
 
@@ -44,6 +47,7 @@ export default function ShareDialog({
   items,
   kind,
   group,
+  headline,
   onClose,
 }: Props) {
   // Modo acompañado: por defecto se comparten los nombres puestos,
@@ -103,6 +107,7 @@ export default function ShareDialog({
       fontFamily: siteFont(),
       audience,
       compatibility: percent,
+      headline,
     })
       .then((blob) => {
         if (cancelled) return;
@@ -126,7 +131,7 @@ export default function ShareDialog({
 
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [items, kind, audience, percent]);
+  }, [items, kind, audience, percent, headline]);
 
   const file =
     state.status === "ready" ? state.file : null;
@@ -152,7 +157,9 @@ export default function ShareDialog({
       await navigator.share({
         files: [file],
         title: `${SITE_NAME} · ${
-          audience ? `Sugerencias para ${audience}` : "Mis sugerencias"
+          audience
+            ? `Sugerencias para ${audience}`
+            : (headline ?? "Mis sugerencias")
         }`,
         text,
       });

@@ -354,6 +354,7 @@ export default function QuickPicks() {
         <ShareDialog
           items={shareItems}
           kind={type}
+          headline="Butaca Exprés recomienda"
           onClose={() => setShareItems(null)}
         />
       )}

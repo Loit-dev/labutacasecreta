@@ -25,6 +25,10 @@ type Options = {
   fontFamily?: string;
   // Para quién son las sugerencias ("Ana y Luis"); sin esto, "Mis sugerencias"
   audience?: string;
+  // Titular alternativo a "Mis sugerencias" (p. ej. desde Butaca Exprés).
+  // Se ignora si hay «audience»: con nombres, el titular manda la info
+  // de quién ha pedido las recomendaciones.
+  headline?: string;
   // Cuánto han coincidido (0-100); solo con «audience»
   compatibility?: number;
   // Logo de la web y pósters de fondo (los mismos que usa la web)
@@ -271,7 +275,7 @@ export function drawShareImage(
   // ---------- Título con el degradado de la web ----------
   const title = options.audience
     ? `Sugerencias para ${options.audience}`
-    : "Mis sugerencias";
+    : (options.headline ?? "Mis sugerencias");
 
   // Los títulos largos (varios nombres) se encogen para caber
   let titleSize = 96;
