@@ -537,6 +537,7 @@ export async function GET(
                     voteAverage:
                       movie.vote_average,
                     voteCount: movie.vote_count,
+                    overview: movie.overview,
                   },
                   usedReasons
                 ),

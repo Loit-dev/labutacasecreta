@@ -131,4 +131,80 @@ describe("buildRecommendationReason", () => {
 
     assert.notEqual(first, second);
   });
+
+  test("añade la primera frase de la sinopsis, tal cual", () => {
+    const reason = buildRecommendationReason(
+      { preferredGenre: "scifi" },
+      {
+        ...item([878]),
+        overview:
+          "Ryland Grace se despierta solo en una nave espacial sin recordar cómo llegó allí. Debe resolver el misterio antes de que sea tarde.",
+      }
+    );
+
+    assert.ok(
+      reason.includes(
+        "Ryland Grace se despierta solo en una nave espacial sin recordar cómo llegó allí."
+      ),
+      reason
+    );
+
+    // No se cuela el resto de la sinopsis, solo la primera frase
+    assert.ok(
+      !reason.includes("Debe resolver el misterio"),
+      reason
+    );
+  });
+
+  test("sin sinopsis, o con una demasiado corta/larga, no añade nada raro", () => {
+    const withoutOverview = buildRecommendationReason(
+      { preferredGenre: "scifi" },
+      item([878])
+    );
+
+    assert.equal(
+      withoutOverview,
+      "Te la recomiendo porque encaja con tus ganas de ciencia ficción."
+    );
+
+    const withTinyOverview = buildRecommendationReason(
+      { preferredGenre: "scifi" },
+      { ...item([878]), overview: "Temporada 2." }
+    );
+
+    assert.ok(!withTinyOverview.includes("Temporada 2."));
+  });
+
+  test("dos títulos con los mismos motivos ya no dependen solo de la nota: la sinopsis los diferencia", () => {
+    const profile = {
+      preferredGenre: "scifi",
+      mood: "adventure",
+    };
+
+    const usedReasons = new Set<string>();
+
+    const first = buildRecommendationReason(
+      profile,
+      {
+        ...item([878, 12], 8.6),
+        overview:
+          "Un ingeniero despierta en Marte tras un accidente y debe sobrevivir solo.",
+      },
+      usedReasons
+    );
+
+    const second = buildRecommendationReason(
+      profile,
+      {
+        ...item([878, 28], 7.8),
+        overview:
+          "Un cazador llega a un planeta hostil en busca del mejor adversario de su vida.",
+      },
+      usedReasons
+    );
+
+    assert.notEqual(first, second);
+    assert.ok(first.includes("Marte"), first);
+    assert.ok(second.includes("cazador"), second);
+  });
 });
