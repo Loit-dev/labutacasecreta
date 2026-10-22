@@ -38,7 +38,10 @@ export default function CatalogPageBody({
 
       {items.length > 0 ? (
         <div className="mt-6">
-          <CatalogGrid items={items} />
+          <CatalogGrid
+            items={items}
+            detailBasePath={basePath === "/pelis" ? "/pelicula" : "/serie"}
+          />
         </div>
       ) : (
         <p className="mt-6 text-sm text-zinc-400">

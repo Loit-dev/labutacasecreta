@@ -4,6 +4,10 @@ export interface TMDBMovie {
   title?: string;
   name?: string;
 
+  // Solo presente en /search/multi: distingue película, serie o
+  // persona (las personas se descartan al mostrar resultados).
+  media_type?: "movie" | "tv" | "person";
+
   original_title?: string;
   original_name?: string;
 

@@ -9,7 +9,10 @@ import {
   TMDBWatchProviders,
 } from "./types";
 
-const IMAGE_URL =
+// Exportada para construir pósters fuera del mapper (p. ej. en el
+// buscador, que solo necesita la miniatura y no una Recommendation
+// completa).
+export const IMAGE_URL =
   process.env.TMDB_IMAGE_URL ??
   "https://image.tmdb.org/t/p/w500";
 

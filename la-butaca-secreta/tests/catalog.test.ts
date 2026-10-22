@@ -5,7 +5,9 @@ import {
   CATALOG_GENRES,
   catalogParams,
   genreBySlug,
+  genreSlugForLabel,
   platformBySlug,
+  platformKeyForName,
 } from "@/lib/catalog";
 import { PreferredGenreMap } from "@/lib/recommendation/filters";
 import { ALL_PLATFORM_KEYS } from "@/lib/platforms";
@@ -48,5 +50,21 @@ describe("catálogo de páginas género+plataforma", () => {
     for (const { plataforma } of params) {
       assert.ok(ALL_PLATFORM_KEYS.includes(plataforma));
     }
+  });
+
+  test("genreSlugForLabel encuentra el slug a partir del nombre que muestra una ficha", () => {
+    assert.equal(genreSlugForLabel("Comedia"), "comedia");
+    assert.equal(genreSlugForLabel("ciencia ficción"), "ciencia-ficcion");
+
+    // Géneros que la ficha puede mostrar pero que no tienen página de
+    // catálogo propia (no están en PreferredGenreMap)
+    assert.equal(genreSlugForLabel("Documental"), undefined);
+    assert.equal(genreSlugForLabel("Animación"), undefined);
+  });
+
+  test("platformKeyForName encuentra la clave a partir del nombre que muestra una ficha", () => {
+    assert.equal(platformKeyForName("Netflix"), "netflix");
+    assert.equal(platformKeyForName("prime video"), "prime");
+    assert.equal(platformKeyForName("Apple TV+"), undefined);
   });
 });

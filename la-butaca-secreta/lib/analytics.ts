@@ -35,7 +35,9 @@ export type EventName =
   | "group_round"
   | "group_duel"
   | "group_done"
-  | "today_shown";
+  | "today_shown"
+  | "search_query"
+  | "search_result_click";
 
 type Value = string | number | boolean;
 
