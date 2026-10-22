@@ -13,6 +13,8 @@ type Props = {
   providers?: {name: string; logo: string;}[];
   reason?: string;
   saved?: boolean;
+  // Puntitos del carrusel (solo en el móvil, una tarjeta a la vez)
+  dots?: { total: number; current: number };
   onToggleSave?: () => void;
   onDetails?: () => void;
   onSeen?: () => void;
@@ -32,6 +34,7 @@ export default function RecommendationCard({
   providers = [],
   reason,
   saved = false,
+  dots,
   onToggleSave,
   onDetails,
   onSeen,
@@ -44,6 +47,32 @@ export default function RecommendationCard({
     >
        <div className="relative h-80 w-full overflow-hidden md:h-58">
         <Image src={poster} alt={title} fill unoptimized={poster.endsWith(".svg")} className="object-cover object-top md:object-contain md:bg-black" sizes="(max-width: 768px) 100vw, 33vw" />
+        {dots && dots.total > 1 && (
+          <>
+            <div
+              className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-black/55 to-transparent"
+              aria-hidden="true"
+            />
+
+            <div
+              className="absolute inset-x-0 top-3 flex justify-center gap-1.5"
+              aria-hidden="true"
+            >
+              {Array.from({ length: dots.total }).map(
+                (_, index) => (
+                  <div
+                    key={index}
+                    className={
+                      index === dots.current
+                        ? "h-1.5 w-6 rounded-full bg-red-500 transition-all duration-300"
+                        : "h-1.5 w-1.5 rounded-full bg-white/45 transition-all duration-300"
+                    }
+                  />
+                )
+              )}
+            </div>
+          </>
+        )}
         {providers.length > 0 && (
   <div
     className="
