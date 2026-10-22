@@ -81,7 +81,7 @@ export default function Conversation() {
 
       <main
         id="contenido"
-        className="relative flex items-center justify-center px-4 py-4 md:min-h-screen md:px-6 md:py-10"
+        className="relative flex justify-center px-4 py-4 md:px-6 md:pb-4 md:pt-10"
       >
         <section
           className="
