@@ -42,7 +42,7 @@ export default function RecommendationCard({
       aria-label={title}
       className="flex h-full flex-col overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900 shadow-xl"
     >
-       <div className="relative h-[26rem] w-full overflow-hidden md:h-58">
+       <div className="relative h-80 w-full overflow-hidden md:h-58">
         <Image src={poster} alt={title} fill unoptimized={poster.endsWith(".svg")} className="object-cover object-top md:object-contain md:bg-black" sizes="(max-width: 768px) 100vw, 33vw" />
         {providers.length > 0 && (
   <div
@@ -119,7 +119,7 @@ export default function RecommendationCard({
         )}
 
         {reason && (
-          <p className="line-clamp-3 text-justify text-[13px] italic leading-relaxed text-yellow-200/80 md:line-clamp-none md:text-xs">
+          <p className="line-clamp-2 text-justify text-[13px] italic leading-relaxed text-yellow-200/80 md:line-clamp-none md:text-xs">
             <span aria-hidden="true">💡</span> {reason}
           </p>
         )}

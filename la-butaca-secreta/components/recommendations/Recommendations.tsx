@@ -374,7 +374,7 @@ export default function Recommendations({
       id="recommendations"
       aria-labelledby="recommendations-title"
       tabIndex={-1}
-      className="scroll-mt-4 scroll-mb-4 space-y-5 outline-none md:space-y-8"
+      className="scroll-mt-4 scroll-mb-4 space-y-3 outline-none md:space-y-8"
     >
       <p role="status" className="sr-only">
         {announcement}
@@ -383,7 +383,7 @@ export default function Recommendations({
       <div className="text-center">
         <h2
           id="recommendations-title"
-          className="text-lg font-bold text-white md:text-3xl"
+          className="text-base font-bold text-white md:text-3xl"
         >
           <span aria-hidden="true">🎬</span> Creo que estas
           tres pueden ser justo lo que buscas.
@@ -422,7 +422,7 @@ export default function Recommendations({
             <button
               onClick={prevMovie}
               aria-label="Anterior"
-              className="absolute left-2 top-[10.25rem] z-20 flex h-14 w-14 items-center justify-center rounded-full border border-white/30 bg-black/65 text-3xl font-bold text-white shadow-xl shadow-black/60 backdrop-blur transition-transform active:scale-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              className="absolute left-2 top-[8.25rem] z-20 flex h-14 w-14 items-center justify-center rounded-full border border-white/30 bg-black/65 text-3xl font-bold text-white shadow-xl shadow-black/60 backdrop-blur transition-transform active:scale-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
               <span aria-hidden="true">←</span>
             </button>
@@ -430,7 +430,7 @@ export default function Recommendations({
             <button
               onClick={nextMovie}
               aria-label="Siguiente"
-              className="absolute right-2 top-[10.25rem] z-20 flex h-14 w-14 items-center justify-center rounded-full border border-white/30 bg-black/65 text-3xl font-bold text-white shadow-xl shadow-black/60 backdrop-blur transition-transform active:scale-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              className="absolute right-2 top-[8.25rem] z-20 flex h-14 w-14 items-center justify-center rounded-full border border-white/30 bg-black/65 text-3xl font-bold text-white shadow-xl shadow-black/60 backdrop-blur transition-transform active:scale-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
               <span aria-hidden="true">→</span>
             </button>
