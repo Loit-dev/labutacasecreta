@@ -109,34 +109,39 @@ export default function TitlePageBody({ type, title }: Props) {
                 key={actor.id}
                 className="flex w-16 shrink-0 flex-col items-center gap-1.5 text-center sm:w-20"
               >
-                <div className="relative aspect-square w-16 shrink-0 overflow-hidden rounded-full bg-zinc-800 sm:w-20">
-                  {actor.photo ? (
-                    <Image
-                      src={actor.photo}
-                      alt={actor.name}
-                      fill
-                      className="object-cover"
-                      sizes="80px"
-                    />
-                  ) : (
-                    <span
-                      aria-hidden="true"
-                      className="flex h-full w-full items-center justify-center text-xl text-zinc-500"
-                    >
-                      🎭
+                <Link
+                  href={`/actor/${actor.id}`}
+                  className="flex w-full flex-col items-center gap-1.5 rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                >
+                  <div className="relative aspect-square w-16 shrink-0 overflow-hidden rounded-full bg-zinc-800 sm:w-20">
+                    {actor.photo ? (
+                      <Image
+                        src={actor.photo}
+                        alt={actor.name}
+                        fill
+                        className="object-cover"
+                        sizes="80px"
+                      />
+                    ) : (
+                      <span
+                        aria-hidden="true"
+                        className="flex h-full w-full items-center justify-center text-xl text-zinc-500"
+                      >
+                        🎭
+                      </span>
+                    )}
+                  </div>
+
+                  <span className="w-full truncate text-[11px] font-semibold text-zinc-200">
+                    {actor.name}
+                  </span>
+
+                  {actor.character && (
+                    <span className="w-full truncate text-[10px] text-zinc-500">
+                      {actor.character}
                     </span>
                   )}
-                </div>
-
-                <span className="w-full truncate text-[11px] font-semibold text-zinc-200">
-                  {actor.name}
-                </span>
-
-                {actor.character && (
-                  <span className="w-full truncate text-[10px] text-zinc-500">
-                    {actor.character}
-                  </span>
-                )}
+                </Link>
               </li>
             ))}
           </ul>

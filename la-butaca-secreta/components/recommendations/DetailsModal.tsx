@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { createPortal } from "react-dom";
 
 import { useDialog } from "@/hooks/useDialog";
@@ -176,28 +177,33 @@ export default function DetailsModal({
                       key={actor.id}
                       className="flex w-14 shrink-0 flex-col items-center gap-1 text-center"
                     >
-                      <div className="relative aspect-square w-14 shrink-0 overflow-hidden rounded-full bg-zinc-800">
-                        {actor.photo ? (
-                          <Image
-                            src={actor.photo}
-                            alt={actor.name}
-                            fill
-                            className="object-cover"
-                            sizes="56px"
-                          />
-                        ) : (
-                          <span
-                            aria-hidden="true"
-                            className="flex h-full w-full items-center justify-center text-lg text-zinc-500"
-                          >
-                            🎭
-                          </span>
-                        )}
-                      </div>
+                      <Link
+                        href={`/actor/${actor.id}`}
+                        className="flex w-full flex-col items-center gap-1 rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                      >
+                        <div className="relative aspect-square w-14 shrink-0 overflow-hidden rounded-full bg-zinc-800">
+                          {actor.photo ? (
+                            <Image
+                              src={actor.photo}
+                              alt={actor.name}
+                              fill
+                              className="object-cover"
+                              sizes="56px"
+                            />
+                          ) : (
+                            <span
+                              aria-hidden="true"
+                              className="flex h-full w-full items-center justify-center text-lg text-zinc-500"
+                            >
+                              🎭
+                            </span>
+                          )}
+                        </div>
 
-                      <span className="w-full truncate text-[10px] font-semibold text-zinc-200">
-                        {actor.name}
-                      </span>
+                        <span className="w-full truncate text-[10px] font-semibold text-zinc-200">
+                          {actor.name}
+                        </span>
+                      </Link>
                     </li>
                   ))}
                 </ul>

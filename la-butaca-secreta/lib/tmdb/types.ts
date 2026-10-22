@@ -155,3 +155,51 @@ export interface TMDBFullDetails extends TMDBMovieDetails {
 
   "watch/providers": TMDBWatchProviders;
 }
+
+/** Respuesta de /person/{id} (datos básicos del actor/actriz). */
+export interface TMDBPersonDetails {
+  id: number;
+
+  name: string;
+
+  profile_path: string | null;
+
+  known_for_department?: string;
+}
+
+/**
+ * Una aparición en /person/{id}/combined_credits: puede ser película
+ * o serie, distinguidas por media_type (igual que en /search/multi).
+ */
+export interface TMDBCastCredit {
+  id: number;
+
+  media_type: "movie" | "tv";
+
+  title?: string;
+  name?: string;
+
+  character?: string;
+
+  poster_path: string | null;
+
+  release_date?: string;
+  first_air_date?: string;
+
+  popularity: number;
+
+  vote_count: number;
+}
+
+/** Respuesta de /person/{id}/combined_credits. */
+export interface TMDBCombinedCredits {
+  cast: TMDBCastCredit[];
+}
+
+/**
+ * Respuesta de /person/{id} usando
+ * append_to_response=combined_credits (una sola llamada).
+ */
+export interface TMDBPersonFull extends TMDBPersonDetails {
+  combined_credits: TMDBCombinedCredits;
+}

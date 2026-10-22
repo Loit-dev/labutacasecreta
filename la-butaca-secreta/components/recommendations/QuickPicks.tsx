@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type TouchEvent } from "react";
 import Link from "next/link";
 
 import DetailsModal from "./DetailsModal";
@@ -118,6 +118,12 @@ export default function QuickPicks() {
   const [phase, setPhase] = useState<Phase>("loading");
   const [detailsId, setDetailsId] = useState<number | null>(null);
   const [shareItems, setShareItems] = useState<ShareItem[] | null>(null);
+
+  // En el móvil se ve una tarjeta cada vez, como en el cuestionario
+  // completo (mismo patrón de carrusel con puntos y deslizar)
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
   const watchlist = useWatchlist();
 
@@ -248,6 +254,73 @@ export default function QuickPicks() {
     setShareItems(shared);
   };
 
+  const current = Math.min(activeIndex, Math.max(items.length - 1, 0));
+
+  const nextMovie = () => {
+    setActiveIndex(current >= items.length - 1 ? 0 : current + 1);
+  };
+
+  const prevMovie = () => {
+    setActiveIndex(current <= 0 ? items.length - 1 : current - 1);
+  };
+
+  const minSwipeDistance = 50;
+
+  const handleTouchStart = (event: TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(event.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (event: TouchEvent) => {
+    setTouchEnd(event.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStart === null || touchEnd === null) return;
+
+    const distance = touchStart - touchEnd;
+
+    if (distance > minSwipeDistance) nextMovie();
+    if (distance < -minSwipeDistance) prevMovie();
+  };
+
+  const renderCard = (
+    movie: Recommendation,
+    index: number,
+    dots?: { total: number; current: number }
+  ) => {
+    const { badge, badgeTitle } = badgeFor(movie, index, items);
+
+    return (
+      <RecommendationCard
+        key={movie.id}
+        badge={badge}
+        badgeTitle={badgeTitle}
+        title={movie.title}
+        year={movie.year}
+        rating={movie.rating}
+        runtime={movie.runtime}
+        genres={movie.genres}
+        overview={movie.overview}
+        poster={movie.poster}
+        providers={movie.providers}
+        reason={movie.reason}
+        dots={dots}
+        saved={watchlist.has(movie.id, type)}
+        onToggleSave={() => toggleSaved(movie)}
+        onDetails={() => {
+          track("details_open", {
+            id: movie.id,
+            role: movie.role,
+            source: "today",
+          });
+
+          setDetailsId(movie.id);
+        }}
+      />
+    );
+  };
+
   if (phase === "loading") {
     return <RecommendationSkeleton compact />;
   }
@@ -297,38 +370,52 @@ export default function QuickPicks() {
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
-        {items.map((movie, index) => {
-          const { badge, badgeTitle } = badgeFor(movie, index, items);
+      {/* MOBILE: una tarjeta cada vez, como el cuestionario completo */}
+      <div
+        role="region"
+        aria-roledescription="carrusel"
+        aria-label="Butaca Exprés"
+        className="md:hidden"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        {items[current] && (
+          <div
+            key={items[current].id}
+            className="animate-fade-in relative"
+          >
+            {renderCard(items[current], current, {
+              total: items.length,
+              current,
+            })}
 
-          return (
-            <RecommendationCard
-              key={movie.id}
-              badge={badge}
-              badgeTitle={badgeTitle}
-              title={movie.title}
-              year={movie.year}
-              rating={movie.rating}
-              runtime={movie.runtime}
-              genres={movie.genres}
-              overview={movie.overview}
-              poster={movie.poster}
-              providers={movie.providers}
-              reason={movie.reason}
-              saved={watchlist.has(movie.id, type)}
-              onToggleSave={() => toggleSaved(movie)}
-              onDetails={() => {
-                track("details_open", {
-                  id: movie.id,
-                  role: movie.role,
-                  source: "today",
-                });
+            {items.length > 1 && (
+              <>
+                <button
+                  onClick={prevMovie}
+                  aria-label="Anterior"
+                  className="absolute left-2 top-[8.25rem] z-20 flex h-14 w-14 items-center justify-center rounded-full border border-white/30 bg-black/65 text-3xl font-bold text-white shadow-xl shadow-black/60 backdrop-blur-sm transition-transform active:scale-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                >
+                  <span aria-hidden="true">←</span>
+                </button>
 
-                setDetailsId(movie.id);
-              }}
-            />
-          );
-        })}
+                <button
+                  onClick={nextMovie}
+                  aria-label="Siguiente"
+                  className="absolute right-2 top-[8.25rem] z-20 flex h-14 w-14 items-center justify-center rounded-full border border-white/30 bg-black/65 text-3xl font-bold text-white shadow-xl shadow-black/60 backdrop-blur-sm transition-transform active:scale-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                >
+                  <span aria-hidden="true">→</span>
+                </button>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* DESKTOP */}
+      <div className="hidden gap-6 md:grid md:grid-cols-3">
+        {items.map((movie, index) => renderCard(movie, index))}
       </div>
 
       <div className="flex flex-wrap items-center justify-center gap-2">
