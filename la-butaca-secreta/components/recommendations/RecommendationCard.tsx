@@ -90,7 +90,8 @@ export default function RecommendationCard({
       px-3
       py-2
 
-      backdrop-blur-md
+      backdrop-blur-sm
+      md:backdrop-blur-md
       shadow-lg
     "
   >

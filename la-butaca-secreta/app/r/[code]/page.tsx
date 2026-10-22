@@ -61,7 +61,7 @@ export default async function SharedPage({ params }: Props) {
       <MyListButton />
 
       <main className="relative flex min-h-screen items-center justify-center px-6 py-10">
-        <section className="relative z-30 w-full max-w-4xl overflow-hidden rounded-3xl border border-white/20 bg-black/20 px-6 py-8 shadow-2xl backdrop-blur-xl sm:px-8">
+        <section className="relative z-30 w-full max-w-4xl overflow-hidden rounded-3xl border border-white/20 bg-black/20 px-6 py-8 shadow-2xl backdrop-blur-sm sm:px-8 sm:backdrop-blur-xl">
           <header className="mb-8 text-center">
             <h1
               className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl"
