@@ -29,6 +29,7 @@ import { DESTACADOS } from "@/data/calendar/destacados";
 import { translateToSpanish } from "@/lib/translate";
 import { getFallbackPoster } from "@/lib/posterFallback";
 import { IMPORTADOS } from "@/data/calendar/decine21";
+import { clientIp, isRateLimited } from "@/lib/rateLimit";
 
 export const dynamic = "force-dynamic";
 
@@ -344,6 +345,14 @@ async function importados(
 }
 
 export async function GET(request: NextRequest) {
+  // El primer mes sin caché consulta TMDb y TVmaze muchas veces
+  if (isRateLimited(`calendar:${clientIp(request)}`, 30, 60_000)) {
+    return NextResponse.json(
+      { error: "Demasiadas peticiones, prueba en un minuto." },
+      { status: 429 }
+    );
+  }
+
   const month = parseMonth(
     request.nextUrl.searchParams.get("month")
   );
