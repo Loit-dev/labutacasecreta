@@ -239,7 +239,6 @@ export default function CalendarView({ platforms: mine }: Props) {
     setMonth(next);
     setSelected(next === today.substring(0, 7) ? today : null);
     setPlatformTab("todas");
-    setShowInternational(false);
   }
 
   function select(date: string) {
