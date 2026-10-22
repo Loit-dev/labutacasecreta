@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 
+import { catalogParams } from "@/lib/catalog";
 import { SITE_URL } from "@/lib/site";
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -11,16 +12,44 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date();
 
   const pages = [
-    { path: "", priority: 1 },
-    { path: "/hoy", priority: 0.6 },
-    { path: "/privacidad", priority: 0.2 },
-    { path: "/aviso-legal", priority: 0.2 },
+    { path: "", priority: 1, changeFrequency: "monthly" as const },
+    { path: "/hoy", priority: 0.6, changeFrequency: "monthly" as const },
+    {
+      path: "/privacidad",
+      priority: 0.2,
+      changeFrequency: "monthly" as const,
+    },
+    {
+      path: "/aviso-legal",
+      priority: 0.2,
+      changeFrequency: "monthly" as const,
+    },
   ];
 
-  return pages.map(({ path, priority }) => ({
-    url: `${SITE_URL}${path}`,
-    lastModified,
-    changeFrequency: "monthly" as const,
-    priority,
-  }));
+  // Páginas SEO de género+plataforma (/pelis/terror/netflix,
+  // /series/comedia/prime...): mismo número de combinaciones para
+  // pelis y series. Su catálogo subyacente se mueve más que una
+  // página legal, así que avisamos a los rastreadores con más
+  // frecuencia.
+  const catalogPages = catalogParams().flatMap(({ genero, plataforma }) => [
+    {
+      path: `/pelis/${genero}/${plataforma}`,
+      priority: 0.5,
+      changeFrequency: "weekly" as const,
+    },
+    {
+      path: `/series/${genero}/${plataforma}`,
+      priority: 0.5,
+      changeFrequency: "weekly" as const,
+    },
+  ]);
+
+  return [...pages, ...catalogPages].map(
+    ({ path, priority, changeFrequency }) => ({
+      url: `${SITE_URL}${path}`,
+      lastModified,
+      changeFrequency,
+      priority,
+    })
+  );
 }
