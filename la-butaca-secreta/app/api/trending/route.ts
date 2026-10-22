@@ -54,7 +54,7 @@ async function mapWithConcurrency<T, R>(
  *
  * Un único título: el más popular ahora mismo en TMDb que esté
  * disponible en alguna de las plataformas permitidas. Se usa como
- * relleno en «La carta de hoy» cuando no hay nada más concreto que
+ * relleno en «Butaca Exprés» cuando no hay nada más concreto que
  * ofrecer en ese hueco.
  */
 export async function GET(request: NextRequest) {
