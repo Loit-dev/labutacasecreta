@@ -234,6 +234,19 @@ export async function discoverTV(
   );
 }
 
+// Lo que más se está viendo/buscando en TMDb ahora mismo (no es
+// "discover", así que no admite filtrar por plataforma: eso se
+// comprueba después, con los detalles de cada candidato).
+export async function discoverTrending(
+  type: "movie" | "tv",
+  page = 1
+) {
+  return request<TMDBResponse>(
+    `/trending/${type}/week?language=es-ES&page=${page}`,
+    DISCOVER_REVALIDATE
+  );
+}
+
 // ======================================================
 // DETAILS + CREDITS + PROVIDERS EN UNA SOLA LLAMADA
 // ======================================================

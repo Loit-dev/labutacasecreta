@@ -26,6 +26,23 @@ export default function manifest(): MetadataRoute.Manifest {
     background_color: "#09090b",
     theme_color: "#09090b",
     categories: ["entertainment", "lifestyle"],
+    // Acceso directo al mantener pulsado el icono, una vez instalada
+    // (Android/escritorio); salta el cuestionario y va a 3 propuestas.
+    shortcuts: [
+      {
+        name: "La carta de hoy",
+        short_name: "Hoy",
+        description: "3 propuestas al momento, sin cuestionario",
+        url: "/hoy",
+        icons: [
+          {
+            src: "/icons/icon-192.png",
+            sizes: "192x192",
+            type: "image/png",
+          },
+        ],
+      },
+    ],
     icons: [
       {
         src: "/icons/icon-192.png",

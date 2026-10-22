@@ -1,0 +1,337 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+
+import DetailsModal from "./DetailsModal";
+import RecommendationCard from "./RecommendationCard";
+import RecommendationSkeleton from "./RecommendationSkeleton";
+import { badgeFor } from "./badges";
+
+import { useWatchlist } from "@/hooks/useWatchlist";
+import { track } from "@/lib/analytics";
+import { UserProfile } from "@/lib/conversation/types";
+import { inferredProfile } from "@/lib/memory";
+import type { Recommendation } from "@/lib/tmdb/mapper";
+import { readSeen } from "@/lib/viewed";
+
+type Phase = "loading" | "ready" | "empty" | "error";
+
+const CACHE_KEY = "lbs:today";
+
+type Cache = {
+  date: string;
+  profileKey: string;
+  items: Recommendation[];
+};
+
+// Mismo día + mismo perfil => misma carta, aunque se recargue la
+// página varias veces (no tiene sentido que cambie a media tarde).
+function todayKey() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function profileKey(profile: UserProfile) {
+  return [
+    profile.contentType,
+    profile.preferredGenre,
+    profile.mood,
+    profile.platforms,
+  ]
+    .map((value) => value ?? "")
+    .join("|");
+}
+
+function readCache(): Cache | null {
+  try {
+    const raw = window.localStorage.getItem(CACHE_KEY);
+
+    if (!raw) return null;
+
+    const parsed: unknown = JSON.parse(raw);
+
+    if (
+      !parsed ||
+      typeof parsed !== "object" ||
+      !Array.isArray((parsed as Cache).items)
+    ) {
+      return null;
+    }
+
+    return parsed as Cache;
+  } catch {
+    return null;
+  }
+}
+
+function writeCache(cache: Cache) {
+  try {
+    window.localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
+  } catch {
+    // Sin localStorage: simplemente se vuelve a calcular cada vez
+  }
+}
+
+function buildMainQuery(profile: UserProfile, exclude: string) {
+  const params = new URLSearchParams();
+
+  params.set("type", profile.contentType ?? "movie");
+  params.set("quick", "1");
+  params.set("company", "alone");
+
+  if (profile.preferredGenre) {
+    params.set("preferredGenre", profile.preferredGenre);
+  }
+
+  if (profile.mood) {
+    params.set("mood", profile.mood);
+  }
+
+  if (profile.platforms) {
+    params.set("platforms", profile.platforms);
+  }
+
+  if (exclude) {
+    params.set("exclude", exclude);
+  }
+
+  return params.toString();
+}
+
+// Perfil de partida: lo que recordamos de visitas anteriores, o uno
+// neutro (sin género ni ánimo) la primera vez que no sabemos nada.
+function startingProfile(): UserProfile {
+  return (
+    inferredProfile() ?? {
+      contentType: "movie",
+      company: "alone",
+    }
+  );
+}
+
+export default function QuickPicks() {
+  const profile = useMemo(startingProfile, []);
+
+  const [items, setItems] = useState<Recommendation[]>([]);
+  const [phase, setPhase] = useState<Phase>("loading");
+  const [detailsId, setDetailsId] = useState<number | null>(null);
+
+  const watchlist = useWatchlist();
+
+  const type = profile.contentType ?? "movie";
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      const key = profileKey(profile);
+      const cached = readCache();
+
+      if (cached && cached.date === todayKey() && cached.profileKey === key) {
+        setItems(cached.items);
+        setPhase(cached.items.length > 0 ? "ready" : "empty");
+        return;
+      }
+
+      setPhase("loading");
+
+      try {
+        const excluded = readSeen(type);
+
+        const mainResponse = await fetch(
+          `/api/tmdb?${buildMainQuery(profile, excluded.join(","))}`
+        );
+
+        if (!mainResponse.ok) {
+          throw new Error(`tmdb ${mainResponse.status}`);
+        }
+
+        const mainData: unknown = await mainResponse.json();
+        const main = Array.isArray(mainData)
+          ? (mainData as Recommendation[])
+          : [];
+
+        const paraTi = main.find((item) => item.role !== "surprise");
+        const sorpresa = main.find((item) => item.role === "surprise");
+
+        const alreadyPicked = [paraTi, sorpresa]
+          .filter((item): item is Recommendation => !!item)
+          .map((item) => item.id);
+
+        const trendingParams = new URLSearchParams();
+
+        trendingParams.set("type", type);
+
+        if (profile.platforms) {
+          trendingParams.set("platforms", profile.platforms);
+        }
+
+        trendingParams.set(
+          "exclude",
+          [...excluded, ...alreadyPicked].join(",")
+        );
+
+        const trendingResponse = await fetch(
+          `/api/trending?${trendingParams.toString()}`
+        );
+
+        const trendingData: unknown = trendingResponse.ok
+          ? await trendingResponse.json()
+          : [];
+
+        const trending = Array.isArray(trendingData)
+          ? (trendingData as Recommendation[])[0]
+          : undefined;
+
+        const result = [paraTi, trending, sorpresa].filter(
+          (item): item is Recommendation => !!item
+        );
+
+        if (cancelled) return;
+
+        writeCache({ date: todayKey(), profileKey: key, items: result });
+
+        setItems(result);
+        setPhase(result.length > 0 ? "ready" : "empty");
+
+        track("today_shown", { count: result.length });
+      } catch (error) {
+        if (cancelled) return;
+
+        console.error(error);
+        setPhase("error");
+      }
+    }
+
+    load();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile, type]);
+
+  const toggleSaved = (movie: Recommendation) => {
+    const added = watchlist.toggle({
+      id: movie.id,
+      type,
+      title: movie.title,
+      year: movie.year || undefined,
+      rating: movie.rating,
+      poster: movie.poster,
+      platforms: (movie.platforms ?? []).map((platform) => platform.name),
+    });
+
+    track(added ? "list_add" : "list_remove", {
+      type,
+      id: movie.id,
+      role: movie.role,
+      source: "today",
+    });
+  };
+
+  if (phase === "loading") {
+    return <RecommendationSkeleton compact />;
+  }
+
+  if (phase === "error") {
+    return (
+      <p className="text-center text-sm text-red-400" role="alert">
+        No he podido preparar la carta de hoy. Prueba otra vez en un rato.
+      </p>
+    );
+  }
+
+  if (phase === "empty" || items.length === 0) {
+    return (
+      <div className="space-y-4 text-center">
+        <p className="text-zinc-300">
+          Hoy no he encontrado nada que encaje del todo. El cuestionario
+          completo tiene más donde elegir.
+        </p>
+
+        <Link
+          href="/"
+          className="inline-block rounded-full bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+        >
+          Ir al cuestionario
+        </Link>
+      </div>
+    );
+  }
+
+  const detailsMovie = items.find((item) => item.id === detailsId) ?? null;
+
+  const detailsBadge = detailsMovie
+    ? badgeFor(detailsMovie, items.indexOf(detailsMovie), items)
+    : null;
+
+  return (
+    <div className="space-y-6">
+      <div className="text-center">
+        <h1 className="text-xl font-bold text-white md:text-2xl">
+          <span aria-hidden="true">⚡</span> La carta de hoy
+        </h1>
+
+        <p className="mt-1 text-xs text-zinc-400 md:text-sm">
+          Sin preguntas: esto es lo que te propongo para hoy. Mañana hay
+          otras tres.
+        </p>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-3">
+        {items.map((movie, index) => {
+          const { badge, badgeTitle } = badgeFor(movie, index, items);
+
+          return (
+            <RecommendationCard
+              key={movie.id}
+              badge={badge}
+              badgeTitle={badgeTitle}
+              title={movie.title}
+              year={movie.year}
+              rating={movie.rating}
+              runtime={movie.runtime}
+              genres={movie.genres}
+              overview={movie.overview}
+              poster={movie.poster}
+              providers={movie.providers}
+              reason={movie.reason}
+              saved={watchlist.has(movie.id, type)}
+              onToggleSave={() => toggleSaved(movie)}
+              onDetails={() => {
+                track("details_open", {
+                  id: movie.id,
+                  role: movie.role,
+                  source: "today",
+                });
+
+                setDetailsId(movie.id);
+              }}
+            />
+          );
+        })}
+      </div>
+
+      <div className="text-center">
+        <Link
+          href="/"
+          className="text-xs text-zinc-400 underline underline-offset-2 hover:text-zinc-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+        >
+          ¿Prefieres contestar el cuestionario completo?
+        </Link>
+      </div>
+
+      {detailsMovie && detailsBadge && (
+        <DetailsModal
+          movie={detailsMovie}
+          badge={detailsBadge.badge}
+          badgeTitle={detailsBadge.badgeTitle}
+          saved={watchlist.has(detailsMovie.id, type)}
+          onToggleSave={() => toggleSaved(detailsMovie)}
+          onClose={() => setDetailsId(null)}
+        />
+      )}
+    </div>
+  );
+}

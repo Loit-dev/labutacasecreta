@@ -25,6 +25,11 @@ const EXTRA: Badge = {
   badgeTitle: "Otra que puede gustarte",
 };
 
+const TRENDING: Badge = {
+  badge: "🔥",
+  badgeTitle: "Lo más visto ahora mismo",
+};
+
 // Cuando la recomendación la ve otra persona (enlace compartido),
 // los textos no hablan «para ti».
 const SHARED: Record<"gold" | "silver" | "bronze" | "extra", Badge> = {
@@ -42,6 +47,10 @@ export function badgeFor(
   list: Recommendation[],
   shared = false
 ): Badge {
+  if (item.role === "trending") {
+    return TRENDING;
+  }
+
   if (item.role === "surprise") {
     return shared ? SHARED.bronze : BRONZE;
   }
