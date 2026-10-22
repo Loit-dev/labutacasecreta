@@ -8,6 +8,12 @@ import {
 
 // Permite «Instalar» la web como una app (Android, escritorio) o
 // «Añadir a pantalla de inicio» (iPhone), con su icono y sin barra del navegador.
+//
+// El contenido es 100% estático (no depende de la petición), así que lo
+// forzamos a generarse en build time: Vercel lo sirve desde la CDN en vez
+// de invocar una función en cada carga (evitaba un cold start de ~2,5s).
+export const dynamic = "force-static";
+
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: `${SITE_NAME} · ${SITE_TAGLINE}`,

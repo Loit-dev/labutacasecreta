@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 export default function PosterWall() {
   return (
     <>
@@ -60,21 +62,27 @@ export default function PosterWall() {
 
 {/* MÓVIL Y TABLET */}
 <div className="fixed inset-0 lg:hidden overflow-hidden pointer-events-none">
-  <div
-    className="absolute left-[-120px] top-0 h-[420px] w-[280px] rotate-[-15deg] rounded-2xl bg-cover bg-center opacity-35 blur-[1px]"
-    style={{
-      backgroundImage:
-        "url('/posters/dune.jpg')",
-    }}
-  />
+  <div className="absolute left-[-120px] top-0 h-[420px] w-[280px] overflow-hidden rotate-[-15deg] rounded-2xl opacity-35 blur-[1px]">
+    <Image
+      src="/posters/dune.jpg"
+      alt=""
+      fill
+      priority
+      sizes="280px"
+      className="object-cover"
+    />
+  </div>
 
-  <div
-    className="absolute right-[-120px] top-[80px] h-[420px] w-[280px] rotate-[15deg] rounded-2xl bg-cover bg-center opacity-35 blur-[1px]"
-    style={{
-      backgroundImage:
-        "url('/posters/interstellar.jpg')",
-    }}
-  />
+  <div className="absolute right-[-120px] top-[80px] h-[420px] w-[280px] overflow-hidden rotate-[15deg] rounded-2xl opacity-35 blur-[1px]">
+    <Image
+      src="/posters/interstellar.jpg"
+      alt=""
+      fill
+      priority
+      sizes="280px"
+      className="object-cover"
+    />
+  </div>
 
   <div
     className="absolute left-[-80px] bottom-[120px] h-[380px] w-[260px] rotate-[12deg] rounded-2xl bg-cover bg-center opacity-30 blur-[1px]"
