@@ -131,6 +131,23 @@ export type ActorDetails = {
 // populares para que la rejilla no sea interminable.
 const MAX_ACTOR_CREDITS = 24;
 
+// Géneros de TV de TMDb que no son "una serie" en el sentido de esta
+// web: programas de entrevistas, telerrealidad e informativos (p. ej.
+// salir como invitado en un late night o en las noticias).
+const EXCLUDED_TV_GENRES = new Set([
+  10767, // Talk (late nights, entrevistas...)
+  10764, // Reality
+  10763, // News
+]);
+
+function isMovieOrSeries(item: TMDBCastCredit): boolean {
+  if (item.media_type === "movie") return true;
+
+  return !(item.genre_ids ?? []).some((id) =>
+    EXCLUDED_TV_GENRES.has(id)
+  );
+}
+
 function toActorCredit(item: TMDBCastCredit): ActorCredit {
   return {
     id: item.id,
@@ -163,6 +180,7 @@ export async function getActorDetails(
     const credits = (data.combined_credits?.cast ?? [])
       .filter((item) => {
         if (!item.poster_path) return false;
+        if (!isMovieOrSeries(item)) return false;
 
         const key = `${item.media_type}-${item.id}`;
 
