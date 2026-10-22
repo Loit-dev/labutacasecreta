@@ -1,6 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEvent,
+} from "react";
 
 import GroupQuiz from "@/components/group/GroupQuiz";
 import PosterWall from "@/components/layout/PosterWall";
@@ -19,6 +24,11 @@ import Header from "./Header";
 import ModeSelect, { type Mode } from "./ModeSelect";
 import SoloChat from "./SoloChat";
 
+const TABS = [
+  ["recommender", "🎬", "Recomendador"],
+  ["calendar", "📅", "Calendario"],
+] as const;
+
 export default function Conversation() {
   const [mode, setMode] = useState<Mode | null>(null);
 
@@ -29,6 +39,9 @@ export default function Conversation() {
   );
 
   const [calendarOpened, setCalendarOpened] = useState(false);
+
+  // Para el foco con teclado (flechas/Home/End) entre pestañas
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const [platforms, setPlatforms] = useState<PlatformKey[]>([
     ...ALL_PLATFORM_KEYS,
@@ -64,6 +77,41 @@ export default function Conversation() {
   function chooseMode(next: Mode) {
     track("mode_selected", { mode: next });
     setMode(next);
+  }
+
+  function selectTab(id: (typeof TABS)[number][0]) {
+    if (id === "calendar") {
+      track("calendar_open");
+      setCalendarOpened(true);
+    }
+
+    setTab(id);
+  }
+
+  // Patrón ARIA de pestañas: flechas para moverse, Home/End para ir
+  // a la primera/última, y activación automática al mover el foco.
+  function handleTabKeyDown(
+    event: KeyboardEvent<HTMLButtonElement>,
+    index: number
+  ) {
+    let nextIndex: number | null = null;
+
+    if (event.key === "ArrowRight") {
+      nextIndex = (index + 1) % TABS.length;
+    } else if (event.key === "ArrowLeft") {
+      nextIndex = (index - 1 + TABS.length) % TABS.length;
+    } else if (event.key === "Home") {
+      nextIndex = 0;
+    } else if (event.key === "End") {
+      nextIndex = TABS.length - 1;
+    }
+
+    if (nextIndex === null) return;
+
+    event.preventDefault();
+
+    selectTab(TABS[nextIndex][0]);
+    tabRefs.current[nextIndex]?.focus();
   }
 
   return (
@@ -119,29 +167,24 @@ export default function Conversation() {
             aria-label="Secciones"
             className="flex border-b border-white/15"
           >
-            {(
-              [
-                ["recommender", "🎬", "Recomendador"],
-                ["calendar", "📅", "Calendario"],
-              ] as const
-            ).map(([id, emoji, label]) => {
+            {TABS.map(([id, emoji, label], index) => {
               const active = tab === id;
 
               return (
                 <button
                   key={id}
+                  ref={(el) => {
+                    tabRefs.current[index] = el;
+                  }}
                   role="tab"
                   id={`tab-${id}`}
+                  tabIndex={active ? 0 : -1}
                   aria-selected={active}
                   aria-controls={`panel-${id}`}
-                  onClick={() => {
-                    if (id === "calendar") {
-                      track("calendar_open");
-                      setCalendarOpened(true);
-                    }
-
-                    setTab(id);
-                  }}
+                  onClick={() => selectTab(id)}
+                  onKeyDown={(event) =>
+                    handleTabKeyDown(event, index)
+                  }
                   className={`flex-1 border-b-[3px] px-2 pb-2.5 pt-3.5 text-sm font-bold transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-white ${
                     active
                       ? "border-red-500 bg-white/10 text-white"
