@@ -106,4 +106,29 @@ describe("buildRecommendationReason", () => {
 
     assert.ok(reason.includes("en pareja"), reason);
   });
+
+  test("dos títulos del mismo lote, con el mismo género y ánimo, no repiten la frase exacta", () => {
+    const profile = {
+      preferredGenre: "scifi",
+      mood: "adventure",
+    };
+
+    const usedReasons = new Set<string>();
+
+    // Ambos títulos encajan por los mismos dos motivos (ciencia ficción +
+    // aventura): sin el Set compartido, salía la misma frase dos veces.
+    const first = buildRecommendationReason(
+      profile,
+      item([878, 12], 8.6),
+      usedReasons
+    );
+
+    const second = buildRecommendationReason(
+      profile,
+      item([878, 28], 7.8),
+      usedReasons
+    );
+
+    assert.notEqual(first, second);
+  });
 });
