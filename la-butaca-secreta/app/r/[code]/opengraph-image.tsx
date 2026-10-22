@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-import { formatNames } from "@/lib/group";
+import { audienceLabel } from "@/lib/group";
 import { parseShareCode } from "@/lib/shareLink";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { getSharedRecommendations } from "@/lib/tmdb/shared";
@@ -62,8 +62,10 @@ export default async function SharedOpenGraphImage({
 
   const group = set?.group;
 
-  const title = group
-    ? `Sugerencias para ${formatNames(group.names)}`
+  const audience = audienceLabel(group);
+
+  const title = audience
+    ? `Sugerencias para ${audience}`
     : "Mis sugerencias";
 
   return new ImageResponse(

@@ -283,6 +283,23 @@ describe("enlaces de grupo", () => {
     }
   });
 
+  test("sin nombres: va una «a» suelta y no hay ningún nombre en el código", () => {
+    const code = buildShareCode("movie", entries, {
+      names: ["Ana", "Luis"],
+      percent: 80,
+      anonymous: true,
+    });
+
+    assert.match(code, /^movie-101m-202m-303s-c80-a$/);
+    assert.ok(!code.includes("Ana"));
+
+    assert.deepEqual(parseShareCode(code)?.group, {
+      names: [],
+      percent: 80,
+      anonymous: true,
+    });
+  });
+
   test("el nombre no puede convertirse en otra cosa que texto", () => {
     const code = buildShareCode("movie", entries, {
       names: ["<script>alert(1)</script>"],

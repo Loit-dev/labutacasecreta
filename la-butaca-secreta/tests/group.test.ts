@@ -7,6 +7,7 @@ import {
   companyFor,
   compatibility,
   compatibilityText,
+  audienceLabel,
   formatNames,
   INDIFFERENT,
   resolveRound,
@@ -240,6 +241,29 @@ describe("formatNames", () => {
     assert.equal(
       formatNames(["Ana", "Luis", "Eva"]),
       "Ana, Luis y Eva"
+    );
+  });
+});
+
+describe("audienceLabel", () => {
+  test("sin grupo, no hay destinatario", () => {
+    assert.equal(audienceLabel(undefined), undefined);
+  });
+
+  test("con nombres, los junta igual que formatNames", () => {
+    assert.equal(
+      audienceLabel({ names: ["Ana", "Luis"] }),
+      "Ana y Luis"
+    );
+  });
+
+  test("anónimo: «hoy», nunca los nombres", () => {
+    assert.equal(
+      audienceLabel({
+        names: ["Ana", "Luis"],
+        anonymous: true,
+      }),
+      "hoy"
     );
   });
 });
