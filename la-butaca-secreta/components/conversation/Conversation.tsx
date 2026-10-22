@@ -107,11 +107,13 @@ export default function Conversation() {
             lg:backdrop-blur-2xl
           "
         >
-          <img
-  src="/Logo.png"
-  alt="La Butaca Secreta"
-  className="absolute left-4 top-16 hidden md:block md:h-12 lg:h-14 w-auto opacity-90"
-/>
+          {tab === "recommender" && (
+            <img
+              src="/Logo.png"
+              alt="La Butaca Secreta"
+              className="absolute left-4 top-16 hidden md:block md:h-12 lg:h-14 w-auto opacity-90"
+            />
+          )}
           <div
             role="tablist"
             aria-label="Secciones"
