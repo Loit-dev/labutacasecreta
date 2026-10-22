@@ -9,7 +9,10 @@ import {
 } from "@/lib/recommendation/engine";
 import { recentPoolFilters } from "@/lib/recommendation/eras";
 import { RecommendationFilters } from "@/lib/recommendation/filters";
-import { providerIdsFor } from "@/lib/platforms";
+import {
+  ALL_PLATFORM_KEYS,
+  providerIdsFor,
+} from "@/lib/platforms";
 import { sortByScore } from "@/lib/recommendation/scoring";
 import {
   buildSurpriseReason,
@@ -144,6 +147,38 @@ function parseIdList(
       (id) => Number.isInteger(id) && id > 0
     )
     .slice(0, max);
+}
+
+/**
+ * Valida los parámetros que, si llegan con un valor raro, antes se
+ * ignoraban en silencio y devolvían recomendaciones genéricas. Aquí
+ * se rechazan con 400 para que el error no pase desapercibido.
+ */
+function validationError(
+  params: URLSearchParams
+): string | null {
+  const type = params.get("type");
+
+  if (type && type !== "movie" && type !== "tv") {
+    return `"type" debe ser "movie" o "tv" (recibido: "${type}").`;
+  }
+
+  const platforms = params.get("platforms");
+
+  if (platforms) {
+    const unknown = platforms
+      .split(",")
+      .filter(Boolean)
+      .filter(
+        (key) => !ALL_PLATFORM_KEYS.includes(key as never)
+      );
+
+    if (unknown.length > 0) {
+      return `"platforms" tiene valores desconocidos: ${unknown.join(", ")}.`;
+    }
+  }
+
+  return null;
 }
 
 function shiftYears(
@@ -286,6 +321,15 @@ export async function GET(
 ) {
   try {
     const params = request.nextUrl.searchParams;
+
+    const invalid = validationError(params);
+
+    if (invalid) {
+      return NextResponse.json(
+        { error: invalid },
+        { status: 400 }
+      );
+    }
 
     const profile = parseProfile(params);
 

@@ -3,10 +3,15 @@ import type { Metadata } from "next";
 import LegalPage from "@/components/layout/LegalPage";
 import { CONTACT_EMAIL, SITE_NAME } from "@/lib/site";
 
+const title = "Aviso legal";
+const description = `Aviso legal y atribuciones de ${SITE_NAME}.`;
+
 export const metadata: Metadata = {
-  title: "Aviso legal",
-  description: `Aviso legal y atribuciones de ${SITE_NAME}.`,
+  title,
+  description,
   alternates: { canonical: "/aviso-legal" },
+  openGraph: { title, description, url: "/aviso-legal" },
+  twitter: { title, description },
 };
 
 export default function LegalNoticePage() {

@@ -3,10 +3,15 @@ import type { Metadata } from "next";
 import LegalPage from "@/components/layout/LegalPage";
 import { CONTACT_EMAIL, SITE_NAME } from "@/lib/site";
 
+const title = "Privacidad";
+const description = `Qué datos usa ${SITE_NAME} y cuáles no.`;
+
 export const metadata: Metadata = {
-  title: "Privacidad",
-  description: `Qué datos usa ${SITE_NAME} y cuáles no.`,
+  title,
+  description,
   alternates: { canonical: "/privacidad" },
+  openGraph: { title, description, url: "/privacidad" },
+  twitter: { title, description },
 };
 
 export default function PrivacyPage() {
