@@ -9,9 +9,14 @@ import { SITE_NAME } from "@/lib/site";
 
 // No se pre-generan en el build (requeriría TMDB_API_TOKEN y red ahí
 // mismo): se generan a demanda en la primera visita a cada URL y se
-// cachean 12h, que es de sobra para contenido editorial que no
-// necesita estar al minuto.
-export const revalidate = 60 * 60 * 12;
+// cachean 12h (43200 s), que es de sobra para contenido editorial que
+// no necesita estar al minuto.
+//
+// Tiene que ser un literal (nada de "60 * 60 * 12"): Next.js analiza
+// este export de forma estática, sin ejecutar el módulo, y una
+// expresión calculada rompe el build con "Invalid segment
+// configuration export detected".
+export const revalidate = 43200;
 
 type Params = { genero: string; plataforma: string };
 
