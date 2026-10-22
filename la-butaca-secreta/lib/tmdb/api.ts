@@ -2,6 +2,7 @@ import {
   TMDBCredits,
   TMDBFullDetails,
   TMDBMovieDetails,
+  TMDBPersonFull,
   TMDBResponse,
   TMDBWatchProviders,
 } from "./types";
@@ -268,6 +269,18 @@ export async function getTVFull(
 ) {
   return request<TMDBFullDetails>(
     `/tv/${id}?language=es-ES&append_to_response=credits,watch/providers,videos&include_video_language=es,en`,
+    DETAILS_REVALIDATE
+  );
+}
+
+/**
+ * Ficha de un actor/actriz y toda su filmografía (/person/{id} con
+ * append_to_response=combined_credits: una sola llamada en vez de
+ * pedir luego los créditos por separado).
+ */
+export async function getPersonFull(id: number) {
+  return request<TMDBPersonFull>(
+    `/person/${id}?language=es-ES&append_to_response=combined_credits`,
     DETAILS_REVALIDATE
   );
 }
