@@ -124,9 +124,11 @@ export default function RecommendationCard({
           </p>
         )}
 
-        <p className="line-clamp-2 hidden text-justify text-sm leading-relaxed text-zinc-300 md:block">
-          {overview}
-        </p>
+        <div className="hidden md:block">
+          <p className="line-clamp-2 text-justify text-sm leading-relaxed text-zinc-300">
+            {overview}
+          </p>
+        </div>
 
         <button
   onClick={onDetails}
