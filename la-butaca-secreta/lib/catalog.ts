@@ -95,14 +95,26 @@ export async function fetchCatalogPage(
     sortBy: "popularity.desc",
   };
 
-  const response =
-    type === "movie"
-      ? await discoverMovies(filters)
-      : await discoverTV(filters);
+  // Si TMDb falla (caída puntual, token mal configurado...) la página
+  // no debe reventar: se muestra con la lista vacía (el cuerpo de la
+  // página ya tiene un mensaje para eso) en vez de un error 500.
+  let items: Recommendation[] = [];
 
-  const items = (response.results ?? [])
-    .slice(0, RESULTS_LIMIT)
-    .map((item) => mapRecommendation(item));
+  try {
+    const response =
+      type === "movie"
+        ? await discoverMovies(filters)
+        : await discoverTV(filters);
+
+    items = (response.results ?? [])
+      .slice(0, RESULTS_LIMIT)
+      .map((item) => mapRecommendation(item));
+  } catch (error) {
+    console.error(
+      `No se pudo cargar el catálogo de ${type}/${genre.key}/${platform.key}:`,
+      error
+    );
+  }
 
   return { genre, platform, items };
 }
