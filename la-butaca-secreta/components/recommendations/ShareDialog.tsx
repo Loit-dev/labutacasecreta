@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { useDialog } from "@/hooks/useDialog";
 import { track } from "@/lib/analytics";
-import { formatNames } from "@/lib/group";
+import { defaultName, formatNames } from "@/lib/group";
 import {
   SHARE_FILE_NAME,
   buildShareText,
@@ -46,8 +46,25 @@ export default function ShareDialog({
   group,
   onClose,
 }: Props) {
-  const audience = group ? formatNames(group.names) : undefined;
-  const percent = group?.percent;
+  // Modo acompañado: por defecto se comparten los nombres puestos,
+  // pero se puede marcar esta opción para no incluirlos en el enlace
+  // ni en la imagen (se usan "Persona 1", "Persona 2"... en su lugar)
+  const [anonymous, setAnonymous] = useState(false);
+
+  const effectiveGroup = useMemo(() => {
+    if (!group) return undefined;
+    if (!anonymous) return group;
+
+    return {
+      ...group,
+      names: group.names.map((_, index) => defaultName(index)),
+    };
+  }, [group, anonymous]);
+
+  const audience = effectiveGroup
+    ? formatNames(effectiveGroup.names)
+    : undefined;
+  const percent = effectiveGroup?.percent;
 
   const dialogRef = useDialog<HTMLDivElement>(onClose);
 
@@ -72,11 +89,11 @@ export default function ShareDialog({
       setLink(
         shareUrl(
           window.location.origin,
-          buildShareCode(kind, entries, group)
+          buildShareCode(kind, entries, effectiveGroup)
         )
       );
     }
-  }, [items, kind, group]);
+  }, [items, kind, effectiveGroup]);
 
   // Crea la imagen al abrirse
   useEffect(() => {
@@ -279,6 +296,23 @@ export default function ShareDialog({
             Descargar imagen
           </button>
         </div>
+
+        {group && (
+          <label className="flex items-start gap-2 text-xs text-zinc-300">
+            <input
+              type="checkbox"
+              checked={anonymous}
+              onChange={(event) => setAnonymous(event.target.checked)}
+              className="mt-0.5 h-4 w-4 shrink-0 rounded border-zinc-600 bg-black/40 text-red-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            />
+
+            <span>
+              Compartir sin nombres (se usará «Persona 1», «Persona
+              2»… en la imagen y el enlace, en vez de{" "}
+              {formatNames(group.names)})
+            </span>
+          </label>
+        )}
 
         {link && (
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
