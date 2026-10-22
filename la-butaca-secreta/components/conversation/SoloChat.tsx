@@ -17,8 +17,11 @@ export default function SoloChat({
   const {
     messages,
     profile,
+    confidence,
     currentQuestion,
     answer,
+    goBack,
+    canGoBack,
     isThinking,
     finished,
   } = useConversation();
@@ -84,12 +87,43 @@ export default function SoloChat({
               </div>
             )}
 
+            {!finished && currentQuestion && (
+              <div
+                className="mt-4 flex items-center gap-2"
+                aria-hidden="true"
+              >
+                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-zinc-800">
+                  <div
+                    className="h-full rounded-full bg-red-500 transition-all duration-500"
+                    style={{
+                      width: `${Math.min(100, confidence)}%`,
+                    }}
+                  />
+                </div>
+
+                <span className="shrink-0 text-xs text-zinc-500">
+                  {Math.min(100, confidence)}%
+                </span>
+              </div>
+            )}
+
             {!finished && !isThinking && (
               <div className="mt-4">
                 <OptionButtons
                   question={currentQuestion}
                   onSelect={answer}
                 />
+
+                {canGoBack && (
+                  <button
+                    type="button"
+                    onClick={goBack}
+                    className="mt-3 rounded-full px-3 py-1.5 text-xs font-semibold text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                  >
+                    <span aria-hidden="true">←</span> Volver a la
+                    pregunta anterior
+                  </button>
+                )}
               </div>
             )}
 

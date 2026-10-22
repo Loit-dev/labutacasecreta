@@ -35,6 +35,16 @@ export class ConversationEngine {
     return this.context;
   }
 
+  /** Copia del contexto (para guardar un "deshacer" antes de contestar). */
+  snapshot(): ConversationContext {
+    return structuredClone(this.context);
+  }
+
+  /** Vuelve a un contexto guardado antes con `snapshot()`. */
+  restore(context: ConversationContext) {
+    this.context = context;
+  }
+
   getProfile() {
     return this.context.profile;
   }
