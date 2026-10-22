@@ -311,7 +311,9 @@ export default function Recommendations({
 
   const renderCard = (
     movie: Recommendation,
-    index: number
+    index: number,
+    // Solo en el carrusel del móvil (una tarjeta a la vez)
+    dots?: { total: number; current: number }
   ) => {
     const { badge, badgeTitle } = badgeFor(
       movie,
@@ -333,6 +335,7 @@ export default function Recommendations({
         poster={movie.poster}
         providers={movie.providers}
         reason={movie.reason}
+        dots={dots}
         saved={watchlist.has(movie.id, type)}
         onToggleSave={() => toggleSaved(movie)}
         onDetails={() => {
@@ -417,7 +420,10 @@ export default function Recommendations({
             key={visible[current].id}
             className="animate-fade-in relative"
           >
-            {renderCard(visible[current], current)}
+            {renderCard(visible[current], current, {
+              total: visible.length,
+              current,
+            })}
 
             <button
               onClick={prevMovie}
@@ -437,28 +443,11 @@ export default function Recommendations({
           </div>
         )}
 
-        {visible.length > 1 && (
-          <div
-            className="mt-4 flex justify-center gap-2"
-            aria-hidden="true"
-          >
-            {visible.map((movie, index) => (
-              <div
-                key={movie.id}
-                className={
-                  index === current
-                    ? "h-2 w-6 rounded-full bg-red-500 transition-all duration-300"
-                    : "h-2 w-2 rounded-full bg-zinc-600 transition-all duration-300"
-                }
-              />
-            ))}
-          </div>
-        )}
       </div>
 
       {/* DESKTOP */}
       <div className="hidden gap-6 md:grid md:grid-cols-2 xl:grid-cols-3">
-        {visible.map(renderCard)}
+        {visible.map((movie, index) => renderCard(movie, index))}
       </div>
 
       <div className="mt-4 flex flex-wrap items-center justify-center gap-2 md:mt-6 md:gap-3">
