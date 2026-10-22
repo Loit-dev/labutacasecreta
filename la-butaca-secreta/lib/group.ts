@@ -209,6 +209,20 @@ export function formatNames(names: string[]) {
   return `${names.slice(0, -1).join(", ")} y ${names[names.length - 1]}`;
 }
 
+/**
+ * Para quién son las sugerencias, en texto. Si se han compartido sin
+ * nombres, no decimos "Persona 1 y Persona 2": decimos "hoy" (como si
+ * fueran de cualquiera que abra el enlace).
+ */
+export function audienceLabel(group?: {
+  names: string[];
+  anonymous?: boolean;
+}) {
+  if (!group) return undefined;
+
+  return group.anonymous ? "hoy" : formatNames(group.names);
+}
+
 /** Con 2 personas es "en pareja"; con más, "con amigos". */
 export function companyFor(size: number) {
   return size <= 2 ? "partner" : "friends";

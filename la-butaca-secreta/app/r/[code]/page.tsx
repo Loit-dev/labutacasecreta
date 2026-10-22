@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import PosterWall from "@/components/layout/PosterWall";
 import MyListButton from "@/components/list/MyListButton";
 import SharedRecommendations from "@/components/recommendations/SharedRecommendations";
-import { formatNames } from "@/lib/group";
+import { audienceLabel } from "@/lib/group";
 import { parseShareCode } from "@/lib/shareLink";
 import { SITE_NAME } from "@/lib/site";
 import { getSharedRecommendations } from "@/lib/tmdb/shared";
@@ -23,9 +23,7 @@ export async function generateMetadata({
 
   const what = set?.type === "tv" ? "series" : "películas";
 
-  const audience = set?.group
-    ? formatNames(set.group.names)
-    : null;
+  const audience = audienceLabel(set?.group) ?? null;
 
   const title = audience
     ? `Sugerencias para ${audience}`
@@ -54,9 +52,7 @@ export default async function SharedPage({ params }: Props) {
 
   const items = await getSharedRecommendations(set);
 
-  const audience = set.group
-    ? formatNames(set.group.names)
-    : null;
+  const audience = audienceLabel(set.group) ?? null;
 
   return (
     <>

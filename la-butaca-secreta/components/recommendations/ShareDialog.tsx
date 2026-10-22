@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 
 import { useDialog } from "@/hooks/useDialog";
 import { track } from "@/lib/analytics";
-import { defaultName, formatNames } from "@/lib/group";
+import { audienceLabel, formatNames } from "@/lib/group";
 import {
   SHARE_FILE_NAME,
   buildShareText,
@@ -47,23 +47,18 @@ export default function ShareDialog({
   onClose,
 }: Props) {
   // Modo acompañado: por defecto se comparten los nombres puestos,
-  // pero se puede marcar esta opción para no incluirlos en el enlace
-  // ni en la imagen (se usan "Persona 1", "Persona 2"... en su lugar)
+  // pero se puede marcar esta opción para no incluirlos ni en el
+  // enlace ni en la imagen (se dirá "hoy" en vez de los nombres)
   const [anonymous, setAnonymous] = useState(false);
 
   const effectiveGroup = useMemo(() => {
     if (!group) return undefined;
     if (!anonymous) return group;
 
-    return {
-      ...group,
-      names: group.names.map((_, index) => defaultName(index)),
-    };
+    return { ...group, names: [], anonymous: true };
   }, [group, anonymous]);
 
-  const audience = effectiveGroup
-    ? formatNames(effectiveGroup.names)
-    : undefined;
+  const audience = audienceLabel(effectiveGroup);
   const percent = effectiveGroup?.percent;
 
   const dialogRef = useDialog<HTMLDivElement>(onClose);
@@ -307,8 +302,8 @@ export default function ShareDialog({
             />
 
             <span>
-              Compartir sin nombres (se usará «Persona 1», «Persona
-              2»… en la imagen y el enlace, en vez de{" "}
+              Compartir sin nombres (se dirá «Sugerencias para
+              hoy» en la imagen y el enlace, en vez de{" "}
               {formatNames(group.names)})
             </span>
           </label>

@@ -9,6 +9,9 @@
  * llevar además el porcentaje de coincidencia («c63») y los nombres
  * («n» + letras y números en hexadecimal): /r/movie-101m-102m-103s-c63-n416e61...
  * Los nombres se leen siempre como texto, nunca como código.
+ *
+ * Si se compartió «sin nombres», en vez de «n...» lleva una «a» suelta
+ * (anónimo) y no hay ningún nombre en el enlace.
  */
 
 export type ShareKindCode = "movie" | "tv";
@@ -21,6 +24,8 @@ export type SharedEntry = {
 export type SharedGroup = {
   names: string[];
   percent: number;
+  // Si se compartió con «sin nombres»: no hay que mostrar `names`
+  anonymous?: boolean;
 };
 
 export type SharedSet = {
@@ -103,7 +108,13 @@ export function buildShareCode(
 
     if (Number.isFinite(percent)) extra.push(`c${percent}`);
 
-    if (names.length > 0) extra.push(`n${toHex(names.join(SEPARATOR))}`);
+    // Sin nombres: ni siquiera se meten los de pega ("Persona 1"...)
+    // en el enlace, para que no haya nada que mostrar en la página.
+    if (group.anonymous) {
+      extra.push("a");
+    } else if (names.length > 0) {
+      extra.push(`n${toHex(names.join(SEPARATOR))}`);
+    }
   }
 
   return [type, ...parts, ...extra].join("-");
@@ -128,9 +139,15 @@ export function parseShareCode(code: string): SharedSet | null {
 
   let percent: number | null = null;
   let names: string[] | null = null;
+  let anonymous = false;
   let tokens = 0;
 
   for (const part of rest) {
+    if (part === "a") {
+      anonymous = true;
+      continue;
+    }
+
     const percentMatch = PERCENT.exec(part);
 
     if (percentMatch) {
@@ -186,8 +203,10 @@ export function parseShareCode(code: string): SharedSet | null {
   const set: SharedSet = { type, entries };
 
   // Con nombres, o con porcentaje, es de un grupo
-  if (names && names.length > 0 && percent !== null) {
-    set.group = { names, percent };
+  if (percent !== null && (anonymous || (names && names.length > 0))) {
+    set.group = anonymous
+      ? { names: [], percent, anonymous: true }
+      : { names: names ?? [], percent };
   }
 
   return set;
