@@ -92,7 +92,12 @@ function hasAny(ids: number[], wanted: number[]) {
 
 export function buildRecommendationReason(
   profile: UserProfile,
-  item: ReasonInput
+  item: ReasonInput,
+  // Frases ya usadas en el mismo lote de 3 recomendaciones. Dos títulos
+  // con el mismo género y el mismo estado de ánimo generaban, si no,
+  // la frase exactamente idéntica — se nota mucho al verlas una junto
+  // a la otra y resta credibilidad a "te entiendo".
+  usedReasons?: Set<string>
 ): string {
   const reasons: string[] = [];
 
@@ -162,11 +167,34 @@ export function buildRecommendationReason(
     )} en TMDb).`;
   }
 
-  const [first, second] = reasons;
+  // Todas las combinaciones de uno o dos motivos, de la más a la menos
+  // específica. Cuando dos títulos del mismo lote comparten género y
+  // estado de ánimo, probar varias combinaciones evita que acaben con
+  // la misma frase exacta.
+  const combos: string[] = [];
 
-  const sentence = second
-    ? `${first} y ${second}`
-    : first;
+  for (let i = 0; i < reasons.length; i++) {
+    for (let j = i + 1; j < reasons.length; j++) {
+      combos.push(`${reasons[i]} y ${reasons[j]}`);
+    }
+  }
+
+  combos.push(...reasons);
+
+  let sentence =
+    combos.find((candidate) => !usedReasons?.has(candidate)) ??
+    combos[0];
+
+  // Si ni variando la combinación se libra de la repetición (lote con
+  // muy poca variedad de motivos posibles), se añade un dato propio
+  // de la película: la nota, que casi nunca coincide entre dos títulos.
+  if (usedReasons?.has(sentence)) {
+    sentence = `${sentence}, y tiene ${item.voteAverage.toFixed(
+      1
+    )} en TMDb`;
+  }
+
+  usedReasons?.add(sentence);
 
   return `Te la recomiendo porque ${sentence}.`;
 }

@@ -507,6 +507,11 @@ export async function GET(
       mode.trios
     );
 
+    // Se comparte entre las 3 tarjetas del lote para que, si dos títulos
+    // encajan por el mismo género y estado de ánimo, no acaben mostrando
+    // la frase de justificación exactamente idéntica.
+    const usedReasons = new Set<string>();
+
     const recommendations = trios.map(
       (entry) => {
         const { movie, details } =
@@ -532,7 +537,8 @@ export async function GET(
                     voteAverage:
                       movie.vote_average,
                     voteCount: movie.vote_count,
-                  }
+                  },
+                  usedReasons
                 ),
         };
       }
