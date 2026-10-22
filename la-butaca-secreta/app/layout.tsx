@@ -10,6 +10,7 @@ import {
   SITE_TAGLINE,
   SITE_URL,
 } from "@/lib/site";
+import { structuredDataScript } from "@/lib/structuredData";
 
 import "./globals.css";
 
@@ -86,24 +87,6 @@ export const viewport: Viewport = {
   themeColor: "#09090b",
 };
 
-// Para que los buscadores (Google...) entiendan qué es la web sin
-// tener que adivinarlo del HTML
-const structuredData = {
-  "@context": "https://schema.org",
-  "@type": "WebApplication",
-  name: SITE_NAME,
-  url: SITE_URL,
-  description: SITE_DESCRIPTION,
-  applicationCategory: "EntertainmentApplication",
-  operatingSystem: "Any",
-  inLanguage: "es-ES",
-  offers: {
-    "@type": "Offer",
-    price: "0",
-    priceCurrency: "EUR",
-  },
-};
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -125,7 +108,7 @@ export default function RootLayout({
           // Datos fijos y de confianza (sin nada que venga del
           // usuario), así que no hay riesgo de inyección aquí.
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(structuredData),
+            __html: structuredDataScript,
           }}
         />
 
