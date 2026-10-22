@@ -13,6 +13,33 @@ interface ReasonInput {
   genreIds: number[];
   voteAverage: number;
   voteCount: number;
+  overview?: string;
+}
+
+// Primera frase de la sinopsis de TMDb, tal cual, sin reescribirla ni
+// resumirla con IA (este motor no usa ningún LLM): es lo que hace que
+// cada recomendación se sienta propia del título y no solo una
+// combinación de etiquetas de género/ánimo repetible entre películas.
+// Se descarta si es demasiado corta (ruido, p. ej. "Temporada 2.") o
+// demasiado larga (sinopsis sin puntuación temprana: quedaría cortada
+// de forma rara).
+function synopsisHook(overview?: string): string | undefined {
+  if (!overview) return undefined;
+
+  const firstSentence = overview
+    .split(/(?<=[.!?])\s+/)[0]
+    ?.trim();
+
+  if (!firstSentence) return undefined;
+
+  if (
+    firstSentence.length < 15 ||
+    firstSentence.length > 140
+  ) {
+    return undefined;
+  }
+
+  return firstSentence;
 }
 
 const MOOD_REASONS: Record<
@@ -162,9 +189,13 @@ export function buildRecommendationReason(
 
   // Siempre queda algo verificable que decir
   if (reasons.length === 0) {
-    return `Muy bien valorada por el público (${item.voteAverage.toFixed(
+    const base = `Muy bien valorada por el público (${item.voteAverage.toFixed(
       1
     )} en TMDb).`;
+
+    const hook = synopsisHook(item.overview);
+
+    return hook ? `${base} ${hook}` : base;
   }
 
   // Todas las combinaciones de uno o dos motivos, de la más a la menos
@@ -196,5 +227,9 @@ export function buildRecommendationReason(
 
   usedReasons?.add(sentence);
 
-  return `Te la recomiendo porque ${sentence}.`;
+  const base = `Te la recomiendo porque ${sentence}.`;
+
+  const hook = synopsisHook(item.overview);
+
+  return hook ? `${base} ${hook}` : base;
 }
