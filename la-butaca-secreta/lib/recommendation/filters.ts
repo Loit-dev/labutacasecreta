@@ -33,7 +33,11 @@ export interface RecommendationFilters {
   providerIds?: number[];
 }
 
-const PreferredGenreMap: Record<
+// Exportado para las páginas SEO de género+plataforma (lib/catalog.ts),
+// que necesitan el mismo filtro «con_géneros» que usa el cuestionario
+// (más estrecho que el de scoring/genre.ts, pensado para puntuar
+// candidatos ya recogidos, no para decidir qué se recoge).
+export const PreferredGenreMap: Record<
   string,
   number[]
 > = {
