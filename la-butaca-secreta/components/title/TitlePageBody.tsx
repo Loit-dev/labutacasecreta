@@ -36,7 +36,7 @@ export default function TitlePageBody({ type, title }: Props) {
 
   const catalogPlatform = platforms
     .map((platform) => platformKeyForName(platform.name))
-    .find((key): key is string => Boolean(key));
+    .find((key): key is NonNullable<typeof key> => Boolean(key));
 
   return (
     <>
