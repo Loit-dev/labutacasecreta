@@ -10,7 +10,7 @@
 export interface Windowable {
   id: number;
 
-  role?: "main" | "surprise";
+  role?: "main" | "surprise" | "trending";
 }
 
 export function pickWindow<T extends Windowable>(
