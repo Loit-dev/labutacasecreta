@@ -4,19 +4,16 @@ import { notFound } from "next/navigation";
 
 import CatalogPageBody from "@/components/catalog/CatalogPageBody";
 import PosterWall from "@/components/layout/PosterWall";
-import { catalogParams, fetchCatalogPage } from "@/lib/catalog";
+import { fetchCatalogPage } from "@/lib/catalog";
 import { SITE_NAME } from "@/lib/site";
 
-// Contenido editorial, no un resultado en vivo: no necesita
-// regenerarse al minuto. 12h es suficiente para que no se quede
-// obsoleto (estrenos, retiradas de catálogo) sin pedir de más a TMDb.
+// No se pre-generan en el build (requeriría TMDB_API_TOKEN y red ahí
+// mismo): se generan a demanda en la primera visita a cada URL y se
+// cachean 12h, que es de sobra para contenido editorial que no
+// necesita estar al minuto.
 export const revalidate = 60 * 60 * 12;
 
 type Params = { genero: string; plataforma: string };
-
-export function generateStaticParams() {
-  return catalogParams();
-}
 
 export async function generateMetadata({
   params,
