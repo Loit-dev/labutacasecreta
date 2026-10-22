@@ -13,6 +13,7 @@ import {
   ALL_PLATFORM_KEYS,
   providerIdsFor,
 } from "@/lib/platforms";
+import { clientIp, isRateLimited } from "@/lib/rateLimit";
 import { sortByScore } from "@/lib/recommendation/scoring";
 import {
   buildSurpriseReason,
