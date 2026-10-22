@@ -15,6 +15,9 @@ test.describe("Navegación por teclado de las pestañas", () => {
     const calendarTab = page.getByRole("tab", {
       name: /Calendario/,
     });
+    const searchTab = page.getByRole("tab", {
+      name: /Buscar/,
+    });
 
     await recommenderTab.focus();
     await expect(recommenderTab).toHaveAttribute(
@@ -33,6 +36,15 @@ test.describe("Navegación por teclado de las pestañas", () => {
       page.getByRole("tabpanel", { name: /Calendario/i })
     ).toBeVisible();
 
+    await page.keyboard.press("ArrowRight");
+
+    await expect(searchTab).toBeFocused();
+    await expect(searchTab).toHaveAttribute("aria-selected", "true");
+    await expect(
+      page.getByRole("tabpanel", { name: /Buscar/i })
+    ).toBeVisible();
+
+    await page.keyboard.press("ArrowLeft");
     await page.keyboard.press("ArrowLeft");
 
     await expect(recommenderTab).toBeFocused();
@@ -51,18 +63,15 @@ test.describe("Navegación por teclado de las pestañas", () => {
     const recommenderTab = page.getByRole("tab", {
       name: /Recomendador/,
     });
-    const calendarTab = page.getByRole("tab", {
-      name: /Calendario/,
+    const searchTab = page.getByRole("tab", {
+      name: /Buscar/,
     });
 
     await recommenderTab.focus();
 
     await page.keyboard.press("End");
-    await expect(calendarTab).toBeFocused();
-    await expect(calendarTab).toHaveAttribute(
-      "aria-selected",
-      "true"
-    );
+    await expect(searchTab).toBeFocused();
+    await expect(searchTab).toHaveAttribute("aria-selected", "true");
 
     await page.keyboard.press("Home");
     await expect(recommenderTab).toBeFocused();
@@ -84,6 +93,10 @@ test.describe("Navegación por teclado de las pestañas", () => {
 
     await expect(
       page.getByRole("tab", { name: /Calendario/ })
+    ).toHaveAttribute("tabindex", "-1");
+
+    await expect(
+      page.getByRole("tab", { name: /Buscar/ })
     ).toHaveAttribute("tabindex", "-1");
   });
 });

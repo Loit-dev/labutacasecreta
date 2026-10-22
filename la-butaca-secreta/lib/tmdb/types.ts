@@ -96,6 +96,11 @@ export interface TMDBCountryProviders {
 
   flatrate?: TMDBProvider[];
 
+  // Plan con anuncios (p. ej. Disney+ o Netflix "Standard con
+  // anuncios"): sigue incluido en la suscripción, así que se trata
+  // igual que flatrate.
+  ads?: TMDBProvider[];
+
   rent?: TMDBProvider[];
 
   buy?: TMDBProvider[];

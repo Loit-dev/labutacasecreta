@@ -104,7 +104,10 @@ function buildDiscoverQuery(
     String(filters.minRating ?? 6)
   );
 
-  // Filtro estricto por plataformas en suscripción activa (flatrate)
+  // Filtro estricto por plataformas en suscripción activa (flatrate),
+  // incluyendo el plan con anuncios (p. ej. Disney+ Standard con
+  // anuncios): sigue siendo "incluido en tu suscripción", no alquiler
+  // ni compra.
   params.set("watch_region", WATCH_REGION);
   params.set(
     "with_watch_providers",
@@ -112,7 +115,7 @@ function buildDiscoverQuery(
       ? filters.providerIds.join("|")
       : STREAMING_PROVIDERS
   );
-  params.set("with_watch_monetization_types", "flatrate");
+  params.set("with_watch_monetization_types", "flatrate|ads");
 
   // Por defecto popularidad (mezcla estrenos y títulos conocidos);
   // "impacto" y "joya oculta" ordenan por nota.
@@ -358,7 +361,7 @@ export async function discoverCalendar(
   params.set("sort_by", "popularity.desc");
   params.set("watch_region", WATCH_REGION);
   params.set("with_watch_providers", options.providerIds.join("|"));
-  params.set("with_watch_monetization_types", "flatrate");
+  params.set("with_watch_monetization_types", "flatrate|ads");
 
   if (type === "movie") {
     // Sin «region»: vale que el estreno digital sea en cualquier país;
@@ -477,18 +480,19 @@ export async function findTvByExternalId(
   return data.tv_results?.[0] ?? null;
 }
 
-/** Ids de proveedor en suscripción (España) de una serie. */
+/** Ids de proveedor en suscripción (España, flatrate o con anuncios) de una serie. */
 export async function getTvFlatrateIds(id: number): Promise<number[]> {
   const data = await request<TMDBWatchProviders>(
     `/tv/${id}/watch/providers`,
     CALENDAR_REVALIDATE
   );
 
-  const flatrate = data.results?.[WATCH_REGION]?.flatrate;
+  const region = data.results?.[WATCH_REGION];
 
-  return Array.isArray(flatrate)
-    ? flatrate.map((provider) => provider.provider_id)
-    : [];
+  return [
+    ...(region?.flatrate ?? []),
+    ...(region?.ads ?? []),
+  ].map((provider) => provider.provider_id);
 }
 
 
@@ -531,7 +535,7 @@ export async function searchMulti(query: string, page = 1) {
   );
 }
 
-/** Ids de proveedor en suscripción (España) de una película o serie. */
+/** Ids de proveedor en suscripción (España, flatrate o con anuncios) de una película o serie. */
 export async function getFlatrateIds(
   type: "movie" | "tv",
   id: number
@@ -541,11 +545,12 @@ export async function getFlatrateIds(
     CALENDAR_REVALIDATE
   );
 
-  const flatrate = data.results?.[WATCH_REGION]?.flatrate;
+  const region = data.results?.[WATCH_REGION];
 
-  return Array.isArray(flatrate)
-    ? flatrate.map((provider) => provider.provider_id)
-    : [];
+  return [
+    ...(region?.flatrate ?? []),
+    ...(region?.ads ?? []),
+  ].map((provider) => provider.provider_id);
 }
 
 /**

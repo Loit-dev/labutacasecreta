@@ -146,7 +146,15 @@ export interface Recommendation {
     logo: string;
   }[];
   director?: string;
+  // Nombres solo (compatibilidad: modal de detalles, puntuación...)
   cast: string[];
+  // Reparto con foto, para el carrusel de la ficha de título
+  castMembers: {
+    id: number;
+    name: string;
+    character: string;
+    photo: string | null;
+  }[];
   reason?: string;
   // "main" = 🥇/🥈 por encaje, "surprise" = 🥉,
   // "trending" = lo más visto ahora (solo en «Butaca Exprés»)
@@ -227,10 +235,13 @@ export function mapRecommendation(
   providers?: TMDBWatchProviders,
   credits?: TMDBCredits
 ): Recommendation {
-  // Sin logo no podemos pintar el proveedor, así que se descarta
-  const esProviders = (
-    providers?.results?.ES?.flatrate ?? []
-  ).filter((provider) => provider.logo_path);
+  // Sin logo no podemos pintar el proveedor, así que se descarta.
+  // Se incluye el plan con anuncios (p. ej. Disney+ con anuncios):
+  // sigue viéndose con la suscripción, solo cambia el tipo de plan.
+  const esProviders = [
+    ...(providers?.results?.ES?.flatrate ?? []),
+    ...(providers?.results?.ES?.ads ?? []),
+  ].filter((provider) => provider.logo_path);
 
   const director =
     credits?.crew.find(
@@ -338,5 +349,17 @@ export function mapRecommendation(
       credits?.cast
         .slice(0, 5)
         .map((actor) => actor.name) ?? [],
+
+    // Hasta 10 caras para el carrusel; con menos se ve pelado y con
+    // más no cabe cómodo en una fila deslizable.
+    castMembers:
+      credits?.cast.slice(0, 10).map((actor) => ({
+        id: actor.id,
+        name: actor.name,
+        character: actor.character,
+        photo: actor.profile_path
+          ? `${IMAGE_URL}${actor.profile_path}`
+          : null,
+      })) ?? [],
   };
 }

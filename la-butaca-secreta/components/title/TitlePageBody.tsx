@@ -15,7 +15,7 @@ type Props = {
  * una página propia e indexable en vez de un diálogo.
  */
 export default function TitlePageBody({ type, title }: Props) {
-  const cast = title.cast.join(", ");
+  const castMembers = title.castMembers ?? [];
 
   const platforms = title.platforms ?? [];
 
@@ -90,23 +90,57 @@ export default function TitlePageBody({ type, title }: Props) {
           "TMDb todavía no tiene sinopsis en español para este título."}
       </p>
 
-      {(title.director || cast) && (
+      {title.director && (
         <p className="mt-3 text-sm leading-relaxed text-zinc-400">
-          {title.director && (
-            <>
-              <span className="text-zinc-500">Dirige:</span>{" "}
-              {title.director}
-            </>
-          )}
-
-          {title.director && cast && " · "}
-
-          {cast && (
-            <>
-              <span className="text-zinc-500">Con:</span> {cast}
-            </>
-          )}
+          <span className="text-zinc-500">Dirige:</span>{" "}
+          {title.director}
         </p>
+      )}
+
+      {castMembers.length > 0 && (
+        <div className="mt-5">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+            Reparto
+          </h2>
+
+          <ul className="mt-2 flex gap-4 overflow-x-auto pb-2 [scrollbar-width:thin]">
+            {castMembers.map((actor) => (
+              <li
+                key={actor.id}
+                className="flex w-16 shrink-0 flex-col items-center gap-1.5 text-center sm:w-20"
+              >
+                <div className="relative aspect-square w-16 shrink-0 overflow-hidden rounded-full bg-zinc-800 sm:w-20">
+                  {actor.photo ? (
+                    <Image
+                      src={actor.photo}
+                      alt={actor.name}
+                      fill
+                      className="object-cover"
+                      sizes="80px"
+                    />
+                  ) : (
+                    <span
+                      aria-hidden="true"
+                      className="flex h-full w-full items-center justify-center text-xl text-zinc-500"
+                    >
+                      🎭
+                    </span>
+                  )}
+                </div>
+
+                <span className="w-full truncate text-[11px] font-semibold text-zinc-200">
+                  {actor.name}
+                </span>
+
+                {actor.character && (
+                  <span className="w-full truncate text-[10px] text-zinc-500">
+                    {actor.character}
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
 
       <div className="mt-6">
