@@ -87,6 +87,96 @@ function PlatformLogo({
   );
 }
 
+function EntryItem({
+  entry,
+  logos,
+}: {
+  entry: CalendarEntry;
+  logos: MonthData["logos"];
+}) {
+  return (
+    <li className="flex gap-3 rounded-2xl border border-zinc-800 bg-black/30 p-2">
+      {entry.poster ? (
+        <Image
+          src={entry.poster}
+          alt=""
+          width={56}
+          height={84}
+          className="h-21 w-14 shrink-0 rounded-lg object-cover"
+        />
+      ) : (
+        <span className="h-21 w-14 shrink-0 rounded-lg bg-zinc-800" />
+      )}
+
+      <div className="min-w-0 flex-1">
+        <a
+          href={
+            entry.id > 0
+              ? `https://www.themoviedb.org/${entry.type}/${entry.id}?language=es-ES`
+              : `https://www.themoviedb.org/search?query=${encodeURIComponent(entry.title)}`
+          }
+          target="_blank"
+          rel="noopener noreferrer"
+          className="line-clamp-2 text-sm font-semibold text-white underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+        >
+          {entry.title}
+          <span className="sr-only">
+            {" "}
+            (se abre en una pestaña nueva)
+          </span>
+        </a>
+
+        <p className="mt-0.5 text-xs text-zinc-400">
+          {entry.type === "tv" ? "Serie" : "Película"}
+          {entry.note && ` · ${entry.note}`}
+          {entry.rating > 0 && ` · ⭐ ${entry.rating}`}
+        </p>
+
+        <div className="mt-1 flex flex-wrap items-center gap-1">
+          {entry.confirmed && (
+            <span
+              title="Confirmado por TMDb y TVmaze"
+              className="mr-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-300"
+            >
+              <span aria-hidden="true">✓</span> 2 fuentes
+              <span className="sr-only">
+                : confirmado por TMDb y TVmaze
+              </span>
+            </span>
+          )}
+
+          {entry.unverified && (
+            <span
+              title="No se ha encontrado una ficha de este título en TMDb"
+              className="mr-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-300"
+            >
+              <span aria-hidden="true">⚠</span> Sin contrastar
+              <span className="sr-only">
+                : no se ha encontrado en TMDb
+              </span>
+            </span>
+          )}
+
+          {entry.platforms.map((platform) => (
+            <PlatformLogo
+              key={platform}
+              platform={platform}
+              logos={logos}
+              size={22}
+            />
+          ))}
+        </div>
+
+        {entry.overview && (
+          <p className="mt-1 line-clamp-2 text-xs text-zinc-300">
+            {entry.overview}
+          </p>
+        )}
+      </div>
+    </li>
+  );
+}
+
 export default function CalendarView({ platforms: mine }: Props) {
   const today = todayKey();
 
@@ -359,79 +449,15 @@ export default function CalendarView({ platforms: mine }: Props) {
             ) : (
               <ul className="mt-2 space-y-2">
                 {selectedEntries.map((entry) => (
-                  <li
+                  <EntryItem
                     key={`${entry.type}-${entry.id}`}
-                    className="flex gap-3 rounded-2xl border border-zinc-800 bg-black/30 p-2"
-                  >
-                    {entry.poster ? (
-                      <Image
-                        src={entry.poster}
-                        alt=""
-                        width={56}
-                        height={84}
-                        className="h-21 w-14 shrink-0 rounded-lg object-cover"
-                      />
-                    ) : (
-                      <span className="h-21 w-14 shrink-0 rounded-lg bg-zinc-800" />
-                    )}
-
-                    <div className="min-w-0 flex-1">
-                      <a
-                        href={
-                          entry.id > 0
-                            ? `https://www.themoviedb.org/${entry.type}/${entry.id}?language=es-ES`
-                            : `https://www.themoviedb.org/search?query=${encodeURIComponent(entry.title)}`
-                        }
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="line-clamp-2 text-sm font-semibold text-white underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-                      >
-                        {entry.title}
-                        <span className="sr-only">
-                          {" "}
-                          (se abre en una pestaña nueva)
-                        </span>
-                      </a>
-
-                      <p className="mt-0.5 text-xs text-zinc-400">
-                        {entry.type === "tv" ? "Serie" : "Película"}
-                        {entry.note && ` · ${entry.note}`}
-                        {entry.rating > 0 && ` · ⭐ ${entry.rating}`}
-                      </p>
-
-                      <div className="mt-1 flex items-center gap-1">
-                        {entry.confirmed && (
-                          <span
-                            title="Confirmado por TMDb y TVmaze"
-                            className="mr-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-300"
-                          >
-                            <span aria-hidden="true">✓</span> 2 fuentes
-                            <span className="sr-only">
-                              : confirmado por TMDb y TVmaze
-                            </span>
-                          </span>
-                        )}
-
-                        {entry.platforms.map((platform) => (
-                          <PlatformLogo
-                            key={platform}
-                            platform={platform}
-                            logos={current.logos}
-                            size={22}
-                          />
-                        ))}
-                      </div>
-
-                      {entry.overview && (
-                        <p className="mt-1 line-clamp-2 text-xs text-zinc-300">
-                          {entry.overview}
-                        </p>
-                      )}
-                    </div>
-                  </li>
+                    entry={entry}
+                    logos={current.logos}
+                  />
                 ))}
               </ul>
             )}
+
           </section>
         )}
 

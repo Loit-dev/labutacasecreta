@@ -20,6 +20,9 @@ export type CalendarEntry = {
   note?: string;
   // true si dos fuentes (TMDb y TVmaze) coinciden en el día
   confirmed?: boolean;
+  // true si no se ha podido contrastar con una ficha de TMDb
+  // (título solo encontrado a mano, p. ej. en una lista manual)
+  unverified?: boolean;
 };
 
 const MONTH_RE = /^(\d{4})-(0[1-9]|1[0-2])$/;

@@ -207,4 +207,44 @@ test.describe("Calendario de estrenos", () => {
 
     expect(await log.count()).toBe(before);
   });
+
+  test("avisa de los títulos sin contrastar en TMDb", async ({ page }) => {
+    await mockApi(page);
+
+    const { day } = today();
+
+    await page.route("**/api/calendar**", async (route) => {
+      const url = new URL(route.request().url());
+
+      await route.fulfill({
+        json: {
+          month: url.searchParams.get("month"),
+          logos: {},
+          days: {
+            [day]: [
+              {
+                ...entry(3, "Rumor sin ficha", day, ["disney"]),
+                id: -1,
+                unverified: true,
+              },
+            ],
+          },
+        },
+      });
+    });
+
+    await page.goto("/");
+
+    await page.getByRole("tab", { name: /Calendario/ }).click();
+
+    const dialog = page.getByRole("tabpanel", {
+      name: /Calendario/,
+    });
+
+    await expect(
+      dialog.getByRole("link", { name: /Rumor sin ficha/ })
+    ).toBeVisible();
+
+    await expect(dialog.getByText("Sin contrastar")).toBeVisible();
+  });
 });

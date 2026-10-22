@@ -232,6 +232,7 @@ async function destacados(
             popularity: 0,
             platforms: [item.platform],
             note,
+            unverified: true,
           };
 
       // Por delante de lo demás de su día, en el orden de la lista
@@ -411,22 +412,15 @@ export async function GET(request: NextRequest) {
               item: TMDBMovie;
               digital: { date: string; region: "ES" | "US" | "OTHER" };
             } =>
+              // Solo estrenos con fecha confirmada en España; nada de
+              // EE. UU. ni de otros países
               !!entry.digital &&
+              entry.digital.region === "ES" &&
               entry.digital.date >= from &&
               entry.digital.date <= to
           )
           .map(({ item, digital }) =>
-            toEntry(
-              item,
-              "movie",
-              digital.date,
-              platform.key,
-              digital.region === "US"
-                ? "Fecha de estreno en EE. UU."
-                : digital.region === "OTHER"
-                  ? "Fecha de estreno digital en otro país"
-                  : undefined
-            )
+            toEntry(item, "movie", digital.date, platform.key)
           );
       })
     );
