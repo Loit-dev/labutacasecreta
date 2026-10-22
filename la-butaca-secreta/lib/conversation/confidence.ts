@@ -1,15 +1,17 @@
 import { UserProfile } from "./types";
 
+// Un punto por cada pregunta que de verdad se hace (ver
+// data/conversation/nodes.ts): si falta alguna aquí, o sobra una que
+// ya no se pregunta, la barra de progreso se queda parada a mitad o
+// no llega nunca al 100%.
 const weights = {
-  contentType: 25,
-  company: 15,
-  mood: 30,
-  restrictions: 20,
-  duration: 5,
-  pace: 3,
-  freshness: 2,
-  language: 2,
-  animation: 2,
+  contentType: 20,
+  company: 16,
+  mood: 19,
+  preferredGenre: 18,
+  discoveryMode: 14,
+  freshness: 11,
+  restrictions: 2,
 };
 
 export function calculateConfidence(profile: UserProfile): number {
