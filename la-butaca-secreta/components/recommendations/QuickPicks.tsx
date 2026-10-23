@@ -11,14 +11,23 @@ import { badgeFor } from "./badges";
 
 import { useWatchlist } from "@/hooks/useWatchlist";
 import { track } from "@/lib/analytics";
-import { UserProfile } from "@/lib/conversation/types";
+import { ContentType, UserProfile } from "@/lib/conversation/types";
 import { inferredProfile } from "@/lib/memory";
-import { posterSource, type ShareItem } from "@/lib/share";
+import { posterSource, type ShareItem, type ShareKind } from "@/lib/share";
 import { addShown, readRecentlyShown } from "@/lib/shown";
 import type { Recommendation } from "@/lib/tmdb/mapper";
 import { readSeen } from "@/lib/viewed";
 
 type Phase = "loading" | "ready" | "empty" | "error";
+
+// Cada tarjeta lleva pegado su propio tipo (película o serie): la API
+// no lo incluye en la respuesta, así que lo anotamos aquí según de
+// qué petición vino, para mezclar ambos en la misma tanda.
+type Picked = Recommendation & { mediaType: ContentType };
+
+function otherType(type: ContentType): ContentType {
+  return type === "movie" ? "tv" : "movie";
+}
 
 // Fecha de hoy (para registrar en el historial de "mostrados" qué se
 // le enseñó y cuándo, de cara a los 60 días sin repetir de lib/shown).
@@ -26,10 +35,18 @@ function todayKey() {
   return new Date().toISOString().slice(0, 10);
 }
 
-function buildMainQuery(profile: UserProfile, exclude: string) {
+function excludedFor(type: ContentType): string[] {
+  return Array.from(new Set([...readSeen(type), ...readRecentlyShown(type)]));
+}
+
+function buildMainQuery(
+  profile: UserProfile,
+  type: ContentType,
+  exclude: string
+) {
   const params = new URLSearchParams();
 
-  params.set("type", profile.contentType ?? "movie");
+  params.set("type", type);
   params.set("quick", "1");
   params.set("company", "alone");
 
@@ -66,10 +83,11 @@ function startingProfile(): UserProfile {
 export default function QuickPicks() {
   const profile = useMemo(startingProfile, []);
 
-  const [items, setItems] = useState<Recommendation[]>([]);
+  const [items, setItems] = useState<Picked[]>([]);
   const [phase, setPhase] = useState<Phase>("loading");
   const [detailsId, setDetailsId] = useState<number | null>(null);
   const [shareItems, setShareItems] = useState<ShareItem[] | null>(null);
+  const [shareKind, setShareKind] = useState<ShareKind>("movie");
 
   // En el móvil se ve una tarjeta cada vez, como en el cuestionario
   // completo (mismo patrón de carrusel con puntos y deslizar)
@@ -79,7 +97,11 @@ export default function QuickPicks() {
 
   const watchlist = useWatchlist();
 
+  // Tipo principal (de tu historial, o película por defecto) y el otro
+  // tipo, que rellena el hueco de "tendencia" para que cada tanda
+  // mezcle película y serie en vez de ser todo de un único tipo.
   const type = profile.contentType ?? "movie";
+  const secondaryType = otherType(type);
 
   useEffect(() => {
     let cancelled = false;
@@ -89,13 +111,14 @@ export default function QuickPicks() {
 
       try {
         // Lo que ya dijo que vio + lo que ya le enseñamos como «hoy»
-        // hace poco, para no repetirle la misma tanda varios días seguidos.
-        const excluded = Array.from(
-          new Set([...readSeen(type), ...readRecentlyShown(type)])
-        );
+        // hace poco, para no repetirle la misma tanda varios días seguidos
+        // (por separado para cada tipo: películas y series no comparten
+        // historial, aunque sus ids numéricos puedan coincidir).
+        const excluded = excludedFor(type);
+        const excludedSecondary = excludedFor(secondaryType);
 
         const mainResponse = await fetch(
-          `/api/tmdb?${buildMainQuery(profile, excluded.join(","))}`
+          `/api/tmdb?${buildMainQuery(profile, type, excluded.join(","))}`
         );
 
         if (!mainResponse.ok) {
@@ -110,22 +133,17 @@ export default function QuickPicks() {
         const paraTi = main.find((item) => item.role !== "surprise");
         const sorpresa = main.find((item) => item.role === "surprise");
 
-        const alreadyPicked = [paraTi, sorpresa]
-          .filter((item): item is Recommendation => !!item)
-          .map((item) => item.id);
-
+        // La tercera tarjeta ("tendencia") sale del otro tipo, para que
+        // cada tanda mezcle siempre película y serie.
         const trendingParams = new URLSearchParams();
 
-        trendingParams.set("type", type);
+        trendingParams.set("type", secondaryType);
 
         if (profile.platforms) {
           trendingParams.set("platforms", profile.platforms);
         }
 
-        trendingParams.set(
-          "exclude",
-          [...excluded, ...alreadyPicked].join(",")
-        );
+        trendingParams.set("exclude", excludedSecondary.join(","));
 
         const trendingResponse = await fetch(
           `/api/trending?${trendingParams.toString()}`
@@ -139,15 +157,27 @@ export default function QuickPicks() {
           ? (trendingData as Recommendation[])[0]
           : undefined;
 
-        const result = [paraTi, trending, sorpresa].filter(
-          (item): item is Recommendation => !!item
-        );
+        const result: Picked[] = [
+          paraTi && { ...paraTi, mediaType: type },
+          trending && { ...trending, mediaType: secondaryType },
+          sorpresa && { ...sorpresa, mediaType: type },
+        ].filter((item): item is Picked => !!item);
 
         if (cancelled) return;
 
         addShown(
           type,
-          result.map((item) => item.id),
+          result
+            .filter((item) => item.mediaType === type)
+            .map((item) => item.id),
+          todayKey()
+        );
+
+        addShown(
+          secondaryType,
+          result
+            .filter((item) => item.mediaType === secondaryType)
+            .map((item) => item.id),
           todayKey()
         );
 
@@ -169,12 +199,12 @@ export default function QuickPicks() {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profile, type]);
+  }, [profile, type, secondaryType]);
 
-  const toggleSaved = (movie: Recommendation) => {
+  const toggleSaved = (movie: Picked) => {
     const added = watchlist.toggle({
       id: movie.id,
-      type,
+      type: movie.mediaType,
       title: movie.title,
       year: movie.year || undefined,
       rating: movie.rating,
@@ -183,7 +213,7 @@ export default function QuickPicks() {
     });
 
     track(added ? "list_add" : "list_remove", {
-      type,
+      type: movie.mediaType,
       id: movie.id,
       role: movie.role,
       source: "today",
@@ -200,8 +230,20 @@ export default function QuickPicks() {
       posterUrl: posterSource(movie.poster),
     }));
 
-    track("share_open", { type, count: shared.length, source: "today" });
+    // Si la tanda mezcla película y serie, el texto que acompaña al
+    // compartir usa una palabra neutra ("títulos") en vez de asumir
+    // que todo es de un mismo tipo.
+    const types = new Set(items.map((item) => item.mediaType));
+    const nextShareKind: ShareKind =
+      types.size === 1 ? [...types][0] : "mixed";
 
+    track("share_open", {
+      type: nextShareKind,
+      count: shared.length,
+      source: "today",
+    });
+
+    setShareKind(nextShareKind);
     setShareItems(shared);
   };
 
@@ -236,7 +278,7 @@ export default function QuickPicks() {
   };
 
   const renderCard = (
-    movie: Recommendation,
+    movie: Picked,
     index: number,
     dots?: { total: number; current: number }
   ) => {
@@ -257,7 +299,7 @@ export default function QuickPicks() {
         providers={movie.providers}
         reason={movie.reason}
         dots={dots}
-        saved={watchlist.has(movie.id, type)}
+        saved={watchlist.has(movie.id, movie.mediaType)}
         onToggleSave={() => toggleSaved(movie)}
         onDetails={() => {
           track("details_open", {
@@ -391,7 +433,8 @@ export default function QuickPicks() {
       {shareItems && (
         <ShareDialog
           items={shareItems}
-          kind={type}
+          kind={shareKind}
+          linkType={type}
           headline="Butaca Exprés recomienda"
           onClose={() => setShareItems(null)}
         />
@@ -402,7 +445,7 @@ export default function QuickPicks() {
           movie={detailsMovie}
           badge={detailsBadge.badge}
           badgeTitle={detailsBadge.badgeTitle}
-          saved={watchlist.has(detailsMovie.id, type)}
+          saved={watchlist.has(detailsMovie.id, detailsMovie.mediaType)}
           onToggleSave={() => toggleSaved(detailsMovie)}
           onClose={() => setDetailsId(null)}
         />
