@@ -258,12 +258,8 @@ export function drawShareImage(
     const logoX = W / 2 - logoW / 2;
     const logoY = 235;
 
-    // Sin marco ni resplandor: el fondo negro del logo se funde con la
-    // imagen (modo «screen»)
-    ctx.save();
-    ctx.globalCompositeOperation = "screen";
+    // El logo ya tiene fondo transparente, así que se dibuja tal cual
     ctx.drawImage(logo, logoX, logoY, logoW, logoH);
-    ctx.restore();
   } else {
     ctx.fillStyle = "#ef4444";
     ctx.font = `800 34px ${font}`;
