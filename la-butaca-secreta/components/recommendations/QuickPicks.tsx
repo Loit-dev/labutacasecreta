@@ -14,6 +14,7 @@ import { track } from "@/lib/analytics";
 import { UserProfile } from "@/lib/conversation/types";
 import { inferredProfile } from "@/lib/memory";
 import { posterSource, type ShareItem } from "@/lib/share";
+import { addShown, readRecentlyShown } from "@/lib/shown";
 import type { Recommendation } from "@/lib/tmdb/mapper";
 import { readSeen } from "@/lib/viewed";
 
@@ -145,7 +146,11 @@ export default function QuickPicks() {
       setPhase("loading");
 
       try {
-        const excluded = readSeen(type);
+        // Lo que ya dijo que vio + lo que ya le enseñamos como «hoy»
+        // hace poco, para no repetirle la misma tanda varios días seguidos.
+        const excluded = Array.from(
+          new Set([...readSeen(type), ...readRecentlyShown(type)])
+        );
 
         const mainResponse = await fetch(
           `/api/tmdb?${buildMainQuery(profile, excluded.join(","))}`
@@ -199,6 +204,11 @@ export default function QuickPicks() {
         if (cancelled) return;
 
         writeCache({ date: todayKey(), profileKey: key, items: result });
+        addShown(
+          type,
+          result.map((item) => item.id),
+          todayKey()
+        );
 
         setItems(result);
         setPhase(result.length > 0 ? "ready" : "empty");
