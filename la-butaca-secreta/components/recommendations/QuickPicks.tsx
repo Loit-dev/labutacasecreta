@@ -20,59 +20,10 @@ import { readSeen } from "@/lib/viewed";
 
 type Phase = "loading" | "ready" | "empty" | "error";
 
-const CACHE_KEY = "lbs:today";
-
-type Cache = {
-  date: string;
-  profileKey: string;
-  items: Recommendation[];
-};
-
-// Mismo día + mismo perfil => misma carta, aunque se recargue la
-// página varias veces (no tiene sentido que cambie a media tarde).
+// Fecha de hoy (para registrar en el historial de "mostrados" qué se
+// le enseñó y cuándo, de cara a los 60 días sin repetir de lib/shown).
 function todayKey() {
   return new Date().toISOString().slice(0, 10);
-}
-
-function profileKey(profile: UserProfile) {
-  return [
-    profile.contentType,
-    profile.preferredGenre,
-    profile.mood,
-    profile.platforms,
-  ]
-    .map((value) => value ?? "")
-    .join("|");
-}
-
-function readCache(): Cache | null {
-  try {
-    const raw = window.localStorage.getItem(CACHE_KEY);
-
-    if (!raw) return null;
-
-    const parsed: unknown = JSON.parse(raw);
-
-    if (
-      !parsed ||
-      typeof parsed !== "object" ||
-      !Array.isArray((parsed as Cache).items)
-    ) {
-      return null;
-    }
-
-    return parsed as Cache;
-  } catch {
-    return null;
-  }
-}
-
-function writeCache(cache: Cache) {
-  try {
-    window.localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
-  } catch {
-    // Sin localStorage: simplemente se vuelve a calcular cada vez
-  }
 }
 
 function buildMainQuery(profile: UserProfile, exclude: string) {
@@ -134,25 +85,6 @@ export default function QuickPicks() {
     let cancelled = false;
 
     async function load() {
-      const key = profileKey(profile);
-      const cached = readCache();
-
-      if (cached && cached.date === todayKey() && cached.profileKey === key) {
-        setItems(cached.items);
-        setPhase(cached.items.length > 0 ? "ready" : "empty");
-
-        // La caché puede venir de antes de que existiera este historial
-        // (o de una visita anterior el mismo día): nos aseguramos de que
-        // lo de «hoy» quede registrado igualmente, si no ya nunca se
-        // apunta y estas mismas cartas podrían repetirse más adelante.
-        addShown(
-          type,
-          cached.items.map((item) => item.id),
-          todayKey()
-        );
-        return;
-      }
-
       setPhase("loading");
 
       try {
@@ -213,7 +145,6 @@ export default function QuickPicks() {
 
         if (cancelled) return;
 
-        writeCache({ date: todayKey(), profileKey: key, items: result });
         addShown(
           type,
           result.map((item) => item.id),
@@ -385,8 +316,8 @@ export default function QuickPicks() {
         </h1>
 
         <p className="mt-1 text-xs text-zinc-400 md:text-sm">
-          Sin preguntas: esto es lo que te propongo para hoy. Mañana hay
-          otras tres.
+          Sin preguntas: esto es lo que te propongo ahora mismo. Vuelve a
+          entrar cuando quieras y te doy otras tres.
         </p>
       </div>
 
