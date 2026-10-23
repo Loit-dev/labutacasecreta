@@ -140,6 +140,16 @@ export default function QuickPicks() {
       if (cached && cached.date === todayKey() && cached.profileKey === key) {
         setItems(cached.items);
         setPhase(cached.items.length > 0 ? "ready" : "empty");
+
+        // La caché puede venir de antes de que existiera este historial
+        // (o de una visita anterior el mismo día): nos aseguramos de que
+        // lo de «hoy» quede registrado igualmente, si no ya nunca se
+        // apunta y estas mismas cartas podrían repetirse más adelante.
+        addShown(
+          type,
+          cached.items.map((item) => item.id),
+          todayKey()
+        );
         return;
       }
 
