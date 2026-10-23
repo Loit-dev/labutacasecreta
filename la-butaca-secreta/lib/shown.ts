@@ -10,8 +10,9 @@
  * como lista de ids para excluirlos de la búsqueda.
  */
 
-const DAYS_TO_REMEMBER = 10;
-const MAX_ENTRIES = 200;
+// Mínimo 2 meses sin repetir el mismo título en Butaca Exprés.
+const DAYS_TO_REMEMBER = 60;
+const MAX_ENTRIES = 400;
 
 function storageKey(type: string) {
   return `lbs:shown:${type}`;
