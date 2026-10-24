@@ -162,6 +162,37 @@ describe("mapRecommendation", () => {
     assert.equal(result.trailerKey, "c");
   });
 
+  test("tráiler: el español gana aunque no sea el oficial", () => {
+    const videos = {
+      results: [
+        {
+          key: "en-oficial",
+          name: "x",
+          site: "YouTube",
+          type: "Trailer",
+          official: true,
+          iso_639_1: "en",
+        },
+        {
+          key: "es-no-oficial",
+          name: "x",
+          site: "YouTube",
+          type: "Trailer",
+          official: false,
+          iso_639_1: "es",
+        },
+      ],
+    };
+
+    const result = mapRecommendation(movie, {
+      id: 10,
+      genres: [],
+      videos,
+    });
+
+    assert.equal(result.trailerKey, "es-no-oficial");
+  });
+
   test("sin vídeos no hay tráiler", () => {
     assert.equal(
       mapRecommendation(movie).trailerKey,

@@ -169,7 +169,10 @@ export interface Recommendation {
 }
 
 /**
- * Elige el mejor tráiler de YouTube: oficial > en español > cualquiera.
+ * Elige el mejor tráiler de YouTube: en español > oficial > cualquiera.
+ * El idioma pesa más que lo de "oficial" para que, si hay un tráiler
+ * en castellano (aunque no sea el oficial de distribución), se
+ * prefiera siempre a uno en otro idioma.
  */
 function pickTrailer(videos: TMDBVideo[] = []) {
   const trailers = videos.filter(
@@ -179,8 +182,8 @@ function pickTrailer(videos: TMDBVideo[] = []) {
   );
 
   const score = (video: TMDBVideo) =>
-    (video.official ? 2 : 0) +
-    (video.iso_639_1 === "es" ? 1 : 0);
+    (video.iso_639_1 === "es" ? 2 : 0) +
+    (video.official ? 1 : 0);
 
   return [...trailers].sort(
     (a, b) => score(b) - score(a)
