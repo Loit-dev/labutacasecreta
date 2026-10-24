@@ -59,7 +59,7 @@ export default function ChatHistory({
                 className={`rounded-3xl px-5 py-4 leading-7 shadow-lg transition-all ${
                   isBot
                     ? "rounded-bl-md border border-zinc-700 bg-zinc-800 text-white"
-                    : "rounded-br-md bg-gradient-to-r from-red-600 to-red-500 text-white"
+                    : "rounded-br-md bg-[#A3221B] text-white"
                 }`}
               >
                 {message.text}
