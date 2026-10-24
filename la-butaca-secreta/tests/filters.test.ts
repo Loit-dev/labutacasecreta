@@ -148,4 +148,14 @@ describe("buildFilters", () => {
     assert.deepEqual(filters.withGenres, [35]);
     assert.equal(filters.withGenresAny, false);
   });
+
+  test("«anime» pide animación + idioma original japonés", () => {
+    const filters = buildFilters({
+      contentType: "tv",
+      preferredGenre: "anime",
+    });
+
+    assert.deepEqual(filters.withGenres, [16]);
+    assert.equal(filters.withOriginalLanguage, "ja");
+  });
 });
