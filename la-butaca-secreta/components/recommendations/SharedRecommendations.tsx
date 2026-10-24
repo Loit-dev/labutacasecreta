@@ -1,7 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+  type TouchEvent,
+} from "react";
 
 import DetailsModal from "./DetailsModal";
 import RecommendationCard from "./RecommendationCard";
@@ -20,12 +25,9 @@ type Props = {
  * Las recomendaciones de un enlace compartido: se pueden ver los
  * detalles y guardar en «Mi lista», pero sin descartar nada.
  *
- * En el móvil se ven como un carrusel que se desliza en horizontal
- * (una tarjeta ancha, deslizable con el dedo) en vez de una lista de
- * arriba a abajo; en el escritorio, en una rejilla como el resto de
- * la web. Todas las tarjetas están siempre en la página (solo cambia
- * cómo se colocan), así que no hace falta ningún botón ni estado para
- * «la tarjeta actual».
+ * En el móvil se ven igual que en el resto de la web: una tarjeta
+ * cada vez, con flechas y deslizando con el dedo (en vez de todas
+ * apiladas de arriba a abajo); en el escritorio, en una rejilla.
  */
 export default function SharedRecommendations({
   items,
@@ -40,6 +42,42 @@ export default function SharedRecommendations({
   useEffect(() => {
     track("share_link_open", { type, count: items.length });
   }, [type, items.length]);
+
+  // En el móvil se ve una tarjeta cada vez, como en el resto de la
+  // web (mismo patrón de carrusel con flechas y deslizar)
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+  const current = Math.min(activeIndex, Math.max(items.length - 1, 0));
+
+  const nextMovie = () => {
+    setActiveIndex(current >= items.length - 1 ? 0 : current + 1);
+  };
+
+  const prevMovie = () => {
+    setActiveIndex(current <= 0 ? items.length - 1 : current - 1);
+  };
+
+  const minSwipeDistance = 50;
+
+  const handleTouchStart = (event: TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(event.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (event: TouchEvent) => {
+    setTouchEnd(event.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStart === null || touchEnd === null) return;
+
+    const distance = touchStart - touchEnd;
+
+    if (distance > minSwipeDistance) nextMovie();
+    if (distance < -minSwipeDistance) prevMovie();
+  };
 
   const toggleSaved = (movie: Recommendation) => {
     const added = watchlist.toggle({
@@ -61,54 +99,93 @@ export default function SharedRecommendations({
     });
   };
 
+  const renderCard = (
+    movie: Recommendation,
+    index: number,
+    dots?: { total: number; current: number }
+  ) => {
+    const { badge, badgeTitle } = badgeFor(movie, index, items, true);
+
+    return (
+      <RecommendationCard
+        key={movie.id}
+        badge={badge}
+        badgeTitle={badgeTitle}
+        title={movie.title}
+        year={movie.year}
+        rating={movie.rating}
+        runtime={movie.runtime}
+        genres={movie.genres}
+        overview={movie.overview}
+        poster={movie.poster}
+        providers={movie.providers}
+        dots={dots}
+        saved={watchlist.has(movie.id, type)}
+        onToggleSave={() => toggleSaved(movie)}
+        onDetails={() => setDetailsId(movie.id)}
+      />
+    );
+  };
+
   const detailsMovie =
     items.find((item) => item.id === detailsId) ?? null;
 
   return (
     <>
+      {/* MOBILE: una tarjeta cada vez, como en el resto de la web */}
       <div
         role="region"
         aria-roledescription="carrusel"
         aria-label="Recomendaciones compartidas"
-        className={`flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 md:grid md:gap-6 md:overflow-visible md:pb-0 ${
+        className="md:hidden"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        {items[current] && (
+          <div
+            key={items[current].id}
+            className="animate-fade-in relative"
+          >
+            {renderCard(items[current], current, {
+              total: items.length,
+              current,
+            })}
+
+            {items.length > 1 && (
+              <>
+                <button
+                  onClick={prevMovie}
+                  aria-label="Anterior"
+                  className="absolute left-2 top-[8.25rem] z-20 flex h-14 w-14 items-center justify-center rounded-full border border-white/30 bg-black/65 text-3xl font-bold text-white shadow-xl shadow-black/60 backdrop-blur-sm transition-transform active:scale-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                >
+                  <span aria-hidden="true">←</span>
+                </button>
+
+                <button
+                  onClick={nextMovie}
+                  aria-label="Siguiente"
+                  className="absolute right-2 top-[8.25rem] z-20 flex h-14 w-14 items-center justify-center rounded-full border border-white/30 bg-black/65 text-3xl font-bold text-white shadow-xl shadow-black/60 backdrop-blur-sm transition-transform active:scale-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                >
+                  <span aria-hidden="true">→</span>
+                </button>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* DESKTOP */}
+      <div
+        className={`hidden gap-6 md:grid ${
           items.length === 1
-            ? "md:mx-auto md:max-w-sm"
+            ? "mx-auto max-w-sm"
             : items.length === 2
-              ? "md:mx-auto md:max-w-2xl md:grid-cols-2"
+              ? "mx-auto max-w-2xl md:grid-cols-2"
               : "md:grid-cols-2 xl:grid-cols-3"
         }`}
       >
-        {items.map((movie, index) => {
-          const { badge, badgeTitle } = badgeFor(
-            movie,
-            index,
-            items,
-            true
-          );
-
-          return (
-            <div
-              key={movie.id}
-              className="w-[82vw] max-w-sm shrink-0 snap-center md:w-auto md:max-w-none md:shrink"
-            >
-              <RecommendationCard
-                badge={badge}
-                badgeTitle={badgeTitle}
-                title={movie.title}
-                year={movie.year}
-                rating={movie.rating}
-                runtime={movie.runtime}
-                genres={movie.genres}
-                overview={movie.overview}
-                poster={movie.poster}
-                providers={movie.providers}
-                saved={watchlist.has(movie.id, type)}
-                onToggleSave={() => toggleSaved(movie)}
-                onDetails={() => setDetailsId(movie.id)}
-              />
-            </div>
-          );
-        })}
+        {items.map((movie, index) => renderCard(movie, index))}
       </div>
 
       <div className="mt-10 text-center">

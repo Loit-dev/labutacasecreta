@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { completeQuiz, mockApi } from "./helpers";
+import { completeQuiz, mockApi, visibleTitles } from "./helpers";
 
 // Los pósters del TMDb de mentira no pasan por el optimizador de Next
 test.beforeEach(async ({ page }) => {
@@ -19,6 +19,7 @@ test.describe("Compartir con enlace", () => {
   test("el enlace abre las mismas recomendaciones", async ({
     page,
     context,
+    isMobile,
   }) => {
     await mockApi(page);
     await completeQuiz(page);
@@ -65,11 +66,19 @@ test.describe("Compartir con enlace", () => {
       other.getByRole("heading", { level: 1 })
     ).toContainText("Te han compartido sus sugerencias");
 
-    await expect(other.getByRole("article")).toHaveCount(3);
+    // En escritorio se ven las tres a la vez; en el móvil, una cada
+    // vez (carrusel con flechas, como el resto de la web)
+    const titles = await visibleTitles(other);
 
-    await expect(
-      other.getByText("Compartida 10", { exact: false }).first()
-    ).toBeVisible();
+    expect(titles).toHaveLength(isMobile ? 1 : 3);
+
+    if (!isMobile) {
+      expect(titles.some((title) => title.startsWith("Compartida 10"))).toBe(
+        true
+      );
+    } else {
+      expect(titles[0]).toMatch(/^Compartida 10/);
+    }
 
     // Se pueden ver detalles y guardar, pero no hay descartar
     await expect(
@@ -98,14 +107,21 @@ test.describe("Compartir con enlace", () => {
     }
   });
 
-  test("si un título no existe, se enseñan los demás", async ({ page }) => {
+  test("si un título no existe, se enseñan los demás", async ({
+    page,
+    isMobile,
+  }) => {
     await page.route("**/_next/image**", (route) =>
       route.fulfill({ status: 200, contentType: "image/png", body: Buffer.from("") })
     );
 
     await page.goto("/r/tv-101m-999m-103s");
 
-    await expect(page.getByRole("article")).toHaveCount(2);
+    // En escritorio se ven los dos que sí existen a la vez; en el
+    // móvil, una tarjeta cada vez (carrusel con flechas)
+    const titles = await visibleTitles(page);
+
+    expect(titles).toHaveLength(isMobile ? 1 : 2);
   });
 
   test("si ninguno existe, lo explica y ofrece el cuestionario", async ({
