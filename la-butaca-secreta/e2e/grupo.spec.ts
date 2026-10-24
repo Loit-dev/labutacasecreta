@@ -277,6 +277,7 @@ test.describe("Modo acompañado", () => {
   test("el resultado del grupo se comparte con nombres y porcentaje", async ({
     page,
     context,
+    isMobile,
   }) => {
     await mockApi(page);
 
@@ -320,7 +321,9 @@ test.describe("Modo acompañado", () => {
       other.getByText(/100 % de coincidencia/).first()
     ).toBeVisible();
 
-    await expect(other.getByRole("article")).toHaveCount(3);
+    // En escritorio se ven las tres a la vez; en el móvil, una cada
+    // vez (carrusel con flechas, como el resto de la web)
+    await expect(other.getByRole("article")).toHaveCount(isMobile ? 1 : 3);
   });
 
   test("tres personas: gana la mayoría sin desempatar", async ({ page }) => {
