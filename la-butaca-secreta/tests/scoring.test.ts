@@ -6,6 +6,7 @@ import { scoreFeedback } from "@/lib/recommendation/scoring/feedback";
 import { scoreProviders } from "@/lib/recommendation/scoring/providers";
 import { scoreDuration } from "@/lib/recommendation/scoring/duration";
 import { scoreFreshness } from "@/lib/recommendation/scoring/freshness";
+import { scorePopularity } from "@/lib/recommendation/scoring/popularity";
 import type { ScoredItem } from "@/lib/recommendation/scoring/types";
 
 function make(overrides: Partial<ScoredItem> = {}): ScoredItem {
@@ -307,5 +308,50 @@ describe("calidad", () => {
     });
 
     assert.equal(ranked[0].score, ranked[1].score);
+  });
+});
+
+describe("scorePopularity (nota media vs. popularidad bruta)", () => {
+  test("un taquillazo muy visto gana a un título de nicho con mejor nota pero menos alcance", () => {
+    const blockbuster = make({
+      id: 1,
+      voteAverage: 7.2,
+      voteCount: 20000,
+      popularity: 1200,
+    });
+
+    const nicho = make({
+      id: 2,
+      voteAverage: 8.7,
+      voteCount: 3000,
+      popularity: 150,
+    });
+
+    const ctx = { profile: {} };
+
+    assert.ok(
+      scorePopularity(blockbuster, ctx) > scorePopularity(nicho, ctx)
+    );
+  });
+
+  test("la popularidad bruta pesa más que antes: su máximo supera al de la nota", () => {
+    const soloPopular = make({
+      voteAverage: 6.6,
+      voteCount: 0,
+      popularity: 1000,
+    });
+
+    const soloBienValorado = make({
+      voteAverage: 8.5,
+      voteCount: 0,
+      popularity: 0,
+    });
+
+    const ctx = { profile: {} };
+
+    assert.ok(
+      scorePopularity(soloPopular, ctx) >
+        scorePopularity(soloBienValorado, ctx)
+    );
   });
 });

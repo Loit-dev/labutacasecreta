@@ -53,8 +53,8 @@ describe("mostrados recientemente (Butaca Exprés)", () => {
     assert.deepEqual(readRecentlyShown("tv"), [2]);
   });
 
-  test("pasados los 60 días, un título puede volver a salir", () => {
-    addShown("movie", [1], daysAgo(61));
+  test("pasados los 15 días, un título puede volver a salir", () => {
+    addShown("movie", [1], daysAgo(16));
     addShown("movie", [2], daysAgo(3));
 
     assert.deepEqual(readRecentlyShown("movie"), [2]);
@@ -75,11 +75,11 @@ describe("mostrados recientemente (Butaca Exprés)", () => {
     assert.equal(data.has("lbs:shown:movie"), false);
   });
 
-  test("al guardar, se descarta lo que ya tenía más de 60 días", () => {
-    addShown("movie", [1], daysAgo(65));
+  test("al guardar, se descarta lo que ya tenía más de 15 días", () => {
+    addShown("movie", [1], daysAgo(20));
     addShown("movie", [2], daysAgo(0));
 
-    // El guardado del día 0 ya debería haber limpiado el de hace 65 días
+    // El guardado del día 0 ya debería haber limpiado el de hace 20 días
     assert.deepEqual(readRecentlyShown("movie"), [2]);
   });
 

@@ -30,7 +30,7 @@ function otherType(type: ContentType): ContentType {
 }
 
 // Fecha de hoy (para registrar en el historial de "mostrados" qué se
-// le enseñó y cuándo, de cara a los 60 días sin repetir de lib/shown).
+// le enseñó y cuándo, de cara a los 15 días sin repetir de lib/shown).
 function todayKey() {
   return new Date().toISOString().slice(0, 10);
 }

@@ -15,7 +15,13 @@ export default function OptionButtons({
 }: Props) {
   if (!question) return null;
 
+  // "¿Qué te apetece ver?" tenía un número par de opciones y nunca
+  // centraba ninguna; al añadir "Anime" pasó a ser impar y el botón
+  // se centraba solo, sin flecha, distinto a los demás. Se deja sin
+  // el efecto de "última opción suelta centrada" aquí para que todos
+  // los botones de género se vean exactamente igual.
   const isOdd =
+    question.id !== "preferredGenre" &&
     question.options.length % 2 !== 0;
 
   return (
