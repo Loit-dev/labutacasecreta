@@ -175,6 +175,15 @@ function buildDiscoverQuery(
     );
   }
 
+  // TMDb no tiene un género "Anime" real: se identifica como
+  // Animación (género 16) + idioma original japonés.
+  if (filters.withOriginalLanguage) {
+    params.set(
+      "with_original_language",
+      filters.withOriginalLanguage
+    );
+  }
+
   if (filters.releaseAfter) {
     if (filters.type === "movie") {
       params.set(

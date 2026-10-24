@@ -143,6 +143,11 @@ export const conversationNodes: ConversationNode[] = [
       label: "👨‍👩‍👧 Infantil y familiar",
       value: "family",
     },
+    {
+      id: "anime",
+      label: "🍥 Anime",
+      value: "anime",
+    },
   ],
 },
 

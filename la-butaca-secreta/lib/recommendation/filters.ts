@@ -31,6 +31,11 @@ export interface RecommendationFilters {
 
   // Plataformas (ids de TMDb) donde buscar; sin esto, todas las permitidas
   providerIds?: number[];
+
+  // Idioma original (código TMDb, p. ej. "ja"). Se usa para "anime":
+  // TMDb no tiene un género real para eso, así que se filtra por
+  // Animación + japonés.
+  withOriginalLanguage?: string;
 }
 
 // Exportado para las páginas SEO de género+plataforma (lib/catalog.ts),
@@ -58,6 +63,9 @@ export const PreferredGenreMap: Record<
 
   // Infantil y familiar
   family: [10751],
+
+  // Anime: Animación (16) + idioma original japonés, ver buildFilters
+  anime: [16],
 };
 
 export function buildFilters(
@@ -92,6 +100,12 @@ export function buildFilters(
     // Para ver con niños: nada de terror, thriller ni crimen
     if (profile.preferredGenre === "family") {
       filters.withoutGenres.push(27, 53, 80);
+    }
+
+    // Anime: solo animación de origen japonés (si no, "animación"
+    // a secas trae también Pixar, DreamWorks, etc.)
+    if (profile.preferredGenre === "anime") {
+      filters.withOriginalLanguage = "ja";
     }
   }
 
