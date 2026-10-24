@@ -311,7 +311,9 @@ export function drawShareImage(
   const what =
     options.kind === "tv"
       ? "Series para ver hoy"
-      : "Películas para ver hoy";
+      : options.kind === "mixed"
+        ? "Para ver hoy"
+        : "Películas para ver hoy";
 
   ctx.fillText(
     options.audience && options.compatibility !== undefined

@@ -13,12 +13,22 @@ import {
   type ShareKind,
 } from "@/lib/share";
 import { createShareImage } from "@/lib/shareImage";
-import { buildShareCode, shareUrl } from "@/lib/shareLink";
+import {
+  buildShareCode,
+  shareUrl,
+  type ShareKindCode,
+} from "@/lib/shareLink";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 
 type Props = {
   items: ShareItem[];
   kind: ShareKind;
+  // Tipo usado para el enlace que reabre exactamente estas
+  // recomendaciones: el formato del enlace solo admite un tipo, así
+  // que cuando `kind` es "mixed" (Butaca Exprés con película + serie)
+  // se usa el tipo mayoritario como representante. Por defecto, el
+  // propio `kind` (cuando no es "mixed").
+  linkType?: ShareKindCode;
   // Quiénes han elegido y cuánto han coincidido (modo acompañado)
   group?: { names: string[]; percent: number };
   // Titular alternativo a "Mis sugerencias" (se ignora si hay grupo,
@@ -46,10 +56,13 @@ function siteFont() {
 export default function ShareDialog({
   items,
   kind,
+  linkType,
   group,
   headline,
   onClose,
 }: Props) {
+  const effectiveLinkType: ShareKindCode =
+    linkType ?? (kind === "mixed" ? "movie" : kind);
   // Modo acompañado: por defecto se comparten los nombres puestos,
   // pero se puede marcar esta opción para no incluirlos ni en el
   // enlace ni en la imagen (se dirá "hoy" en vez de los nombres)
@@ -88,11 +101,11 @@ export default function ShareDialog({
       setLink(
         shareUrl(
           window.location.origin,
-          buildShareCode(kind, entries, effectiveGroup)
+          buildShareCode(effectiveLinkType, entries, effectiveGroup)
         )
       );
     }
-  }, [items, kind, effectiveGroup]);
+  }, [items, effectiveLinkType, effectiveGroup]);
 
   // Crea la imagen al abrirse
   useEffect(() => {

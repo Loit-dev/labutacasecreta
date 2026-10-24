@@ -5,7 +5,11 @@ import { SITE_NAME, SITE_URL } from "@/lib/site";
  * para poder probarla.
  */
 
-export type ShareKind = "movie" | "tv";
+// "mixed": la tanda compartida tiene película(s) y serie(s) a la vez
+// (p. ej. Butaca Exprés, que ya no es todo de un único tipo). Solo
+// afecta al texto/imagen; el enlace para reabrirlas sigue codificando
+// un único tipo (ver `lib/shareLink.ts`).
+export type ShareKind = "movie" | "tv" | "mixed";
 
 export type ShareItem = {
   id?: number;
@@ -48,7 +52,8 @@ export function buildShareText(
   audience?: string,
   percent?: number
 ): string {
-  const what = kind === "tv" ? "series" : "películas";
+  const what =
+    kind === "tv" ? "series" : kind === "mixed" ? "títulos" : "películas";
 
   const list = titles.filter(Boolean).join(", ");
 
