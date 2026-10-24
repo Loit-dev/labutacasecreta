@@ -35,7 +35,7 @@ function todayKey() {
   return new Date().toISOString().slice(0, 10);
 }
 
-function excludedFor(type: ContentType): string[] {
+function excludedFor(type: ContentType): number[] {
   return Array.from(new Set([...readSeen(type), ...readRecentlyShown(type)]));
 }
 
