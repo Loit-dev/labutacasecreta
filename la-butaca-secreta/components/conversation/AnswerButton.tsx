@@ -1,13 +1,11 @@
 type Props = {
   label: string;
   onClick: () => void;
-  centered?: boolean;
 };
 
 export default function AnswerButton({
   label,
   onClick,
-  centered = false,
 }: Props) {
   const isMovie =
     label.includes("Película") ||
@@ -88,31 +86,21 @@ export default function AnswerButton({
       />
 
       <div
-        className={`
+        className="
           relative
           flex
           h-full
           items-center
-          ${
-            centered
-              ? "justify-center"
-              : "justify-between"
-          }
-        `}
+          justify-between
+        "
       >
         <div
-          className={`
+          className="
             flex
             flex-1
             items-center
             gap-3
-
-            ${
-              centered
-                ? "justify-center text-center"
-                : ""
-            }
-          `}
+          "
         >
           {isMovie && (
             <span
@@ -151,26 +139,24 @@ export default function AnswerButton({
           </span>
         </div>
 
-        {!centered && (
-          <span
-            aria-hidden="true"
-            className="
-              ml-3
-              shrink-0
+        <span
+          aria-hidden="true"
+          className="
+            ml-3
+            shrink-0
 
-              text-lg
-              text-zinc-400
+            text-lg
+            text-zinc-400
 
-              transition-all
-              duration-300
+            transition-all
+            duration-300
 
-              group-hover:translate-x-1
-              group-hover:text-red-400
-            "
-          >
-            →
-          </span>
-        )}
+            group-hover:translate-x-1
+            group-hover:text-red-400
+          "
+        >
+          →
+        </span>
       </div>
     </button>
   );

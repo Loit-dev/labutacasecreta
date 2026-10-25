@@ -15,52 +15,24 @@ export default function OptionButtons({
 }: Props) {
   if (!question) return null;
 
-  // "¿Qué te apetece ver?" tenía un número par de opciones y nunca
-  // centraba ninguna; al añadir "Anime" pasó a ser impar y el botón
-  // se centraba solo, sin flecha, distinto a los demás. Se deja sin
-  // el efecto de "última opción suelta centrada" aquí para que todos
-  // los botones de género se vean exactamente igual.
-  const isOdd =
-    question.id !== "preferredGenre" &&
-    question.options.length % 2 !== 0;
-
+  // Todos los botones de opciones se ven exactamente igual: alineados
+  // a la izquierda y con la flechita, sin excepciones ni botones
+  // sueltos centrados (incluida la última opción cuando el número de
+  // opciones es impar).
   return (
     <div
       data-options
       className="mt-6 grid gap-2 md:grid-cols-2"
     >
-      {question.options.map(
-        (option, index) => {
-          const isLast =
-            index ===
-            question.options.length - 1;
-
-          const centered =
-            isOdd && isLast;
-
-          return (
-            <div
-              key={option.id}
-              className={
-                centered
-                  ? "md:col-span-2"
-                  : ""
-              }
-            >
-              <AnswerButton
-                label={option.label}
-                centered={centered}
-                onClick={() =>
-                  onSelect(
-                    option.value,
-                    option.label
-                  )
-                }
-              />
-            </div>
-          );
-        }
-      )}
+      {question.options.map((option) => (
+        <AnswerButton
+          key={option.id}
+          label={option.label}
+          onClick={() =>
+            onSelect(option.value, option.label)
+          }
+        />
+      ))}
     </div>
   );
 }
