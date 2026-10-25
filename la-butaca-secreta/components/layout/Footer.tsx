@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import AccountStatus from "./AccountStatus";
 import InstallButton from "./InstallButton";
 
 export default function Footer() {
@@ -63,6 +64,8 @@ export default function Footer() {
           Síguenos en Instagram
         </a>
       </p>
+
+      <AccountStatus />
 
       <p className="mt-2">
         <Link
