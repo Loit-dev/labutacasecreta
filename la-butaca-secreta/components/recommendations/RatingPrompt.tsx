@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { useDialog } from "@/hooks/useDialog";
@@ -17,8 +17,15 @@ type Props = {
  * (lib/rating.ts, components/recommendations/DetailsModal.tsx), no
  * como esta fila de estrellas, que es solo el selector.
  */
+// Icono de estrella (Material Symbols), en un viewBox cuadrado para
+// poder recortarlo con precisión a la mitad exacta con un clipPath.
+const STAR_PATH =
+  "M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z";
+
 export default function RatingPrompt({ title, onConfirm }: Props) {
   const [selected, setSelected] = useState<Rating | null>(null);
+
+  const uid = useId();
 
   const close = () => onConfirm(selected ?? undefined);
 
@@ -45,28 +52,39 @@ export default function RatingPrompt({ title, onConfirm }: Props) {
         <div
           role="radiogroup"
           aria-label="Valoración de 1 a 5 estrellas, con medias estrellas"
-          className="mt-4 flex justify-center gap-1 text-3xl"
+          className="mt-4 flex justify-center gap-1"
         >
           {[1, 2, 3, 4, 5].map((star) => {
             const fill = Math.max(0, Math.min(1, (selected ?? 0) - (star - 1)));
             // La primera estrella no admite "media", el mínimo es 1.
             const halfValue = (star === 1 ? 1 : star - 0.5) as Rating;
+            const clipId = `${uid}-star-${star}`;
 
             return (
               <div
                 key={star}
-                className="relative inline-block h-[1em] w-[1em] select-none"
+                className="relative inline-block h-10 w-10 select-none sm:h-11 sm:w-11"
               >
-                <span aria-hidden="true" className="absolute inset-0 block [filter:grayscale(1)_opacity(0.35)]">
-                  ⭐
-                </span>
-                <span
+                <svg
+                  viewBox="0 0 24 24"
                   aria-hidden="true"
-                  className="absolute inset-y-0 left-0 block overflow-hidden"
-                  style={{ width: `${fill * 100}%` }}
+                  className="absolute inset-0 h-full w-full"
                 >
-                  ⭐
-                </span>
+                  <path d={STAR_PATH} fill="#52525b" />
+
+                  {fill > 0 && (
+                    <>
+                      <clipPath id={clipId}>
+                        <rect x="0" y="0" width={fill * 24} height="24" />
+                      </clipPath>
+                      <path
+                        d={STAR_PATH}
+                        fill="#facc15"
+                        clipPath={`url(#${clipId})`}
+                      />
+                    </>
+                  )}
+                </svg>
 
                 <button
                   type="button"
