@@ -29,6 +29,7 @@ export default function SummaryTitleCard({
 
   return (
     <RecommendationCard
+      compact
       badge={badge}
       badgeTitle={badgeTitle}
       title={title.title}

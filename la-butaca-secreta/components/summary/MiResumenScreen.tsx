@@ -341,7 +341,7 @@ export default function MiResumenScreen() {
         <Bars last14={stats.last14} />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
         {titles.lastWatched ? (
           <SummaryTitleCard
             badge="👁"
@@ -350,7 +350,7 @@ export default function MiResumenScreen() {
             title={titles.lastWatched.data}
           />
         ) : (
-          <div className={`${CARD} flex h-80 items-center justify-center p-4 text-center text-sm text-zinc-400 md:h-58`}>
+          <div className={`${CARD} flex h-28 items-center justify-center p-2 text-center text-[11px] text-zinc-400 sm:h-36 md:h-40`}>
             Aún sin datos
           </div>
         )}
@@ -367,7 +367,8 @@ export default function MiResumenScreen() {
             <button
               type="button"
               onClick={() => setPicking(true)}
-              className="absolute right-3 top-3 z-10 rounded-full bg-black/70 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm transition-colors hover:bg-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              aria-label="Cambiar tu favorita"
+              className="absolute right-1 top-1 z-10 rounded-full bg-black/70 px-1.5 py-0.5 text-[9px] font-semibold text-white backdrop-blur-sm transition-colors hover:bg-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
               Cambiar
             </button>
@@ -384,7 +385,7 @@ export default function MiResumenScreen() {
             title={titles.bestRated.data}
           />
         ) : (
-          <div className={`${CARD} flex h-80 items-center justify-center p-4 text-center text-sm text-zinc-400 md:h-58`}>
+          <div className={`${CARD} flex h-28 items-center justify-center p-2 text-center text-[11px] text-zinc-400 sm:h-36 md:h-40`}>
             Aún sin datos
           </div>
         )}

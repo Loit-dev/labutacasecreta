@@ -15,6 +15,9 @@ type Props = {
   saved?: boolean;
   // Puntitos del carrusel (solo en el móvil, una tarjeta a la vez)
   dots?: { total: number; current: number };
+  // Versión reducida (p.ej. Mi Resumen: 3 tarjetas una junto a otra,
+  // también en móvil): póster bajo, textos más pequeños.
+  compact?: boolean;
   onToggleSave?: () => void;
   onDetails?: () => void;
   onSeen?: () => void;
@@ -35,6 +38,7 @@ export default function RecommendationCard({
   reason,
   saved = false,
   dots,
+  compact = false,
   onToggleSave,
   onDetails,
   onSeen,
@@ -45,7 +49,11 @@ export default function RecommendationCard({
       aria-label={title}
       className="flex h-full flex-col overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900 shadow-xl"
     >
-       <div className="relative h-80 w-full overflow-hidden md:h-58">
+       <div
+        className={`relative w-full overflow-hidden ${
+          compact ? "h-28 sm:h-36 md:h-40" : "h-80 md:h-58"
+        }`}
+      >
         <Image src={poster} alt={title} fill unoptimized={poster.endsWith(".svg")} className="object-cover object-top md:object-contain md:bg-black" sizes="(max-width: 768px) 100vw, 33vw" />
         {dots && dots.total > 1 && (
           <>
@@ -73,7 +81,7 @@ export default function RecommendationCard({
             </div>
           </>
         )}
-        {providers.length > 0 && (
+        {providers.length > 0 && !compact && (
   <button
     type="button"
     onClick={onDetails}
@@ -124,26 +132,50 @@ export default function RecommendationCard({
 )}
       </div>
 
-      <div className="flex flex-1 flex-col space-y-2.5 p-4 md:space-y-3">
+      <div
+        className={
+          compact
+            ? "flex flex-1 flex-col space-y-1 p-2"
+            : "flex flex-1 flex-col space-y-2.5 p-4 md:space-y-3"
+        }
+      >
         <div>
-          <div className="text-xs font-semibold uppercase tracking-wider text-yellow-400">
+          <div
+            className={
+              compact
+                ? "truncate text-[9px] font-semibold uppercase tracking-wide text-yellow-400"
+                : "text-xs font-semibold uppercase tracking-wider text-yellow-400"
+            }
+          >
             <span aria-hidden="true">{badge}</span>{" "}
-            {badgeTitle}
+            {!compact && badgeTitle}
           </div>
 
-          <h2 className="mt-2 line-clamp-2 text-lg font-bold text-white">
+          <h2
+            className={
+              compact
+                ? "mt-1 line-clamp-2 text-xs font-bold leading-tight text-white"
+                : "mt-2 line-clamp-2 text-lg font-bold text-white"
+            }
+          >
             {title}
           </h2>
         </div>
 
-        <div className="flex flex-wrap gap-3 text-sm text-zinc-400">
+        <div
+          className={
+            compact
+              ? "flex flex-wrap gap-x-2 text-[10px] text-zinc-400"
+              : "flex flex-wrap gap-3 text-sm text-zinc-400"
+          }
+        >
           <span>
             <span aria-hidden="true">⭐</span>
             <span className="sr-only">Nota </span>{" "}
             {rating}
           </span>
 
-          {runtime ? (
+          {runtime && !compact ? (
             <span>{runtime} min</span>
           ) : null}
 
@@ -169,33 +201,24 @@ export default function RecommendationCard({
           </p>
         )}
 
-        <div className="hidden md:block">
-          <p className="line-clamp-2 text-justify text-sm leading-relaxed text-zinc-300">
-            {overview}
-          </p>
-        </div>
+        {!compact && (
+          <div className="hidden md:block">
+            <p className="line-clamp-2 text-justify text-sm leading-relaxed text-zinc-300">
+              {overview}
+            </p>
+          </div>
+        )}
 
         <button
   onClick={onDetails}
   aria-label={`Ver detalles de ${title}`}
-  className="
-    mt-auto
-    w-full
-    rounded-xl
-    bg-red-600
-    px-4
-    py-3
-    text-sm
-    font-semibold
-    text-white
-    transition-colors
-    hover:bg-red-500
-    focus-visible:outline-2
-    focus-visible:outline-offset-2
-    focus-visible:outline-white
-  "
+  className={
+    compact
+      ? "mt-auto w-full rounded-lg bg-red-600 px-2 py-1.5 text-[10px] font-semibold text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+      : "mt-auto w-full rounded-xl bg-red-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+  }
 >
-  Ver detalles
+  {compact ? "Ver" : "Ver detalles"}
 </button>
 
         {(onToggleSave || onSeen || onReject) && (
