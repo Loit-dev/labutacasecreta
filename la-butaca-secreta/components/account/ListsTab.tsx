@@ -145,7 +145,7 @@ export default function ListsTab({ session }: { session: Session }) {
           onClick={() => setCreating(true)}
           aria-label="Crear una lista nueva"
           title="Crear una lista nueva"
-          className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-2xl bg-green-600 text-2xl font-bold text-white shadow-2xl hover:bg-green-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:absolute sm:bottom-0 sm:right-0"
+          className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-2xl bg-red-600 text-2xl font-bold text-white shadow-2xl hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:absolute sm:bottom-0 sm:right-0"
         >
           +
         </button>

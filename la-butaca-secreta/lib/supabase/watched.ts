@@ -16,6 +16,7 @@ type SaveWatchedArgs = {
   title: string;
   rating?: Rating;
   genres?: string[];
+  posterUrl?: string;
 };
 
 /**
@@ -31,6 +32,7 @@ export async function saveWatched({
   title,
   rating,
   genres,
+  posterUrl,
 }: SaveWatchedArgs) {
   if (!supabase) return;
 
@@ -44,6 +46,7 @@ export async function saveWatched({
         rating: rating ?? null,
         genres: genres ?? [],
         seen_at: new Date().toISOString(),
+        poster_url: posterUrl ?? null,
       },
       { onConflict: "user_id,tmdb_id,media_type" }
     );

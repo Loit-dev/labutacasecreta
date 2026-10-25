@@ -17,6 +17,10 @@ create table if not exists public.watched (
   unique (user_id, tmdb_id, media_type)
 );
 
+-- Portada del título, para mostrarla en el diario de "Mi cuenta".
+alter table public.watched
+  add column if not exists poster_url text;
+
 -- Tablas creadas antes de las medias estrellas: amplía la columna de
 -- smallint a numeric(2,1) para poder guardar valores como 3.5.
 alter table public.watched

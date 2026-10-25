@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import type { Session } from "@supabase/supabase-js";
 
@@ -10,6 +11,21 @@ import { deleteWatched, updateWatchedRating } from "@/lib/supabase/watched";
 import { fetchWatchedHistory, type WatchedRow } from "@/lib/supabase/summary";
 
 import StarDisplay from "./StarDisplay";
+
+const MONTH_ABBR = [
+  "ENE",
+  "FEB",
+  "MAR",
+  "ABR",
+  "MAY",
+  "JUN",
+  "JUL",
+  "AGO",
+  "SEP",
+  "OCT",
+  "NOV",
+  "DIC",
+];
 
 type EditTarget = {
   tmdbId: number;
@@ -32,6 +48,10 @@ function monthLabel(dateStr: string): string {
 
 function dayNumber(dateStr: string): string {
   return String(new Date(dateStr).getDate());
+}
+
+function monthAbbr(dateStr: string): string {
+  return MONTH_ABBR[new Date(dateStr).getMonth()];
 }
 
 export default function DiaryTab({ session }: { session: Session }) {
@@ -148,9 +168,33 @@ export default function DiaryTab({ session }: { session: Session }) {
                   key={key}
                   className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/30 p-3"
                 >
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-zinc-700 text-sm font-bold text-zinc-300">
-                    {dayNumber(row.seenAt)}
+                  <div className="flex h-11 w-9 shrink-0 flex-col items-center justify-center rounded-lg border border-zinc-700">
+                    <span className="text-sm font-bold text-zinc-200">
+                      {dayNumber(row.seenAt)}
+                    </span>
+                    <span className="text-[9px] font-bold tracking-wide text-zinc-500">
+                      {monthAbbr(row.seenAt)}
+                    </span>
                   </div>
+
+                  <Link
+                    href={href}
+                    className="relative block h-16 w-11 shrink-0 overflow-hidden rounded-lg bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                  >
+                    {row.posterUrl ? (
+                      <Image
+                        src={row.posterUrl}
+                        alt=""
+                        fill
+                        sizes="44px"
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-base">
+                        🎬
+                      </div>
+                    )}
+                  </Link>
 
                   <Link
                     href={href}

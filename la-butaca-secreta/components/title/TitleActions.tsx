@@ -95,6 +95,7 @@ export default function TitleActions({ type, title }: Props) {
         title: title.title,
         rating: value,
         genres: title.genres,
+        posterUrl: title.poster,
       });
     }
   };

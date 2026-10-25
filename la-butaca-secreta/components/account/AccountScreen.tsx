@@ -10,13 +10,13 @@ import PendingTab from "./PendingTab";
 import RequireAccount from "./RequireAccount";
 
 const TABS = [
-  { id: "perfil", label: "Perfil" },
-  { id: "diario", label: "Diario" },
-  { id: "listas", label: "Listas" },
-  { id: "pendientes", label: "Pendientes" },
+  ["perfil", "👤", "Perfil"],
+  ["diario", "📖", "Diario"],
+  ["listas", "📝", "Listas"],
+  ["pendientes", "⏳", "Pendientes"],
 ] as const;
 
-type TabId = (typeof TABS)[number]["id"];
+type TabId = (typeof TABS)[number][0];
 
 /** "Mi cuenta": perfil (Mi Resumen), diario, listas y pendientes, en pestañas. */
 export default function AccountScreen() {
@@ -27,24 +27,28 @@ export default function AccountScreen() {
       <div
         role="tablist"
         aria-label="Secciones de tu cuenta"
-        className="flex gap-1 overflow-x-auto border-b border-white/10 pb-px"
+        className="flex items-stretch border-b border-white/15"
       >
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            role="tab"
-            aria-selected={tab === t.id}
-            onClick={() => setTab(t.id)}
-            className={`shrink-0 border-b-2 px-3 py-2.5 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
-              tab === t.id
-                ? "border-red-500 text-white"
-                : "border-transparent text-zinc-400 hover:text-zinc-200"
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
+        {TABS.map(([id, emoji, label]) => {
+          const active = tab === id;
+
+          return (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              aria-selected={active}
+              onClick={() => setTab(id)}
+              className={`flex-1 whitespace-nowrap border-b-[3px] px-1 pb-2.5 pt-3.5 text-[11px] font-bold transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-white sm:px-2 sm:text-sm ${
+                active
+                  ? "border-red-500 bg-white/10 text-white"
+                  : "border-transparent bg-black/30 text-zinc-300 hover:bg-white/5 hover:text-white"
+              }`}
+            >
+              <span aria-hidden="true">{emoji}</span> {label}
+            </button>
+          );
+        })}
       </div>
 
       <div role="tabpanel">

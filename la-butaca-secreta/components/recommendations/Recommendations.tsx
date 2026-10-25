@@ -399,6 +399,7 @@ export default function Recommendations({
         title: movie.title,
         rating,
         genres: movie.genres,
+        posterUrl: movie.poster,
       });
     }
 
