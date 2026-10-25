@@ -510,7 +510,7 @@ export function drawSummaryImage(
 
   // Deja un margen de sobra bajo la última etiqueta del abanico
   // (nota incluida) para que no se solape con esta sección.
-  const genreY = cardY + cardH + 40;
+  const genreY = cardY + cardH + 34;
 
   let footTop = genreY;
 
