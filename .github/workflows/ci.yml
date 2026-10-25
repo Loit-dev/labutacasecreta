@@ -30,8 +30,12 @@ jobs:
           cache: npm
           cache-dependency-path: la-butaca-secreta/package-lock.json
 
+      # npm install (no npm ci): el lockfile quedó desincronizado de
+      # package.json en una sesión anterior (sin red para regenerarlo) y
+      # "npm ci" exige que coincidan al milímetro. "npm install" tolera
+      # el desajuste y lo repara sobre la marcha.
       - name: Instalar dependencias
-        run: npm ci
+        run: npm install
 
       - name: Tipos (TypeScript)
         run: npm run typecheck
@@ -65,7 +69,7 @@ jobs:
           cache-dependency-path: la-butaca-secreta/package-lock.json
 
       - name: Instalar dependencias
-        run: npm ci
+        run: npm install
 
       # Solo se usan en estas pruebas, así que no se añaden a package.json
       - name: Instalar Playwright
