@@ -97,6 +97,12 @@ export default function QuickPicks() {
   // Película/serie pendiente de valorar al pulsar "Ya la vi"
   const [ratingFor, setRatingFor] = useState<Picked | null>(null);
 
+  // Ids de tarjetas que se están reemplazando (para no dejar pulsar
+  // sus botones dos veces mientras llega la sustituta)
+  const [replacingIds, setReplacingIds] = useState<Set<number>>(
+    new Set()
+  );
+
   const { session } = useAuth();
 
   // En el móvil se ve una tarjeta cada vez, como en el cuestionario
@@ -232,9 +238,99 @@ export default function QuickPicks() {
 
   // Igual que en el cuestionario completo: "Ya la vi" la excluye para
   // siempre y "No me apetece" la quita de esta tanda (sin pesar en
-  // géneros aquí, porque la Exprés no pasa por el cuestionario).
+  // géneros aquí, porque la Exprés no pasa por el cuestionario). A
+  // diferencia del cuestionario completo (lista larga con "cargar
+  // más"), aquí solo hay 3 huecos fijos: en vez de dejarlo vacío, se
+  // pide una sustituta para no quedarse con menos de tres propuestas.
   const hideItem = (id: number) => {
     setItems((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const replaceItem = async (movie: Picked) => {
+    setReplacingIds((prev) => new Set(prev).add(movie.id));
+
+    // Tipo del hueco que hay que rellenar (el de la tarjeta
+    // sustituida, no necesariamente el principal del perfil).
+    const slotType = movie.mediaType;
+
+    const excluded = Array.from(
+      new Set([
+        ...excludedFor(slotType),
+        ...items.map((item) => item.id),
+        movie.id,
+      ])
+    );
+
+    try {
+      let replacement: Picked | undefined;
+
+      if (movie.role === "trending") {
+        const params = new URLSearchParams();
+
+        params.set("type", slotType);
+
+        if (profile.platforms) {
+          params.set("platforms", profile.platforms);
+        }
+
+        params.set("exclude", excluded.join(","));
+
+        const response = await fetch(
+          `/api/trending?${params.toString()}`
+        );
+
+        const data: unknown = response.ok ? await response.json() : [];
+        const list = Array.isArray(data) ? (data as Recommendation[]) : [];
+        const picked = list[0];
+
+        if (picked) {
+          replacement = { ...picked, mediaType: slotType };
+        }
+      } else {
+        const query = buildMainQuery(profile, slotType, excluded.join(","));
+
+        const response = await fetch(`/api/tmdb?${query}`);
+
+        const data: unknown = response.ok ? await response.json() : [];
+        const list = Array.isArray(data) ? (data as Recommendation[]) : [];
+        const wantSurprise = movie.role === "surprise";
+
+        const picked = list.find((item) =>
+          wantSurprise
+            ? item.role === "surprise"
+            : item.role !== "surprise"
+        );
+
+        if (picked) {
+          replacement = { ...picked, mediaType: slotType };
+        }
+      }
+
+      if (replacement) {
+        addShown(slotType, [replacement.id], todayKey());
+
+        const next = replacement;
+
+        setItems((prev) =>
+          prev.map((item) => (item.id === movie.id ? next : item))
+        );
+      } else {
+        // No ha quedado nada con lo que rellenar el hueco: se queda
+        // con las que haya, igual que en la tanda vacía.
+        hideItem(movie.id);
+      }
+    } catch (error) {
+      console.error("No se pudo buscar una sustituta:", error);
+      hideItem(movie.id);
+    } finally {
+      setReplacingIds((prev) => {
+        const next = new Set(prev);
+
+        next.delete(movie.id);
+
+        return next;
+      });
+    }
   };
 
   const markSeen = (movie: Picked) => {
@@ -246,7 +342,7 @@ export default function QuickPicks() {
     });
 
     addSeen(movie.mediaType, movie.id);
-    hideItem(movie.id);
+    replaceItem(movie);
   };
 
   // Confirma (o salta) la valoración al marcar "Ya la vi": guarda en
@@ -285,7 +381,7 @@ export default function QuickPicks() {
       source: "today",
     });
 
-    hideItem(movie.id);
+    replaceItem(movie);
   };
 
   const openShare = () => {
@@ -351,36 +447,45 @@ export default function QuickPicks() {
     dots?: { total: number; current: number }
   ) => {
     const { badge, badgeTitle } = badgeFor(movie, index, items);
+    const isReplacing = replacingIds.has(movie.id);
 
     return (
-      <RecommendationCard
+      <div
         key={movie.id}
-        badge={badge}
-        badgeTitle={badgeTitle}
-        title={movie.title}
-        year={movie.year}
-        rating={movie.rating}
-        runtime={movie.runtime}
-        genres={movie.genres}
-        overview={movie.overview}
-        poster={movie.poster}
-        providers={movie.providers}
-        reason={movie.reason}
-        dots={dots}
-        saved={watchlist.has(movie.id, movie.mediaType)}
-        onToggleSave={() => toggleSaved(movie)}
-        onSeen={() => setRatingFor(movie)}
-        onReject={() => rejectMovie(movie)}
-        onDetails={() => {
-          track("details_open", {
-            id: movie.id,
-            role: movie.role,
-            source: "today",
-          });
+        className={
+          isReplacing
+            ? "pointer-events-none opacity-50 transition-opacity"
+            : "transition-opacity"
+        }
+      >
+        <RecommendationCard
+          badge={badge}
+          badgeTitle={badgeTitle}
+          title={movie.title}
+          year={movie.year}
+          rating={movie.rating}
+          runtime={movie.runtime}
+          genres={movie.genres}
+          overview={movie.overview}
+          poster={movie.poster}
+          providers={movie.providers}
+          reason={movie.reason}
+          dots={dots}
+          saved={watchlist.has(movie.id, movie.mediaType)}
+          onToggleSave={() => toggleSaved(movie)}
+          onSeen={() => setRatingFor(movie)}
+          onReject={() => rejectMovie(movie)}
+          onDetails={() => {
+            track("details_open", {
+              id: movie.id,
+              role: movie.role,
+              source: "today",
+            });
 
-          setDetailsId(movie.id);
-        }}
-      />
+            setDetailsId(movie.id);
+          }}
+        />
+      </div>
     );
   };
 
