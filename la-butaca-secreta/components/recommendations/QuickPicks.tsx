@@ -4,17 +4,22 @@ import { useEffect, useMemo, useState, type TouchEvent } from "react";
 import Link from "next/link";
 
 import DetailsModal from "./DetailsModal";
+import RatingPrompt from "./RatingPrompt";
 import RecommendationCard from "./RecommendationCard";
 import RecommendationSkeleton from "./RecommendationSkeleton";
 import ShareDialog from "./ShareDialog";
 import { badgeFor } from "./badges";
 
+import { useAuth } from "@/hooks/useAuth";
 import { useWatchlist } from "@/hooks/useWatchlist";
 import { track } from "@/lib/analytics";
 import { ContentType, UserProfile } from "@/lib/conversation/types";
 import { inferredProfile } from "@/lib/memory";
+import type { Rating } from "@/lib/rating";
+import { setRating } from "@/lib/rating";
 import { posterSource, type ShareItem, type ShareKind } from "@/lib/share";
 import { addShown, readRecentlyShown } from "@/lib/shown";
+import { saveWatched } from "@/lib/supabase/watched";
 import type { Recommendation } from "@/lib/tmdb/mapper";
 import { addSeen, readSeen } from "@/lib/viewed";
 
@@ -88,6 +93,11 @@ export default function QuickPicks() {
   const [detailsId, setDetailsId] = useState<number | null>(null);
   const [shareItems, setShareItems] = useState<ShareItem[] | null>(null);
   const [shareKind, setShareKind] = useState<ShareKind>("movie");
+
+  // Película/serie pendiente de valorar al pulsar "Ya la vi"
+  const [ratingFor, setRatingFor] = useState<Picked | null>(null);
+
+  const { session } = useAuth();
 
   // En el móvil se ve una tarjeta cada vez, como en el cuestionario
   // completo (mismo patrón de carrusel con puntos y deslizar)
@@ -239,6 +249,34 @@ export default function QuickPicks() {
     hideItem(movie.id);
   };
 
+  // Confirma (o salta) la valoración al marcar "Ya la vi": guarda en
+  // local y, si hay sesión, también en Supabase; luego marca como
+  // vista como siempre.
+  const confirmRating = (rating: Rating | undefined) => {
+    const movie = ratingFor;
+
+    if (!movie) return;
+
+    setRatingFor(null);
+
+    if (rating) {
+      setRating(movie.mediaType, movie.id, rating);
+    }
+
+    if (session) {
+      saveWatched({
+        userId: session.user.id,
+        tmdbId: movie.id,
+        mediaType: movie.mediaType,
+        title: movie.title,
+        rating,
+        genres: movie.genres,
+      });
+    }
+
+    markSeen(movie);
+  };
+
   const rejectMovie = (movie: Picked) => {
     track("reject_clicked", {
       type: movie.mediaType,
@@ -331,7 +369,7 @@ export default function QuickPicks() {
         dots={dots}
         saved={watchlist.has(movie.id, movie.mediaType)}
         onToggleSave={() => toggleSaved(movie)}
-        onSeen={() => markSeen(movie)}
+        onSeen={() => setRatingFor(movie)}
         onReject={() => rejectMovie(movie)}
         onDetails={() => {
           track("details_open", {
@@ -500,6 +538,13 @@ export default function QuickPicks() {
           saved={watchlist.has(detailsMovie.id, detailsMovie.mediaType)}
           onToggleSave={() => toggleSaved(detailsMovie)}
           onClose={() => setDetailsId(null)}
+        />
+      )}
+
+      {ratingFor && (
+        <RatingPrompt
+          title={ratingFor.title}
+          onConfirm={confirmRating}
         />
       )}
     </div>

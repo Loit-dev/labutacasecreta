@@ -8,17 +8,22 @@ import {
 } from "react";
 
 import DetailsModal from "./DetailsModal";
+import RatingPrompt from "./RatingPrompt";
 import RecommendationCard from "./RecommendationCard";
 import RecommendationSkeleton from "./RecommendationSkeleton";
 import ShareDialog from "./ShareDialog";
 import { badgeFor } from "./badges";
 
+import { useAuth } from "@/hooks/useAuth";
 import { useRecommendations } from "@/hooks/useRecommendations";
 import { useWatchlist } from "@/hooks/useWatchlist";
 import { track } from "@/lib/analytics";
 import { UserProfile } from "@/lib/conversation/types";
 import { formatNames } from "@/lib/group";
+import type { Rating } from "@/lib/rating";
+import { setRating } from "@/lib/rating";
 import { posterSource, type ShareItem } from "@/lib/share";
+import { saveWatched } from "@/lib/supabase/watched";
 import type { Recommendation } from "@/lib/tmdb/mapper";
 
 type Props = {
@@ -54,6 +59,13 @@ export default function Recommendations({
   const [detailsId, setDetailsId] = useState<
     number | null
   >(null);
+
+  // Película/serie pendiente de valorar al pulsar "Ya la vi"
+  const [ratingFor, setRatingFor] = useState<
+    Recommendation | null
+  >(null);
+
+  const { session } = useAuth();
 
   const [touchStart, setTouchStart] = useState<
     number | null
@@ -346,16 +358,42 @@ export default function Recommendations({
 
           setDetailsId(movie.id);
         }}
-        onSeen={() => {
-          markSeen(movie);
-          removed(movie.title);
-        }}
+        onSeen={() => setRatingFor(movie)}
         onReject={() => {
           reject(movie);
           removed(movie.title);
         }}
       />
     );
+  };
+
+  // Confirma (o salta) la valoración al marcar "Ya la vi": guarda en
+  // local y, si hay sesión, también en Supabase; luego marca como
+  // vista como siempre.
+  const confirmRating = (rating: Rating | undefined) => {
+    const movie = ratingFor;
+
+    if (!movie) return;
+
+    setRatingFor(null);
+
+    if (rating) {
+      setRating(type, movie.id, rating);
+    }
+
+    if (session) {
+      saveWatched({
+        userId: session.user.id,
+        tmdbId: movie.id,
+        mediaType: type,
+        title: movie.title,
+        rating,
+        genres: movie.genres,
+      });
+    }
+
+    markSeen(movie);
+    removed(movie.title);
   };
 
   const hasMore =
@@ -505,6 +543,13 @@ export default function Recommendations({
           saved={watchlist.has(detailsMovie.id, type)}
           onToggleSave={() => toggleSaved(detailsMovie)}
           onClose={closeDetails}
+        />
+      )}
+
+      {ratingFor && (
+        <RatingPrompt
+          title={ratingFor.title}
+          onConfirm={confirmRating}
         />
       )}
     </section>
