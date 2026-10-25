@@ -182,13 +182,16 @@ export default function Conversation() {
                   onKeyDown={(event) =>
                     handleTabKeyDown(event, index)
                   }
-                  className={`flex-1 whitespace-nowrap border-b-[3px] px-1 pb-2.5 pt-3.5 text-[11px] font-bold transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-white sm:px-2 sm:text-sm ${
+                  className={`min-w-0 flex-1 border-b-[3px] px-1 pb-2.5 pt-3.5 text-center text-[10px] font-bold leading-tight transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-white sm:px-2 sm:text-sm ${
                     active
                       ? "border-red-500 bg-white/10 text-white"
                       : "border-transparent bg-black/30 text-zinc-300 hover:bg-white/5 hover:text-white"
                   }`}
                 >
-                  <span aria-hidden="true">{emoji}</span> {label}
+                  <span aria-hidden="true" className="block">
+                    {emoji}
+                  </span>
+                  {label}
                 </button>
               );
             })}

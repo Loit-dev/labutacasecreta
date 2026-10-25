@@ -20,7 +20,7 @@ export default function AccountTabLink() {
     <a
       href={href}
       aria-label={label}
-      className="flex flex-none items-center justify-center gap-1.5 border-b-[3px] border-transparent bg-black/30 px-3 text-white transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-white"
+      className="flex min-w-0 flex-1 flex-col items-center justify-center border-b-[3px] border-transparent bg-black/30 px-1 pb-2.5 pt-3.5 text-center text-[10px] font-bold leading-tight text-white transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-white sm:px-2 sm:text-sm"
     >
       <svg
         viewBox="0 0 24 24"
@@ -35,7 +35,7 @@ export default function AccountTabLink() {
         <circle cx="12" cy="8" r="4" />
         <path d="M4 20c0-4 3.5-7 8-7s8 3 8 7" />
       </svg>
-      <span className="text-[11px] font-bold">{label}</span>
+      {label}
     </a>
   );
 }
