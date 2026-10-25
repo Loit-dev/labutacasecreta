@@ -25,7 +25,10 @@ const csp = [
   `style-src 'self' 'unsafe-inline'`,
   `img-src 'self' blob: data:`,
   `font-src 'self'`,
-  `connect-src 'self'`,
+  // El login (Supabase) llama a su API por fetch desde el navegador
+  // (enlace mágico, sesión, etc.); sin esto, connect-src 'self' lo
+  // bloquearía con "Failed to fetch".
+  `connect-src 'self' https://*.supabase.co`,
   // El botón "Ver tráiler" embebe un <iframe> de YouTube
   // (DetailsModal.tsx); sin esto, default-src 'self' lo bloquearía.
   `frame-src https://www.youtube-nocookie.com`,
