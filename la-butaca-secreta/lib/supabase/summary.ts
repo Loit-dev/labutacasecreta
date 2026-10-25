@@ -65,7 +65,7 @@ export async function fetchMonthRank(): Promise<MonthRank | null> {
   try {
     const { data, error } = await supabase
       .rpc("my_month_rank")
-      .single();
+      .single<{ mine: number; percentile: number; total_users: number }>();
 
     if (error || !data) return null;
 
