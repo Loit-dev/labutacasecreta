@@ -14,6 +14,7 @@ import {
   providerIdsFor,
 } from "@/lib/platforms";
 import { clientIp, isRateLimited } from "@/lib/rateLimit";
+import { logError } from "@/lib/log";
 import { sortByScore } from "@/lib/recommendation/scoring";
 import {
   buildSurpriseReason,
@@ -293,10 +294,7 @@ async function mapWithConcurrency<T, R>(
           items[index]
         );
       } catch (error) {
-        console.error(
-          "No se pudo enriquecer un candidato:",
-          error
-        );
+        logError("tmdb.enrichCandidate", error, { index });
       }
     }
   }
@@ -547,7 +545,7 @@ export async function GET(
 
     return NextResponse.json(recommendations);
   } catch (error) {
-    console.error(error);
+    logError("tmdb.route", error);
 
     // En vistas previas y desarrollo devolvemos la causa para poder
     // diagnosticar (p. ej. falta el token de TMDb). En producción no.

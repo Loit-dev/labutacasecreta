@@ -30,6 +30,7 @@ import { translateToSpanish } from "@/lib/translate";
 import { getFallbackPoster } from "@/lib/posterFallback";
 import { IMPORTADOS } from "@/data/calendar/decine21";
 import { clientIp, isRateLimited } from "@/lib/rateLimit";
+import { logError } from "@/lib/log";
 
 export const dynamic = "force-dynamic";
 
@@ -132,7 +133,10 @@ async function tvmazeEntries(
   );
 
   const schedules = await mapLimited(dates, 4, (date) =>
-    fetchSchedule(date).catch(() => [] as TvmazeEpisode[])
+    fetchSchedule(date).catch((error) => {
+      logError("calendar.tvmaze.fetchSchedule", error, { date });
+      return [] as TvmazeEpisode[];
+    })
   );
 
   const premieres = schedules.flatMap((episodes) =>
@@ -176,7 +180,11 @@ async function tvmazeEntries(
           platforms: [platform.key],
           note: premiereNote(premiere.season),
         };
-      } catch {
+      } catch (error) {
+        logError("calendar.tvmaze.resolvePremiere", error, {
+          name: premiere.name,
+          date: premiere.date,
+        });
         return null;
       }
     }
@@ -211,7 +219,11 @@ async function destacados(
       if (item.match !== false) {
         try {
           match = await searchTitle(item.type, item.query, item.year);
-        } catch {
+        } catch (error) {
+          logError("calendar.destacados.searchTitle", error, {
+            query: item.query,
+            date: item.date,
+          });
           match = null;
         }
       }
@@ -325,15 +337,23 @@ async function importados(
             }
 
             entry = { ...entry, poster, overview };
-          } catch {
+          } catch (error) {
             // Sin ficha de repuesto: se queda como está
+            logError("calendar.importados.fallback", error, {
+              query: item.query,
+              date: item.date,
+            });
           }
         }
 
         known.add(`${item.type}|${match.id}`);
 
         return entry;
-      } catch {
+      } catch (error) {
+        logError("calendar.importados.resolve", error, {
+          query: item.query,
+          date: item.date,
+        });
         return null;
       }
     }
@@ -380,10 +400,16 @@ export async function GET(request: NextRequest) {
     // vez de esperar a que termine la consulta a TMDb para empezarlos.
     const logosPromise = getProviderLogos(
       PLATFORMS.flatMap((platform) => platform.ids)
-    ).catch(() => ({}) as Record<number, string>);
+    ).catch((error) => {
+      logError("calendar.providerLogos", error);
+      return {} as Record<number, string>;
+    });
 
     const tvmazePromise = tvmazeEntries(month.year, month.month).catch(
-      () => [] as CalendarEntry[]
+      (error) => {
+        logError("calendar.tvmazeEntries", error, { month: month.key });
+        return [] as CalendarEntry[];
+      }
     );
 
     const results = await Promise.allSettled(
@@ -418,7 +444,12 @@ export async function GET(request: NextRequest) {
                 item,
                 digital: await getDigitalDate(item.id),
               };
-            } catch {
+            } catch (error) {
+              logError("calendar.getDigitalDate", error, {
+                movieId: item.id,
+                title: item.title,
+                platform: platform.key,
+              });
               return { item, digital: null };
             }
           }
@@ -460,6 +491,16 @@ export async function GET(request: NextRequest) {
       })
     );
 
+    results.forEach((result, index) => {
+      if (result.status === "rejected") {
+        logError("calendar.platformSearch", result.reason, {
+          platform: searches[index].platform.key,
+          type: searches[index].type,
+          month: month.key,
+        });
+      }
+    });
+
     const failed = results.filter(
       (result) => result.status === "rejected"
     ).length;
@@ -485,15 +526,17 @@ export async function GET(request: NextRequest) {
       merged.map((entry) => `${entry.type}|${entry.id}`)
     );
 
-    const extra = await destacados(from, to, known).catch(
-      () => [] as CalendarEntry[]
-    );
+    const extra = await destacados(from, to, known).catch((error) => {
+      logError("calendar.destacados", error, { month: month.key });
+      return [] as CalendarEntry[];
+    });
 
     for (const entry of extra) known.add(`${entry.type}|${entry.id}`);
 
-    const imported = await importados(from, to, known).catch(
-      () => [] as CalendarEntry[]
-    );
+    const imported = await importados(from, to, known).catch((error) => {
+      logError("calendar.importados", error, { month: month.key });
+      return [] as CalendarEntry[];
+    });
 
     const entries = [...merged, ...extra, ...imported];
 
@@ -521,7 +564,8 @@ export async function GET(request: NextRequest) {
         },
       }
     );
-  } catch {
+  } catch (error) {
+    logError("calendar.route", error, { month: month.key });
     return NextResponse.json(
       { error: "No se pudo consultar el calendario." },
       { status: 502 }
