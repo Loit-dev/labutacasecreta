@@ -474,6 +474,8 @@ export default function MiResumenScreen() {
               : undefined,
             topGenre: stats.topGenre,
             leastGenre: stats.leastGenre,
+            monthCount: stats.monthCount,
+            isPersonalRecordMonth: stats.isPersonalRecordMonth,
             competitiveLine: state.line,
           }}
         />

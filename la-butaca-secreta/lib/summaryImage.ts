@@ -16,6 +16,7 @@ import {
   wrapLines,
   type DrawableImage,
 } from "./shareImage";
+import { genreEmoji } from "./genreEmoji";
 
 export type SummaryTitleCard = {
   title: string;
@@ -35,6 +36,8 @@ export type SummaryOptions = {
   bestRated?: SummaryTitleCard;
   topGenre?: { name: string; count: number };
   leastGenre?: { name: string; count: number };
+  monthCount?: number;
+  isPersonalRecordMonth?: boolean;
   competitiveLine?: string;
   logo?: DrawableImage | null;
   backdrops?: (DrawableImage | null)[];
@@ -236,7 +239,7 @@ export function drawSummaryImage(
   // valorada a los lados, más pequeñas y giradas. Cada una lleva su
   // chip (igual que el badge de la tarjeta en la web) encima.
   const cardY = chartY + chartH + 36;
-  const cardH = 420;
+  const cardH = 460;
 
   type FanSlot = {
     card?: SummaryTitleCard;
@@ -250,13 +253,14 @@ export function drawSummaryImage(
     angle: number;
   };
 
-  const mainW = 190;
-  const mainH = 285;
-  const sideW = 150;
-  const sideH = 225;
+  const mainW = 215;
+  const mainH = 320;
+  const sideW = 180;
+  const sideH = 270;
 
-  const mainCY = cardY + 50 + mainH / 2;
-  const sideCY = mainCY + 25;
+  const mainCY = cardY + 48 + mainH / 2;
+  const sideCY = mainCY + 18;
+  const sideOffsetX = 175;
 
   const slots: FanSlot[] = [
     {
@@ -264,7 +268,7 @@ export function drawSummaryImage(
       poster: posters[0] ?? null,
       label: "👁 ÚLTIMA VISTA",
       color: "#e4e4e7",
-      cx: chartX + 155,
+      cx: W / 2 - sideOffsetX,
       cy: sideCY,
       w: sideW,
       h: sideH,
@@ -286,7 +290,7 @@ export function drawSummaryImage(
       poster: posters[2] ?? null,
       label: "🏆 MEJOR VALORADA",
       color: "#fb923c",
-      cx: chartX + chartW - 155,
+      cx: W / 2 + sideOffsetX,
       cy: sideCY,
       w: sideW,
       h: sideH,
@@ -402,44 +406,80 @@ export function drawSummaryImage(
 
   ctx.textAlign = "center";
 
-  // ---------- Géneros ----------
+  // ---------- Géneros, en dos cajas separadas con emoji ----------
   const genreY = cardY + cardH + 36;
-  const genreH = 110;
-
-  glassCard(ctx, chartX, genreY, chartW, genreH);
+  const genreH = 130;
+  const genreGap = 20;
+  const genreW = (chartW - genreGap) / 2;
 
   if (options.topGenre) {
+    const x = chartX;
+
+    glassCard(ctx, x, genreY, genreW, genreH);
+
     ctx.textAlign = "left";
     ctx.fillStyle = "#a1a1aa";
-    ctx.font = `600 22px ${font}`;
-    ctx.fillText("GÉNERO FAVORITO", chartX + 36, genreY + 40);
+    ctx.font = `700 20px ${font}`;
+    ctx.fillText("GÉNERO FAVORITO", x + 28, genreY + 38);
 
     ctx.fillStyle = "#ffffff";
-    ctx.font = `800 34px ${font}`;
-    ctx.fillText(options.topGenre.name, chartX + 36, genreY + 80);
+    ctx.font = `800 36px ${font}`;
+
+    const [line = ""] = wrapLines(
+      (text) => ctx.measureText(text).width,
+      `${genreEmoji(options.topGenre.name)} ${options.topGenre.name}`,
+      genreW - 56,
+      1
+    );
+
+    ctx.fillText(line, x + 28, genreY + 88);
   }
 
   if (options.leastGenre) {
-    ctx.textAlign = "right";
+    const x = chartX + genreW + genreGap;
+
+    glassCard(ctx, x, genreY, genreW, genreH);
+
+    ctx.textAlign = "left";
     ctx.fillStyle = "#a1a1aa";
-    ctx.font = `600 22px ${font}`;
-    ctx.fillText(
-      "EL QUE MENOS VES",
-      chartX + chartW - 36,
-      genreY + 40
-    );
+    ctx.font = `700 20px ${font}`;
+    ctx.fillText("EL QUE MENOS VES", x + 28, genreY + 38);
 
     ctx.fillStyle = "#ffffff";
-    ctx.font = `800 34px ${font}`;
-    ctx.fillText(
-      options.leastGenre.name,
-      chartX + chartW - 36,
-      genreY + 80
+    ctx.font = `800 36px ${font}`;
+
+    const [line = ""] = wrapLines(
+      (text) => ctx.measureText(text).width,
+      `${genreEmoji(options.leastGenre.name)} ${options.leastGenre.name}`,
+      genreW - 56,
+      1
     );
+
+    ctx.fillText(line, x + 28, genreY + 88);
   }
 
-  // ---------- Toque competitivo ----------
-  let footTop = genreY + genreH + 40;
+  // ---------- Fila de estadística (títulos vistos este mes) ----------
+  let footTop = genreY + genreH + 32;
+
+  if (options.monthCount) {
+    const label = options.isPersonalRecordMonth
+      ? `🏆 Récord personal: ${options.monthCount} títulos este mes`
+      : `🎬 ${options.monthCount} títulos vistos este mes`;
+
+    ctx.font = `800 28px ${font}`;
+    ctx.textAlign = "center";
+
+    const statW = Math.min(chartW, ctx.measureText(label).width + 64);
+    const statH = 64;
+    const statX = W / 2 - statW / 2;
+
+    glassCard(ctx, statX, footTop, statW, statH);
+
+    ctx.fillStyle = options.isPersonalRecordMonth ? "#facc15" : "#ffffff";
+    ctx.fillText(label, W / 2, footTop + 41);
+
+    footTop += statH + 28;
+  }
 
   if (options.competitiveLine) {
     ctx.textAlign = "center";
@@ -465,7 +505,7 @@ export function drawSummaryImage(
 
   const pillW = ctx.measureText(url).width + 90;
   const pillX = W / 2 - pillW / 2;
-  const footY = Math.min(footTop + 20, 1520);
+  const footY = Math.min(footTop + 20, 1620);
 
   const pillGradient = ctx.createLinearGradient(pillX, 0, pillX + pillW, 0);
 
