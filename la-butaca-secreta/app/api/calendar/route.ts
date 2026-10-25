@@ -375,6 +375,17 @@ export async function GET(request: NextRequest) {
       }))
     );
 
+    // Logos y TVmaze no dependen de nada de lo anterior: se lanzan ya
+    // mismo y se recogen más abajo, en paralelo con todo lo demás, en
+    // vez de esperar a que termine la consulta a TMDb para empezarlos.
+    const logosPromise = getProviderLogos(
+      PLATFORMS.flatMap((platform) => platform.ids)
+    ).catch(() => ({}) as Record<number, string>);
+
+    const tvmazePromise = tvmazeEntries(month.year, month.month).catch(
+      () => [] as CalendarEntry[]
+    );
+
     const results = await Promise.allSettled(
       searches.map(async ({ platform, type }) => {
         const page = await discoverCalendar(type, {
@@ -421,15 +432,30 @@ export async function GET(request: NextRequest) {
               item: TMDBMovie;
               digital: { date: string; region: "ES" | "US" | "OTHER" };
             } =>
-              // Solo estrenos con fecha confirmada en España; nada de
-              // EE. UU. ni de otros países
+              // El "discover" ya exige que esté en esta plataforma en
+              // España (watch_region=ES); lo único que puede faltar es
+              // que TMDb tenga la fecha digital *etiquetada* como España
+              // en vez de EE. UU. (muy habitual, sobre todo en meses
+              // futuros: el estreno en EE. UU. se anuncia antes y es el
+              // único que TMDb rellena por ahora). Antes se exigía
+              // region === "ES" y eso descartaba películas que sí están
+              // confirmadas en la plataforma, solo que con la fecha
+              // apuntada en otro país; de ahí que meses como el que
+              // viene se vieran mucho más vacíos que el actual.
               !!entry.digital &&
-              entry.digital.region === "ES" &&
               entry.digital.date >= from &&
               entry.digital.date <= to
           )
           .map(({ item, digital }) =>
-            toEntry(item, "movie", digital.date, platform.key)
+            toEntry(
+              item,
+              "movie",
+              digital.date,
+              platform.key,
+              digital.region === "ES"
+                ? undefined
+                : "Fecha aproximada (sin confirmar en España)"
+            )
           );
       })
     );
@@ -449,14 +475,9 @@ export async function GET(request: NextRequest) {
       result.status === "fulfilled" ? result.value : []
     );
 
-    // Contraste con TVmaze; si falla, se sigue solo con TMDb
-    let tvmaze: CalendarEntry[] = [];
-
-    try {
-      tvmaze = await tvmazeEntries(month.year, month.month);
-    } catch {
-      tvmaze = [];
-    }
+    // Contraste con TVmaze (lanzado en paralelo más arriba); si falla,
+    // se sigue solo con TMDb
+    const tvmaze = await tvmazePromise;
 
     const merged = mergeSources(tmdbEntries, tvmaze);
 
@@ -476,21 +497,15 @@ export async function GET(request: NextRequest) {
 
     const entries = [...merged, ...extra, ...imported];
 
-    // Logos de cada plataforma (si no se pueden leer, la web usa texto)
+    // Logos de cada plataforma (lanzado en paralelo más arriba; si no se
+    // pueden leer, la web usa texto)
     const logos: Partial<Record<PlatformKey, string>> = {};
+    const byId = await logosPromise;
 
-    try {
-      const byId = await getProviderLogos(
-        PLATFORMS.flatMap((platform) => platform.ids)
-      );
+    for (const platform of PLATFORMS) {
+      const id = platform.ids.find((candidate) => byId[candidate]);
 
-      for (const platform of PLATFORMS) {
-        const id = platform.ids.find((candidate) => byId[candidate]);
-
-        if (id) logos[platform.key] = byId[id];
-      }
-    } catch {
-      // Sin logos: se muestran los nombres
+      if (id) logos[platform.key] = byId[id];
     }
 
     return NextResponse.json(

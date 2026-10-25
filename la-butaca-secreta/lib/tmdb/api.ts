@@ -45,32 +45,54 @@ function getConfig() {
   };
 }
 
+const sleep = (ms: number) =>
+  new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Con muchas llamadas en paralelo (el calendario puede lanzar decenas a
+ * la vez) TMDb responde 429 de vez en cuando. Antes esto se trataba como
+ * cualquier otro error y, como casi todas las llamadas del calendario van
+ * envueltas en try/catch, la entrada simplemente se perdía en silencio
+ * (menos películas en el mes, sin avisar). Con un par de reintentos con
+ * espera, esas llamadas casi siempre acaban saliendo bien.
+ */
 async function request<T>(
   endpoint: string,
   revalidate?: number
 ): Promise<T> {
   const { token, baseUrl } = getConfig();
 
-  const response = await fetch(
-    `${baseUrl}${endpoint}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/json",
-      },
-      ...(revalidate
-        ? { next: { revalidate } }
-        : { cache: "no-store" as const }),
-    }
-  );
-
-  if (!response.ok) {
-    throw new Error(
-      `TMDb ${response.status} en ${endpoint.split("?")[0]}: ${await response.text()}`
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const response = await fetch(
+      `${baseUrl}${endpoint}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+        ...(revalidate
+          ? { next: { revalidate } }
+          : { cache: "no-store" as const }),
+      }
     );
+
+    if (response.status === 429) {
+      await sleep(300 * (attempt + 1));
+      continue;
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        `TMDb ${response.status} en ${endpoint.split("?")[0]}: ${await response.text()}`
+      );
+    }
+
+    return response.json() as Promise<T>;
   }
 
-  return response.json() as Promise<T>;
+  throw new Error(
+    `TMDb: demasiadas peticiones en ${endpoint.split("?")[0]}`
+  );
 }
 
 // ======================================================
