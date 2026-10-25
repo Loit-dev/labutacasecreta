@@ -530,11 +530,11 @@ export default function MiResumenScreen() {
       )}
 
       {state.line && (
-        <div className="flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-amber-700 via-orange-600 to-orange-500 px-5 py-3 text-center shadow-[0_6px_18px_rgba(251,146,60,0.35)] sm:px-6 sm:py-3.5">
-          <span aria-hidden="true" className="text-lg">
+        <div className="flex items-center justify-center gap-2.5 rounded-full bg-gradient-to-r from-amber-700 via-orange-600 to-orange-500 px-6 py-4 text-center shadow-[0_6px_18px_rgba(251,146,60,0.35)] sm:px-8 sm:py-5">
+          <span aria-hidden="true" className="text-2xl sm:text-3xl">
             🔥
           </span>
-          <p className="text-sm font-extrabold text-white sm:text-base">
+          <p className="text-base font-extrabold text-white sm:text-lg">
             {state.line}
           </p>
         </div>
