@@ -147,8 +147,7 @@ export default function RecommendationCard({
                 : "text-xs font-semibold uppercase tracking-wider text-yellow-400"
             }
           >
-            <span aria-hidden="true">{badge}</span>{" "}
-            {!compact && badgeTitle}
+            <span aria-hidden="true">{badge}</span> {badgeTitle}
           </div>
 
           <h2

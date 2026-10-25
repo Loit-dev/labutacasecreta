@@ -214,7 +214,7 @@ export function drawSummaryImage(
   const chartX = 70;
   const chartY = 610;
   const chartW = W - 140;
-  const chartH = 300;
+  const chartH = 280;
 
   glassCard(ctx, chartX, chartY, chartW, chartH);
 
@@ -235,7 +235,7 @@ export function drawSummaryImage(
     chartX + 40,
     chartY + 90,
     chartW - 80,
-    chartH - 150,
+    chartH - 130,
     options.last14.map((d) => d.count)
   );
 
@@ -252,7 +252,7 @@ export function drawSummaryImage(
     hasStreak
   ) {
     const statsY = cursorY;
-    const statsH = 108;
+    const statsH = 92;
     const statsGap = 14;
     const cols = hasStreak ? 3 : 2;
     const statsW = (chartW - statsGap * (cols - 1)) / cols;
@@ -269,7 +269,7 @@ export function drawSummaryImage(
 
     // [etiqueta, valor, color del número, línea pequeña debajo]
     const stats: [string, string, string, string | undefined][] = [
-      ["VISTAS TOTALES", String(options.totalWatched ?? 0), "#ffffff", undefined],
+      ["TOTALES", String(options.totalWatched ?? 0), "#ffffff", undefined],
       [
         badge ? `ESTE MES ${badge}` : "ESTE MES",
         String(options.monthCount ?? 0),
@@ -295,20 +295,20 @@ export function drawSummaryImage(
       ctx.textAlign = "center";
       ctx.fillStyle = "#a1a1aa";
       ctx.font = `700 ${cols === 3 ? 15 : 17}px ${font}`;
-      ctx.fillText(label, x + statsW / 2, statsY + 28);
+      ctx.fillText(label, x + statsW / 2, statsY + 26);
 
       ctx.fillStyle = color;
-      ctx.font = `800 ${cols === 3 ? 34 : 38}px ${font}`;
-      ctx.fillText(value, x + statsW / 2, statsY + 68);
+      ctx.font = `800 ${cols === 3 ? 32 : 36}px ${font}`;
+      ctx.fillText(value, x + statsW / 2, statsY + 62);
 
       if (small) {
         ctx.fillStyle = "#a1a1aa";
-        ctx.font = `600 15px ${font}`;
-        ctx.fillText(small, x + statsW / 2, statsY + 94);
+        ctx.font = `600 14px ${font}`;
+        ctx.fillText(small, x + statsW / 2, statsY + 88);
       }
     });
 
-    cursorY += statsH + 28;
+    cursorY += statsH + 20;
   }
 
   // ---------- Pósters en abanico (como en Butaca Exprés/Recomendador) ----------
@@ -316,7 +316,7 @@ export function drawSummaryImage(
   // valorada a los lados, más pequeñas y giradas. Cada una lleva su
   // chip (igual que el badge de la tarjeta en la web) encima.
   const cardY = cursorY;
-  const cardH = 430;
+  const cardH = 355;
 
   type FanSlot = {
     card?: SummaryTitleCard;
@@ -330,12 +330,12 @@ export function drawSummaryImage(
     angle: number;
   };
 
-  const mainW = 200;
-  const mainH = 300;
-  const sideW = 158;
-  const sideH = 237;
+  const mainW = 190;
+  const mainH = 280;
+  const sideW = 150;
+  const sideH = 221;
 
-  const mainCY = cardY + 40 + mainH / 2;
+  const mainCY = cardY + 26 + mainH / 2;
   const sideCY = mainCY + 14;
   // Más separadas que el ancho de los chips para que no se toquen.
   const sideOffsetX = 205;
@@ -484,61 +484,102 @@ export function drawSummaryImage(
 
   ctx.textAlign = "center";
 
-  // ---------- Tus géneros: ranking top 3 con medalla y emoji ----------
+  // ---------- Tus géneros: filas con chip de color, como las de
+  // "Mis sugerencias" (MI APUESTA / OTRA OPCIÓN / SORPRESA) ----------
   const topGenres = (options.topGenres ?? []).slice(0, 3);
 
-  const genreY = cardY + cardH + 28;
-  const genreH = 150;
+  // Deja un margen de sobra bajo la última etiqueta del abanico
+  // (nota incluida) para que no se solape con esta sección.
+  const genreY = cardY + cardH + 36;
 
   let footTop = genreY;
 
   if (topGenres.length > 0) {
-    glassCard(ctx, chartX, genreY, chartW, genreH);
+    const RANKS = [
+      { label: "TOP 1", color: "#facc15" },
+      { label: "TOP 2", color: "#e4e4e7" },
+      { label: "TOP 3", color: "#fb923c" },
+    ];
 
     ctx.textAlign = "left";
-    ctx.fillStyle = "#ffffff";
-    ctx.font = `800 24px ${font}`;
-    ctx.fillText("Tus géneros", chartX + 26, genreY + 36);
+    ctx.fillStyle = "#a1a1aa";
+    ctx.font = `700 20px ${font}`;
+    ctx.fillText("TUS GÉNEROS", chartX, genreY + 16);
 
-    const medals = ["🥇", "🥈", "🥉"];
-    const rowH = 32;
-    const rowsTop = genreY + 56;
+    const rowH = 44;
+    const rowGap = 7;
+    const rowStep = rowH + rowGap;
+    const rowsTop = genreY + 30;
 
     topGenres.forEach((genre, i) => {
-      const rowY = rowsTop + i * rowH;
+      const rank = RANKS[i];
+      const rowY = rowsTop + i * rowStep;
 
+      roundedRect(ctx, chartX, rowY, chartW, rowH, 20);
+      ctx.fillStyle = "rgba(24,24,27,0.72)";
+      ctx.fill();
+      ctx.strokeStyle = `${rank.color}55`;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Chip con el puesto
       ctx.textAlign = "left";
-      ctx.fillStyle = "#ffffff";
-      ctx.font = `700 23px ${font}`;
+      ctx.font = `800 15px ${font}`;
 
-      const [line = ""] = wrapLines(
-        (text) => ctx.measureText(text).width,
-        `${medals[i]} ${genreEmoji(genre.name)} ${genre.name}`,
-        chartW - 150,
-        1
-      );
+      const chipW = ctx.measureText(rank.label).width + 26;
+      const chipX = chartX + 16;
+      const chipY = rowY + rowH / 2 - 15;
 
-      ctx.fillText(line, chartX + 26, rowY);
+      roundedRect(ctx, chipX, chipY, chipW, 30, 15);
+      ctx.fillStyle = `${rank.color}26`;
+      ctx.fill();
+      ctx.strokeStyle = `${rank.color}aa`;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      ctx.fillStyle = rank.color;
+      ctx.fillText(rank.label, chipX + 13, rowY + rowH / 2 + 5);
+
+      // Nombre del género y nº de veces, a la derecha
+      const nameX = chipX + chipW + 16;
 
       ctx.textAlign = "right";
       ctx.fillStyle = "#a1a1aa";
-      ctx.font = `600 19px ${font}`;
-      ctx.fillText(String(genre.count), chartX + chartW - 26, rowY);
+      ctx.font = `600 18px ${font}`;
+
+      const countLabel = `${genre.count} ${genre.count === 1 ? "vista" : "vistas"}`;
+
+      ctx.fillText(countLabel, chartX + chartW - 18, rowY + rowH / 2 + 6);
+
+      const countW = ctx.measureText(countLabel).width + 24;
+
+      ctx.textAlign = "left";
+      ctx.fillStyle = "#ffffff";
+      ctx.font = `700 22px ${font}`;
+
+      const [line = ""] = wrapLines(
+        (text) => ctx.measureText(text).width,
+        `${genreEmoji(genre.name)} ${genre.name}`,
+        chartW - (nameX - chartX) - countW,
+        1
+      );
+
+      ctx.fillText(line, nameX, rowY + rowH / 2 + 7);
     });
 
-    footTop = genreY + genreH + 24;
+    footTop = rowsTop + 2 * rowStep + rowH + 20;
   }
 
   // ---------- Toque competitivo, en su propia caja ----------
   if (options.competitiveLine) {
     const compY = footTop;
-    const compH = 78;
+    const compH = 58;
 
     glassCard(ctx, chartX, compY, chartW, compH);
 
     ctx.textAlign = "center";
     ctx.fillStyle = "#facc15";
-    ctx.font = `800 27px ${font}`;
+    ctx.font = `800 23px ${font}`;
 
     const [line = ""] = wrapLines(
       (text) => ctx.measureText(text).width,
@@ -547,9 +588,9 @@ export function drawSummaryImage(
       1
     );
 
-    ctx.fillText(line, W / 2, compY + compH / 2 + 9);
+    ctx.fillText(line, W / 2, compY + compH / 2 + 7);
 
-    footTop += compH + 24;
+    footTop += compH + 18;
   }
 
   // ---------- Pie ----------
@@ -559,7 +600,7 @@ export function drawSummaryImage(
 
   const pillW = ctx.measureText(url).width + 90;
   const pillX = W / 2 - pillW / 2;
-  const footY = Math.min(footTop + 20, 1760);
+  const footY = Math.min(footTop + 16, 1700);
 
   const pillGradient = ctx.createLinearGradient(pillX, 0, pillX + pillW, 0);
 
@@ -569,21 +610,30 @@ export function drawSummaryImage(
   ctx.save();
   ctx.shadowColor = "rgba(239,68,68,0.5)";
   ctx.shadowBlur = 30;
-  roundedRect(ctx, pillX, footY, pillW, 74, 37);
+  roundedRect(ctx, pillX, footY, pillW, 68, 34);
   ctx.fillStyle = pillGradient;
   ctx.fill();
   ctx.restore();
 
   ctx.fillStyle = "#ffffff";
-  ctx.fillText(url, W / 2, footY + 51);
+  ctx.fillText(url, W / 2, footY + 47);
 
   ctx.fillStyle = "#d4d4d8";
-  ctx.font = `500 26px ${font}`;
+  ctx.font = `500 23px ${font}`;
   ctx.fillText(
     "¿No sabes qué ver? Te recomiendo solo tres.",
     W / 2,
-    footY + 112
+    footY + 100
   );
+
+  // ---------- Síguenos en Instagram ----------
+  ctx.font = `700 22px ${font}`;
+  ctx.fillStyle = "#a1a1aa";
+  ctx.fillText("Síguenos en Instagram", W / 2, footY + 136);
+
+  ctx.font = `800 24px ${font}`;
+  ctx.fillStyle = "#fb923c";
+  ctx.fillText("@labutacashh", W / 2, footY + 168);
 }
 
 /** Crea la imagen de "Mi Resumen" y la devuelve lista para compartir o descargar. */

@@ -98,7 +98,25 @@ function Bars({ last14 }: { last14: SummaryStats["last14"] }) {
   );
 }
 
-const MEDALS = ["🥇", "🥈", "🥉"];
+// Mismos 3 colores que las tarjetas de "Mis sugerencias" (MI APUESTA /
+// OTRA OPCIÓN / SORPRESA), reutilizados aquí para el ranking de géneros.
+const GENRE_RANKS = [
+  {
+    label: "TOP 1",
+    row: "border-yellow-500/40",
+    chip: "border-yellow-400/70 bg-yellow-400/10 text-yellow-300",
+  },
+  {
+    label: "TOP 2",
+    row: "border-zinc-300/30",
+    chip: "border-zinc-300/60 bg-zinc-300/10 text-zinc-200",
+  },
+  {
+    label: "TOP 3",
+    row: "border-orange-500/40",
+    chip: "border-orange-400/70 bg-orange-400/10 text-orange-300",
+  },
+];
 
 export default function MiResumenScreen() {
   const { session, loading, available } = useAuth();
@@ -331,8 +349,8 @@ export default function MiResumenScreen() {
         }`}
       >
         <div className={`${CARD} p-3 text-center sm:p-4`}>
-          <p className="text-[10px] font-bold tracking-wide text-zinc-400 sm:text-[11px]">
-            VISTAS TOTALES
+          <p className="whitespace-nowrap text-[10px] font-bold tracking-wide text-zinc-400 sm:text-[11px]">
+            TOTALES
           </p>
           <p className="mt-1 text-2xl font-black text-white sm:text-3xl">
             {stats.totalWatched}
@@ -340,7 +358,7 @@ export default function MiResumenScreen() {
         </div>
 
         <div className={`${CARD} p-3 text-center sm:p-4`}>
-          <p className="text-[10px] font-bold tracking-wide text-zinc-400 sm:text-[11px]">
+          <p className="whitespace-nowrap text-[10px] font-bold tracking-wide text-zinc-400 sm:text-[11px]">
             ESTE MES{stats.monthBadge ? ` ${stats.monthBadge}` : ""}
           </p>
           <p
@@ -360,7 +378,7 @@ export default function MiResumenScreen() {
 
         {stats.streakDays >= 1 && (
           <div className={`${CARD} p-3 text-center sm:p-4`}>
-            <p className="text-[10px] font-bold tracking-wide text-zinc-400 sm:text-[11px]">
+            <p className="whitespace-nowrap text-[10px] font-bold tracking-wide text-zinc-400 sm:text-[11px]">
               RACHA 🔥
             </p>
             <p className="mt-1 text-2xl font-black text-orange-300 sm:text-3xl">
@@ -424,25 +442,36 @@ export default function MiResumenScreen() {
       </div>
 
       {stats.topGenres.length > 0 && (
-        <div className={`${CARD} p-4`}>
-          <p className="mb-3 text-sm font-bold text-white">Tus géneros</p>
+        <div className="flex flex-col gap-2">
+          <p className="text-sm font-bold text-white">Tus géneros</p>
 
-          <div className="flex flex-col gap-2">
-            {stats.topGenres.map((genre, index) => (
+          {stats.topGenres.map((genre, index) => {
+            const rank = GENRE_RANKS[index];
+
+            return (
               <div
                 key={genre.name}
-                className="flex items-center justify-between rounded-xl bg-black/20 px-3 py-2"
+                className={`flex items-center justify-between gap-3 rounded-2xl border bg-black/30 px-4 py-3 ${rank.row}`}
               >
-                <span className="flex items-center gap-2 text-sm font-semibold text-white">
-                  <span aria-hidden="true">{MEDALS[index]}</span>
-                  <span aria-hidden="true">{genreEmoji(genre.name)}</span>
-                  {genre.name}
-                </span>
+                <div className="flex min-w-0 items-center gap-3">
+                  <span
+                    className={`shrink-0 rounded-full border px-3 py-1 text-[11px] font-extrabold tracking-wide ${rank.chip}`}
+                  >
+                    {rank.label}
+                  </span>
 
-                <span className="text-xs text-zinc-400">{genre.count}</span>
+                  <span className="truncate text-sm font-bold text-white">
+                    <span aria-hidden="true">{genreEmoji(genre.name)}</span>{" "}
+                    {genre.name}
+                  </span>
+                </div>
+
+                <span className="shrink-0 text-sm font-semibold text-zinc-300">
+                  {genre.count} {genre.count === 1 ? "vista" : "vistas"}
+                </span>
               </div>
-            ))}
-          </div>
+            );
+          })}
         </div>
       )}
 
