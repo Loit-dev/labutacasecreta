@@ -6,6 +6,7 @@ import RatingPrompt from "@/components/recommendations/RatingPrompt";
 import { useAuth } from "@/hooks/useAuth";
 import { useWatchlist } from "@/hooks/useWatchlist";
 import { track } from "@/lib/analytics";
+import { recordAvoid, recordBoost } from "@/lib/genreAffinity";
 import type { Rating } from "@/lib/rating";
 import { readRating, setRating } from "@/lib/rating";
 import { saveWatched } from "@/lib/supabase/watched";
@@ -76,6 +77,14 @@ export default function TitleActions({ type, title }: Props) {
     if (value) {
       setRating(type, title.id, value);
       setRatingValue(value);
+
+      // Fase 3: 4-5 estrellas empuja esos géneros, 1-2 los baja, de
+      // forma duradera (lib/genreAffinity.ts). 3 estrellas es neutro.
+      if (value >= 4) {
+        recordBoost(type, title.genreIds);
+      } else if (value <= 2) {
+        recordAvoid(type, title.genreIds);
+      }
     }
 
     if (session) {

@@ -18,6 +18,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useRecommendations } from "@/hooks/useRecommendations";
 import { useWatchlist } from "@/hooks/useWatchlist";
 import { track } from "@/lib/analytics";
+import { recordAvoid, recordBoost } from "@/lib/genreAffinity";
 import { UserProfile } from "@/lib/conversation/types";
 import { formatNames } from "@/lib/group";
 import type { Rating } from "@/lib/rating";
@@ -51,6 +52,7 @@ export default function Recommendations({
     markSeen,
     reject,
     forgetSeen,
+    forgetAffinity,
     retry,
   } = useRecommendations(profile);
 
@@ -379,6 +381,14 @@ export default function Recommendations({
 
     if (rating) {
       setRating(type, movie.id, rating);
+
+      // Fase 3: 4-5 estrellas empuja esos géneros, 1-2 los baja, de
+      // forma duradera (lib/genreAffinity.ts). 3 estrellas es neutro.
+      if (rating >= 4) {
+        recordBoost(type, movie.genreIds);
+      } else if (rating <= 2) {
+        recordAvoid(type, movie.genreIds);
+      }
     }
 
     if (session) {
@@ -522,6 +532,13 @@ export default function Recommendations({
             className="underline underline-offset-2 hover:text-zinc-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
           >
             Olvidar mis títulos vistos
+          </button>
+          {" · "}
+          <button
+            onClick={forgetAffinity}
+            className="underline underline-offset-2 hover:text-zinc-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          >
+            Olvidar lo que he aprendido de tus gustos
           </button>
         </p>
       )}

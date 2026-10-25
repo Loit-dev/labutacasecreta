@@ -1,4 +1,5 @@
 import { ScoreContext, ScoredItem } from "./types";
+import { scoreAffinity } from "./affinity";
 import { scoreMood } from "./mood";
 import { scoreCompany } from "./company";
 import { scoreDuration } from "./duration";
@@ -50,6 +51,9 @@ export function scoreItem(
 
   // 👎 Géneros que el usuario ha ido rechazando
   score += scoreFeedback(item, context);
+
+  // 👍 Géneros que el usuario ha valorado bien (de forma duradera)
+  score += scoreAffinity(item, context);
 
   // 📈 Calidad/popularidad general
   // Tiene peso deliberadamente bajo:

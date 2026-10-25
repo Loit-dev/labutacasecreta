@@ -353,10 +353,17 @@ export async function GET(
       parseIdList(params.get("exclude"), 300)
     );
 
-    // Géneros de los títulos que el usuario ha rechazado
-    // (se repite un género tantas veces como veces se rechazó)
+    // Géneros de los títulos que el usuario ha rechazado o valorado
+    // mal (se repite un género tantas veces como veces pesó)
     const dislikedGenres = parseIdList(
       params.get("avoid"),
+      100
+    );
+
+    // Géneros de los títulos que el usuario ha valorado bien (Fase 3:
+    // lib/genreAffinity.ts)
+    const likedGenres = parseIdList(
+      params.get("boost"),
       100
     );
 
@@ -401,7 +408,7 @@ export async function GET(
 
     const candidates = sortByScore(
       uniqueItems.map(mapToScoredItem),
-      { profile, dislikedGenres }
+      { profile, dislikedGenres, likedGenres }
     )
       .slice(0, mode.maxCandidates)
       .map((scored) => byId.get(scored.id)!);
@@ -485,7 +492,7 @@ export async function GET(
             ?.slice(0, 5)
             .map((actor) => actor.name) ?? [],
       })),
-      { profile, dislikedGenres }
+      { profile, dislikedGenres, likedGenres }
     );
 
     // ----------------------------------------------

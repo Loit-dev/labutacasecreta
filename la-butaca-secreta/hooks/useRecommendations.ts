@@ -11,6 +11,12 @@ import {
 import { track } from "@/lib/analytics";
 import type { UserProfile } from "@/lib/conversation/types";
 import {
+  readAvoidGenres,
+  readBoostGenres,
+  recordAvoid,
+  resetGenreAffinity,
+} from "@/lib/genreAffinity";
+import {
   countAvailable,
   pickWindow,
 } from "@/lib/recommendation/window";
@@ -188,6 +194,23 @@ export function useRecommendations(
     return Array.from(ids).slice(-300).join(",");
   }, [type]);
 
+  // Géneros que han pesado de forma duradera (rechazos y valoraciones
+  // bajas) más los de esta sesión, y géneros valorados bien (Fase 3:
+  // lib/genreAffinity.ts).
+  const affinityParams = useCallback(
+    () => ({
+      avoid: [
+        ...readAvoidGenres(type),
+        ...dislikedRef.current,
+      ]
+        .slice(-200)
+        .join(","),
+
+      boost: readBoostGenres(type).slice(-200).join(","),
+    }),
+    [type]
+  );
+
   // ----------------------------------------------
   // Carga inicial: primero una tanda rápida y luego el resto
   // ----------------------------------------------
@@ -215,7 +238,11 @@ export function useRecommendations(
       try {
         const quick = await fetchBatch(
           profile,
-          { quick: "1", exclude: excludeParam() },
+          {
+            quick: "1",
+            exclude: excludeParam(),
+            ...affinityParams(),
+          },
           controller.signal
         );
 
@@ -236,7 +263,7 @@ export function useRecommendations(
         try {
           const full = await fetchBatch(
             profile,
-            { exclude: excludeParam() },
+            { exclude: excludeParam(), ...affinityParams() },
             controller.signal
           );
 
@@ -288,7 +315,14 @@ export function useRecommendations(
     load();
 
     return () => controller.abort();
-  }, [profile, attempt, append, excludeParam, type]);
+  }, [
+    profile,
+    attempt,
+    append,
+    excludeParam,
+    affinityParams,
+    type,
+  ]);
 
   // ----------------------------------------------
   // Pedir más (sin repetir nada y aprendiendo de lo rechazado)
@@ -309,10 +343,7 @@ export function useRecommendations(
     try {
       const more = await fetchBatch(
         profile,
-        {
-          exclude: excludeParam(),
-          avoid: dislikedRef.current.join(","),
-        },
+        { exclude: excludeParam(), ...affinityParams() },
         controller.signal
       );
 
@@ -336,7 +367,7 @@ export function useRecommendations(
         setLoadingMore(false);
       }
     }
-  }, [profile, excludeParam, append, type]);
+  }, [profile, excludeParam, affinityParams, append, type]);
 
   // ----------------------------------------------
   // Lo que se ve ahora
@@ -395,8 +426,9 @@ export function useRecommendations(
     [type, hide]
   );
 
-  // "No me apetece": no vuelve a salir y los títulos de sus
-  // géneros puntúan un poco menos en lo que queda de sesión
+  // "No me apetece": no vuelve a salir y los títulos de sus géneros
+  // puntúan un poco menos, ya de forma duradera (antes se olvidaba al
+  // cerrar la pestaña)
   const reject = useCallback(
     (item: Recommendation) => {
       track("reject_clicked", { type, id: item.id, role: item.role });
@@ -405,6 +437,8 @@ export function useRecommendations(
         ...dislikedRef.current,
         ...item.genreIds,
       ].slice(-100);
+
+      recordAvoid(type, item.genreIds);
 
       hide([item.id]);
     },
@@ -417,6 +451,17 @@ export function useRecommendations(
     clearSeen(type);
 
     setSeenCount(0);
+  }, [type]);
+
+  // "Olvidar lo que he aprendido de tus gustos": los rechazos y
+  // valoraciones en sí no se tocan, solo dejan de pesar en los
+  // géneros de próximas búsquedas.
+  const forgetAffinity = useCallback(() => {
+    track("forget_affinity", { type });
+
+    resetGenreAffinity(type);
+
+    dislikedRef.current = [];
   }, [type]);
 
   const retry = useCallback(() => {
@@ -435,6 +480,7 @@ export function useRecommendations(
     markSeen,
     reject,
     forgetSeen,
+    forgetAffinity,
     retry,
   };
 }

@@ -14,6 +14,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { useWatchlist } from "@/hooks/useWatchlist";
 import { track } from "@/lib/analytics";
 import { ContentType, UserProfile } from "@/lib/conversation/types";
+import {
+  readAvoidGenres,
+  readBoostGenres,
+  recordAvoid,
+  recordBoost,
+} from "@/lib/genreAffinity";
 import { inferredProfile } from "@/lib/memory";
 import type { Rating } from "@/lib/rating";
 import { setRating } from "@/lib/rating";
@@ -44,6 +50,16 @@ function excludedFor(type: ContentType): number[] {
   return Array.from(new Set([...readSeen(type), ...readRecentlyShown(type)]));
 }
 
+// Fase 3: géneros rechazados/valorados mal (bajan puntos) y géneros
+// valorados bien (suben puntos), de forma duradera entre visitas
+// (lib/genreAffinity.ts).
+function affinityFor(type: ContentType) {
+  return {
+    avoid: readAvoidGenres(type).join(","),
+    boost: readBoostGenres(type).join(","),
+  };
+}
+
 function buildMainQuery(
   profile: UserProfile,
   type: ContentType,
@@ -69,6 +85,16 @@ function buildMainQuery(
 
   if (exclude) {
     params.set("exclude", exclude);
+  }
+
+  const { avoid, boost } = affinityFor(type);
+
+  if (avoid) {
+    params.set("avoid", avoid);
+  }
+
+  if (boost) {
+    params.set("boost", boost);
   }
 
   return params.toString();
@@ -357,6 +383,14 @@ export default function QuickPicks() {
 
     if (rating) {
       setRating(movie.mediaType, movie.id, rating);
+
+      // Fase 3: 4-5 estrellas empuja esos géneros, 1-2 los baja, de
+      // forma duradera (lib/genreAffinity.ts). 3 estrellas es neutro.
+      if (rating >= 4) {
+        recordBoost(movie.mediaType, movie.genreIds);
+      } else if (rating <= 2) {
+        recordAvoid(movie.mediaType, movie.genreIds);
+      }
     }
 
     if (session) {
@@ -381,6 +415,7 @@ export default function QuickPicks() {
       source: "today",
     });
 
+    recordAvoid(movie.mediaType, movie.genreIds);
     replaceItem(movie);
   };
 
