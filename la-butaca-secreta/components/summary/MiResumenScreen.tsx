@@ -30,7 +30,7 @@ type Titles = {
   favorite?: TitleEntry;
 };
 
-type Poster = { lastWatched?: string; bestRated?: string };
+type Poster = { lastWatched?: string; bestRated?: string; favorite?: string };
 
 type State =
   | { status: "loading" }
@@ -203,6 +203,7 @@ export default function MiResumenScreen() {
 
     if (favorite && favData) {
       titles.favorite = { mediaType: favorite.mediaType, data: favData };
+      posters.favorite = posterSource(favData.poster);
     }
 
     setState({ status: "ready", stats, line, posters, titles });
@@ -251,6 +252,12 @@ export default function MiResumenScreen() {
                 favorite: data
                   ? { mediaType: hit.type, data }
                   : current.titles.favorite,
+              },
+              posters: {
+                ...current.posters,
+                favorite: data
+                  ? posterSource(data.poster)
+                  : current.posters.favorite,
               },
             }
           : current
@@ -456,6 +463,13 @@ export default function MiResumenScreen() {
                   title: stats.bestRated.title,
                   posterUrl: state.posters.bestRated,
                   rating: stats.bestRated.rating,
+                }
+              : undefined,
+            favorite: titles.favorite
+              ? {
+                  title: titles.favorite.data.title,
+                  posterUrl: state.posters.favorite,
+                  rating: titles.favorite.data.rating,
                 }
               : undefined,
             topGenre: stats.topGenre,

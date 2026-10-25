@@ -31,6 +31,7 @@ export type SummaryOptions = {
   monthLabel: string;
   last14: { date: string; count: number }[];
   lastWatched?: SummaryTitleCard;
+  favorite?: SummaryTitleCard;
   bestRated?: SummaryTitleCard;
   topGenre?: { name: string; count: number };
   leastGenre?: { name: string; count: number };
@@ -230,89 +231,176 @@ export function drawSummaryImage(
 
   ctx.textAlign = "center";
 
-  // ---------- Tarjetas: última vista / mejor valorada ----------
+  // ---------- Pósters en abanico (como en Butaca Exprés/Recomendador) ----------
+  // La favorita va al centro, grande y recta; última vista y mejor
+  // valorada a los lados, más pequeñas y giradas. Cada una lleva su
+  // chip (igual que el badge de la tarjeta en la web) encima.
   const cardY = chartY + chartH + 36;
   const cardH = 420;
-  const gap = 24;
-  const cardW = (chartW - gap) / 2;
 
-  const titleCards: [SummaryTitleCard | undefined, string, DrawableImage | null][] = [
-    [options.lastWatched, "ÚLTIMA VISTA", posters[0] ?? null],
-    [options.bestRated, "MEJOR VALORADA", posters[1] ?? null],
+  type FanSlot = {
+    card?: SummaryTitleCard;
+    poster: DrawableImage | null;
+    label: string;
+    color: string;
+    cx: number;
+    cy: number;
+    w: number;
+    h: number;
+    angle: number;
+  };
+
+  const mainW = 190;
+  const mainH = 285;
+  const sideW = 150;
+  const sideH = 225;
+
+  const mainCY = cardY + 50 + mainH / 2;
+  const sideCY = mainCY + 25;
+
+  const slots: FanSlot[] = [
+    {
+      card: options.lastWatched,
+      poster: posters[0] ?? null,
+      label: "👁 ÚLTIMA VISTA",
+      color: "#e4e4e7",
+      cx: chartX + 155,
+      cy: sideCY,
+      w: sideW,
+      h: sideH,
+      angle: -8,
+    },
+    {
+      card: options.favorite,
+      poster: posters[1] ?? null,
+      label: "⭐ TU FAVORITA",
+      color: "#facc15",
+      cx: W / 2,
+      cy: mainCY,
+      w: mainW,
+      h: mainH,
+      angle: 0,
+    },
+    {
+      card: options.bestRated,
+      poster: posters[2] ?? null,
+      label: "🏆 MEJOR VALORADA",
+      color: "#fb923c",
+      cx: chartX + chartW - 155,
+      cy: sideCY,
+      w: sideW,
+      h: sideH,
+      angle: 8,
+    },
   ];
 
-  titleCards.forEach(([card, label, poster], i) => {
-    const x = chartX + i * (cardW + gap);
+  // Los laterales se pintan primero y la central queda encima, como
+  // en el abanico de «Mis sugerencias».
+  const order = [0, 2, 1];
 
-    glassCard(ctx, x, cardY, cardW, cardH);
-
-    ctx.textAlign = "left";
-    ctx.fillStyle = "#fb923c";
-    ctx.font = `800 22px ${font}`;
-    ctx.fillText(label, x + 28, cardY + 44);
-
-    if (!card) {
-      ctx.fillStyle = "#a1a1aa";
-      ctx.font = `500 26px ${font}`;
-      ctx.textAlign = "center";
-      ctx.fillText("Aún sin datos", x + cardW / 2, cardY + cardH / 2);
-      ctx.textAlign = "left";
-      return;
-    }
-
-    const posterW = cardW - 56;
-    const posterH = cardH - 180;
-    const posterX = x + 28;
-    const posterY = cardY + 64;
+  order.forEach((i) => {
+    const slot = slots[i];
+    const { card, poster, label, color, cx, cy, w, h, angle } = slot;
+    const rad = (angle * Math.PI) / 180;
 
     ctx.save();
-    roundedRect(ctx, posterX, posterY, posterW, posterH, 18);
+    ctx.translate(cx, cy);
+    ctx.rotate(rad);
+
+    // Halo del color del chip, detrás del póster
+    ctx.save();
+    ctx.shadowColor = `${color}99`;
+    ctx.shadowBlur = angle === 0 ? 50 : 30;
+    ctx.shadowOffsetY = 10;
+    roundedRect(ctx, -w / 2, -h / 2, w, h, 20);
+    ctx.fillStyle = "#18181b";
+    ctx.fill();
+    ctx.restore();
+
+    ctx.save();
+    roundedRect(ctx, -w / 2, -h / 2, w, h, 20);
     ctx.clip();
 
     if (poster && poster.width > 0 && poster.height > 0) {
-      const scale = Math.max(
-        posterW / poster.width,
-        posterH / poster.height
-      );
+      const scale = Math.max(w / poster.width, h / poster.height);
 
       ctx.drawImage(
         poster,
-        posterX + (posterW - poster.width * scale) / 2,
-        posterY + (posterH - poster.height * scale) / 2,
+        (-poster.width * scale) / 2,
+        (-poster.height * scale) / 2,
         poster.width * scale,
         poster.height * scale
       );
     } else {
-      ctx.fillStyle = "#27272a";
-      ctx.fillRect(posterX, posterY, posterW, posterH);
+      const fallback = ctx.createLinearGradient(0, -h / 2, 0, h / 2);
+
+      fallback.addColorStop(0, "#27272a");
+      fallback.addColorStop(1, "#18181b");
+
+      ctx.fillStyle = fallback;
+      ctx.fillRect(-w / 2, -h / 2, w, h);
+
+      if (!card) {
+        ctx.fillStyle = "#71717a";
+        ctx.font = `600 18px ${font}`;
+        ctx.textAlign = "center";
+        ctx.fillText("Aún sin datos", 0, 6);
+      }
     }
 
     ctx.restore();
 
+    roundedRect(ctx, -w / 2 + 2, -h / 2 + 2, w - 4, h - 4, 20);
+    ctx.strokeStyle = `${color}cc`;
+    ctx.lineWidth = angle === 0 ? 4 : 3;
+    ctx.stroke();
+
+    // Chip con la etiqueta, encima del póster (gira con él)
+    ctx.font = `800 17px ${font}`;
     ctx.textAlign = "center";
-    ctx.fillStyle = "#ffffff";
-    ctx.font = `700 28px ${font}`;
 
-    const [line1 = "", line2 = ""] = wrapLines(
-      (text) => ctx.measureText(text).width,
-      card.title,
-      cardW - 48,
-      2
-    );
+    const chipW = ctx.measureText(label).width + 30;
+    const chipY = -h / 2 - 30;
 
-    ctx.fillText(line1, x + cardW / 2, posterY + posterH + 42);
-    if (line2) ctx.fillText(line2, x + cardW / 2, posterY + posterH + 76);
+    roundedRect(ctx, -chipW / 2, chipY - 17, chipW, 34, 17);
+    ctx.fillStyle = "#18181b";
+    ctx.fill();
+    ctx.strokeStyle = `${color}cc`;
+    ctx.lineWidth = 2;
+    ctx.stroke();
 
-    if (card.rating) {
-      ctx.fillStyle = "#facc15";
-      ctx.font = `800 26px ${font}`;
-      ctx.fillText(
-        `★ ${card.rating}`,
-        x + cardW / 2,
-        posterY + posterH + (line2 ? 112 : 78)
+    ctx.fillStyle = color;
+    ctx.fillText(label, 0, chipY + 6);
+
+    ctx.restore();
+
+    // Título y nota, horizontales (no giran, para que se lean bien)
+    if (card) {
+      const bottomX = cx - (h / 2) * Math.sin(rad);
+      const bottomY = cy + (h / 2) * Math.cos(rad);
+
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#ffffff";
+      ctx.font = `700 ${angle === 0 ? 24 : 20}px ${font}`;
+
+      const [line1 = ""] = wrapLines(
+        (text) => ctx.measureText(text).width,
+        card.title,
+        w + 40,
+        1
       );
+
+      ctx.fillText(line1, bottomX, bottomY + 32);
+
+      if (card.rating) {
+        ctx.fillStyle = "#facc15";
+        ctx.font = `800 ${angle === 0 ? 22 : 18}px ${font}`;
+        ctx.fillText(`★ ${card.rating}`, bottomX, bottomY + 60);
+      }
     }
   });
+
+  ctx.textAlign = "center";
 
   // ---------- Géneros ----------
   const genreY = cardY + cardH + 36;
@@ -408,12 +496,14 @@ export function drawSummaryImage(
 export async function createSummaryImage(
   options: SummaryOptions
 ): Promise<Blob> {
-  const [posterLast, posterBest, logo, backdrops] = await Promise.all([
-    loadImage(options.lastWatched?.posterUrl),
-    loadImage(options.bestRated?.posterUrl),
-    loadImage("/Logo.png"),
-    Promise.all(BACKDROP_FILES.map((file) => loadImage(file))),
-  ]);
+  const [posterLast, posterFavorite, posterBest, logo, backdrops] =
+    await Promise.all([
+      loadImage(options.lastWatched?.posterUrl),
+      loadImage(options.favorite?.posterUrl),
+      loadImage(options.bestRated?.posterUrl),
+      loadImage("/Logo.png"),
+      Promise.all(BACKDROP_FILES.map((file) => loadImage(file))),
+    ]);
 
   try {
     if (options.fontFamily) {
@@ -436,7 +526,7 @@ export async function createSummaryImage(
     throw new Error("Tu navegador no puede crear la imagen.");
   }
 
-  drawSummaryImage(ctx, [posterLast, posterBest], {
+  drawSummaryImage(ctx, [posterLast, posterFavorite, posterBest], {
     ...options,
     logo,
     backdrops,
