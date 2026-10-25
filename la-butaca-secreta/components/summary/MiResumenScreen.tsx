@@ -433,16 +433,14 @@ export default function MiResumenScreen() {
           </p>
         </div>
 
-        {rejectedCount > 0 && (
-          <div className={`${CARD} p-3 text-center sm:p-4`}>
-            <p className="whitespace-nowrap text-[10px] font-bold tracking-wide text-zinc-400 sm:text-[11px]">
-              DESCARTADAS 🙅
-            </p>
-            <p className="mt-1 text-2xl font-black text-zinc-300 sm:text-3xl">
-              {rejectedCount}
-            </p>
-          </div>
-        )}
+        <div className={`${CARD} p-3 text-center sm:p-4`}>
+          <p className="whitespace-nowrap text-[10px] font-bold tracking-wide text-zinc-400 sm:text-[11px]">
+            DESCARTADAS 🙅
+          </p>
+          <p className="mt-1 text-2xl font-black text-zinc-300 sm:text-3xl">
+            {rejectedCount}
+          </p>
+        </div>
       </div>
 
       <div className="grid grid-cols-3 gap-2 sm:gap-4">
