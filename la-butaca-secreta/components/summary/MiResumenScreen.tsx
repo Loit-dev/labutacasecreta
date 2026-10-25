@@ -595,6 +595,8 @@ export default function MiResumenScreen() {
             previousMonthLabel: stats.previousMonthLabel,
             streakDays: stats.streakDays,
             averageRating: stats.averageRating,
+            pendingCount: watchlist.count,
+            rejectedCount,
             competitiveLine: state.line,
           }}
         />

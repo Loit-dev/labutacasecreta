@@ -46,6 +46,8 @@ export type SummaryOptions = {
   previousMonthLabel?: string;
   streakDays?: number;
   averageRating?: number;
+  pendingCount?: number;
+  rejectedCount?: number;
   competitiveLine?: string;
   logo?: DrawableImage | null;
   backdrops?: (DrawableImage | null)[];
@@ -204,18 +206,18 @@ export function drawSummaryImage(
   ctx.shadowColor = "rgba(0,0,0,0.6)";
   ctx.shadowBlur = 24;
   ctx.fillStyle = titleGradient;
-  ctx.fillText(options.headline, W / 2, 320);
+  ctx.fillText(options.headline, W / 2, 270);
   ctx.restore();
 
   ctx.fillStyle = "#e4e4e7";
   ctx.font = `500 36px ${font}`;
-  ctx.fillText(`Tu ${options.monthLabel.toLowerCase()} en ${options.siteName}`, W / 2, 375);
+  ctx.fillText(`Tu ${options.monthLabel.toLowerCase()} en ${options.siteName}`, W / 2, 318);
 
   // ---------- Tarjeta: línea de vistas (14 días) ----------
   const chartX = 70;
-  const chartY = 420;
+  const chartY = 360;
   const chartW = W - 140;
-  const chartH = 300;
+  const chartH = 280;
 
   glassCard(ctx, chartX, chartY, chartW, chartH);
 
@@ -236,92 +238,97 @@ export function drawSummaryImage(
     chartX + 40,
     chartY + 90,
     chartW - 80,
-    chartH - 150,
+    chartH - 130,
     options.last14.map((d) => d.count)
   );
 
   ctx.textAlign = "center";
 
-  // ---------- Vistas totales / este mes / racha, justo debajo del gráfico ----------
+  // ---------- Todas las estadísticas de Mi Resumen, en 2 filas de 3
+  // cajas (igual que en pantalla) ----------
   let cursorY = chartY + chartH + 24;
+
+  const badge = options.monthBadge;
+  const diff = options.monthDiff;
+  const hasPrevious = (options.previousMonthCount ?? 0) > 0;
+
+  const diffLine = hasPrevious
+    ? `${diff !== undefined && diff > 0 ? "+" : ""}${diff ?? 0} vs ${(
+        options.previousMonthLabel ?? ""
+      ).toLowerCase()}`
+    : undefined;
 
   const hasStreak = (options.streakDays ?? 0) >= 1;
   const hasAvgRating = (options.averageRating ?? 0) > 0;
 
-  if (
-    options.totalWatched !== undefined ||
-    options.monthCount !== undefined ||
-    hasStreak ||
-    hasAvgRating
-  ) {
-    const statsY = cursorY;
-    const statsH = 92;
+  // [etiqueta, valor, color del número, línea pequeña debajo]
+  const allStats: [string, string, string, string | undefined][] = [
+    ["TOTALES", String(options.totalWatched ?? 0), "#ffffff", undefined],
+    [
+      badge ? `ESTE MES ${badge}` : "ESTE MES",
+      String(options.monthCount ?? 0),
+      badge ? "#facc15" : "#ffffff",
+      diffLine,
+    ],
+    [
+      "RACHA 🔥",
+      String(options.streakDays ?? 0),
+      "#fdba74",
+      hasStreak
+        ? options.streakDays === 1
+          ? "día"
+          : "días seguidos"
+        : "sin racha",
+    ],
+    [
+      "NOTA MEDIA",
+      hasAvgRating ? `★ ${options.averageRating}` : "—",
+      "#facc15",
+      undefined,
+    ],
+    ["PENDIENTES 📌", String(options.pendingCount ?? 0), "#ffffff", undefined],
+    [
+      "DESCARTADAS 🙅",
+      String(options.rejectedCount ?? 0),
+      "#d4d4d8",
+      undefined,
+    ],
+  ];
+
+  {
     const statsGap = 12;
-
-    const badge = options.monthBadge;
-    const diff = options.monthDiff;
-    const hasPrevious = (options.previousMonthCount ?? 0) > 0;
-
-    const diffLine = hasPrevious
-      ? `${diff !== undefined && diff > 0 ? "+" : ""}${diff ?? 0} vs ${(
-          options.previousMonthLabel ?? ""
-        ).toLowerCase()}`
-      : undefined;
-
-    // [etiqueta, valor, color del número, línea pequeña debajo]
-    const stats: [string, string, string, string | undefined][] = [
-      ["TOTALES", String(options.totalWatched ?? 0), "#ffffff", undefined],
-      [
-        badge ? `ESTE MES ${badge}` : "ESTE MES",
-        String(options.monthCount ?? 0),
-        badge ? "#facc15" : "#ffffff",
-        diffLine,
-      ],
-    ];
-
-    if (hasStreak) {
-      stats.push([
-        "RACHA 🔥",
-        String(options.streakDays),
-        "#fdba74",
-        options.streakDays === 1 ? "día" : "días seguidos",
-      ]);
-    }
-
-    if (hasAvgRating) {
-      stats.push([
-        "NOTA MEDIA",
-        `★ ${options.averageRating}`,
-        "#facc15",
-        undefined,
-      ]);
-    }
-
-    const cols = stats.length;
+    const cols = 3;
     const statsW = (chartW - statsGap * (cols - 1)) / cols;
+    const statsH = 88;
+    const rowGap = 8;
 
-    stats.forEach(([label, value, color, small], i) => {
-      const x = chartX + i * (statsW + statsGap);
+    allStats.forEach(([label, value, color, small], i) => {
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      const x = chartX + col * (statsW + statsGap);
+      const y = cursorY + row * (statsH + rowGap);
 
-      glassCard(ctx, x, statsY, statsW, statsH);
+      glassCard(ctx, x, y, statsW, statsH);
 
       ctx.textAlign = "center";
       ctx.fillStyle = "#a1a1aa";
-      ctx.font = `700 ${cols >= 3 ? 14 : 17}px ${font}`;
-      ctx.fillText(label, x + statsW / 2, statsY + 26);
+      ctx.font = `700 14px ${font}`;
+      ctx.fillText(label, x + statsW / 2, y + 25);
 
       ctx.fillStyle = color;
-      ctx.font = `800 ${cols >= 3 ? 30 : 36}px ${font}`;
-      ctx.fillText(value, x + statsW / 2, statsY + 62);
+      ctx.font = `800 29px ${font}`;
+      ctx.fillText(value, x + statsW / 2, y + 59);
 
       if (small) {
         ctx.fillStyle = "#a1a1aa";
-        ctx.font = `600 13px ${font}`;
-        ctx.fillText(small, x + statsW / 2, statsY + 88);
+        ctx.font = `600 12px ${font}`;
+        ctx.fillText(small, x + statsW / 2, y + 82);
       }
     });
 
-    cursorY += statsH + 50;
+    const rows = Math.ceil(allStats.length / cols);
+
+    cursorY += rows * statsH + (rows - 1) * rowGap + 34;
   }
 
   // ---------- Pósters en abanico (como en Butaca Exprés/Recomendador) ----------
