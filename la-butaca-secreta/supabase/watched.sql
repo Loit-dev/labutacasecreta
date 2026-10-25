@@ -34,18 +34,24 @@ alter table public.watched
 alter table public.watched enable row level security;
 
 -- Cada persona solo puede leer y escribir sus propias filas.
+-- (drop + create para poder volver a pegar este archivo sin que
+-- falle por "la política ya existe")
+drop policy if exists "watched: leer lo propio" on public.watched;
 create policy "watched: leer lo propio"
   on public.watched for select
   using (auth.uid() = user_id);
 
+drop policy if exists "watched: insertar lo propio" on public.watched;
 create policy "watched: insertar lo propio"
   on public.watched for insert
   with check (auth.uid() = user_id);
 
+drop policy if exists "watched: actualizar lo propio" on public.watched;
 create policy "watched: actualizar lo propio"
   on public.watched for update
   using (auth.uid() = user_id);
 
+drop policy if exists "watched: borrar lo propio" on public.watched;
 create policy "watched: borrar lo propio"
   on public.watched for delete
   using (auth.uid() = user_id);
