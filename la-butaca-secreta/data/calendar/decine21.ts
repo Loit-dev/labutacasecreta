@@ -233,7 +233,8 @@ export const IMPORTADOS: Importado[] = [
   // Video, Filmin): lo que no aparecía en ninguna de las 5 se ha quitado.
   // (Segunda pasada, 25 oct: se amplió octubre completo y parte de
   // noviembre con las páginas "últimos" + "próx. estrenos" de Netflix,
-  // Prime, HBO Max y Disney+; sin Filmin esta vez, así que nada se quitó.)
+  // Prime, HBO Max y Disney+. Repasado después también contra Filmin:
+  // las 5 plataformas confirman todo lo que hay aquí, nada que quitar.)
   { date: "2026-11-02", type: "tv", query: "La edad dorada", year: 2026, season: 4 },
   { date: "2026-11-03", type: "tv", query: "Bass X Machina", year: 2026 },
   { date: "2026-11-03", type: "tv", query: "Bookish", year: 2026, season: 2 },
