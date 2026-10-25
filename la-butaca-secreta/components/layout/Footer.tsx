@@ -25,7 +25,7 @@ export default function Footer() {
         />
       </a>
 
-      <p>
+      <p className="text-justify">
         Datos de películas y series:{" "}
         <a
           href="https://www.themoviedb.org/"
@@ -46,23 +46,10 @@ export default function Footer() {
         </a>
       </p>
 
-      <p className="mt-1">
-        This product uses the TMDB API but is not
-        endorsed or certified by TMDB.
-        <br />
-        Este producto usa la API de TMDb, pero TMDb ni lo
-        respalda ni lo certifica.
-      </p>
-
-      <p className="mt-2">
-        <a
-          href="https://www.instagram.com/labutacashhh/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="underline-offset-2 hover:text-zinc-300 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-        >
-          Síguenos en Instagram
-        </a>
+      <p className="mt-1 text-justify">
+        This product uses the TMDB API but is not endorsed or certified by
+        TMDB. Este producto usa la API de TMDb, pero TMDb ni lo respalda ni
+        lo certifica.
       </p>
 
       <AccountStatus />
