@@ -76,22 +76,22 @@ export default function ModeSelect({
 
       <Link
         href="/hoy"
-        className="group mt-3 flex flex-col items-center gap-1 rounded-2xl border border-zinc-800 bg-zinc-900/60 px-5 py-4 text-center transition-all duration-300 hover:-translate-y-0.5 hover:border-yellow-500/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+        className="group mt-3 block rounded-2xl border border-zinc-700/80 bg-gradient-to-br from-zinc-900 via-black to-zinc-950 px-5 py-5 text-left shadow-[0_8px_20px_rgba(0,0,0,0.45)] transition-all duration-300 hover:-translate-y-0.5 hover:border-yellow-500/50 hover:shadow-[0_0_20px_rgba(234,179,8,0.15)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
       >
-        <span className="flex items-center gap-2">
-          <span className="text-xl" aria-hidden="true">
+        <span className="flex items-center gap-3">
+          <span className="text-3xl" aria-hidden="true">
             ⚡
           </span>
 
           <span
-            className="text-sm font-semibold text-white"
+            className="text-lg font-semibold text-white"
             style={{ fontFamily: "var(--font-manrope)" }}
           >
             Butaca Exprés
           </span>
         </span>
 
-        <span className="text-xs text-zinc-400">
+        <span className="mt-2 block text-sm text-zinc-400">
           Sin preguntas: 3 propuestas al momento.
         </span>
       </Link>
