@@ -25,10 +25,20 @@ export type SummaryStats = {
   last14: DailyCount[];
   monthCount: number;
   isPersonalRecordMonth: boolean;
+  // Días seguidos (hasta hoy o ayer) viendo algo
+  streakDays: number;
+  previousMonthCount: number;
+  previousMonthLabel: string;
+  // monthCount - previousMonthCount
+  monthDiff: number;
+  // 🥉/🥈/🥇 según el volumen del mes, o nada si es poco
+  monthBadge?: string;
   lastWatched?: TitleStat;
   bestRated?: TitleStat;
   topGenre?: GenreStat;
   leastGenre?: GenreStat;
+  // Top 3 géneros del historial, de más a menos visto
+  topGenres: GenreStat[];
   headline: string;
   monthLabel: string;
 };
@@ -111,7 +121,7 @@ function toTitleStat(row: WatchedRow): TitleStat {
 /** Género más y menos visto, a partir de las etiquetas guardadas en `watched`. */
 function genreStats(
   rows: WatchedRow[]
-): { top?: GenreStat; least?: GenreStat } {
+): { top?: GenreStat; least?: GenreStat; topThree: GenreStat[] } {
   const counts = new Map<string, number>();
 
   for (const row of rows) {
@@ -120,21 +130,54 @@ function genreStats(
     }
   }
 
-  if (counts.size === 0) return {};
+  if (counts.size === 0) return { topThree: [] };
 
-  const sorted = [...counts.entries()].sort(
-    (a, b) => b[1] - a[1]
-  );
+  const sorted = [...counts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([name, count]) => ({ name, count }));
 
-  const top: GenreStat = { name: sorted[0][0], count: sorted[0][1] };
+  const top = sorted[0];
+  const topThree = sorted.slice(0, 3);
 
   // Solo tiene sentido un "menos favorito" distinto si hay más de un
   // género con historial (si no, sería el mismo que el favorito).
-  if (sorted.length < 2) return { top };
+  if (sorted.length < 2) return { top, topThree };
 
-  const [name, count] = sorted[sorted.length - 1];
+  const least = sorted[sorted.length - 1];
 
-  return { top, least: { name, count } };
+  return { top, least, topThree };
+}
+
+/** Días seguidos (hasta hoy, o hasta ayer si hoy aún no hay nada) con algo visto. */
+function currentStreak(rows: WatchedRow[], now: Date): number {
+  const days = new Set(rows.map((row) => dateKey(new Date(row.seenAt))));
+
+  if (days.size === 0) return 0;
+
+  const cursor = new Date(now);
+
+  if (!days.has(dateKey(cursor))) {
+    cursor.setDate(cursor.getDate() - 1);
+
+    if (!days.has(dateKey(cursor))) return 0;
+  }
+
+  let streak = 0;
+
+  while (days.has(dateKey(cursor))) {
+    streak++;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+
+  return streak;
+}
+
+function monthBadgeFor(count: number): string | undefined {
+  if (count >= 15) return "🥇";
+  if (count >= 8) return "🥈";
+  if (count >= 3) return "🥉";
+
+  return undefined;
 }
 
 function pickHeadline(opts: {
@@ -195,19 +238,34 @@ export function buildSummary(
     .filter((row) => row.rating !== undefined)
     .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))[0];
 
-  const { top, least } = genreStats(sorted);
+  const { top, least, topThree } = genreStats(sorted);
 
   const month = MONTH_NAMES[now.getMonth()];
+
+  const previousMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+
+  const previousMonthCount = sorted.filter((row) =>
+    sameMonth(new Date(row.seenAt), previousMonthDate)
+  ).length;
+
+  const previousMonthName = MONTH_NAMES[previousMonthDate.getMonth()];
 
   return {
     totalWatched: sorted.length,
     last14,
     monthCount,
     isPersonalRecordMonth,
+    streakDays: currentStreak(sorted, now),
+    previousMonthCount,
+    previousMonthLabel:
+      previousMonthName.charAt(0).toUpperCase() + previousMonthName.slice(1),
+    monthDiff: monthCount - previousMonthCount,
+    monthBadge: monthBadgeFor(monthCount),
     lastWatched: sorted[0] ? toTitleStat(sorted[0]) : undefined,
     bestRated: bestRated ? toTitleStat(bestRated) : undefined,
     topGenre: top,
     leastGenre: least,
+    topGenres: topThree,
     headline: pickHeadline({ now, last7, isRecord: isPersonalRecordMonth }),
     monthLabel: month.charAt(0).toUpperCase() + month.slice(1),
   };

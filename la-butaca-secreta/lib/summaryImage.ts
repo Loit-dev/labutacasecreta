@@ -36,9 +36,15 @@ export type SummaryOptions = {
   bestRated?: SummaryTitleCard;
   topGenre?: { name: string; count: number };
   leastGenre?: { name: string; count: number };
+  topGenres?: { name: string; count: number }[];
   totalWatched?: number;
   monthCount?: number;
   isPersonalRecordMonth?: boolean;
+  monthBadge?: string;
+  monthDiff?: number;
+  previousMonthCount?: number;
+  previousMonthLabel?: string;
+  streakDays?: number;
   competitiveLine?: string;
   logo?: DrawableImage | null;
   backdrops?: (DrawableImage | null)[];
@@ -204,6 +210,28 @@ export function drawSummaryImage(
   ctx.font = `500 36px ${font}`;
   ctx.fillText(`Tu ${options.monthLabel.toLowerCase()} en ${options.siteName}`, W / 2, 560);
 
+  // ---------- Racha de días seguidos ----------
+  if (options.streakDays && options.streakDays >= 2) {
+    const streakLabel = `🔥 ${options.streakDays} días seguidos`;
+
+    ctx.font = `800 24px ${font}`;
+
+    const streakW = ctx.measureText(streakLabel).width + 44;
+    const streakH = 42;
+    const streakX = W / 2 - streakW / 2;
+    const streakY = 572;
+
+    roundedRect(ctx, streakX, streakY, streakW, streakH, 21);
+    ctx.fillStyle = "rgba(251,146,60,0.12)";
+    ctx.fill();
+    ctx.strokeStyle = "rgba(251,146,60,0.5)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.fillStyle = "#fdba74";
+    ctx.fillText(streakLabel, W / 2, streakY + 29);
+  }
+
   // ---------- Tarjeta: línea de vistas (14 días) ----------
   const chartX = 70;
   const chartY = 610;
@@ -236,26 +264,36 @@ export function drawSummaryImage(
   ctx.textAlign = "center";
 
   // ---------- Vistas totales / este mes, justo debajo del gráfico ----------
-  let cursorY = chartY + chartH + 28;
+  let cursorY = chartY + chartH + 24;
 
   if (options.totalWatched !== undefined || options.monthCount !== undefined) {
     const statsY = cursorY;
-    const statsH = 118;
+    const statsH = 132;
     const statsGap = 20;
     const statsW = (chartW - statsGap) / 2;
 
-    const monthRecord = options.isPersonalRecordMonth;
+    const badge = options.monthBadge;
+    const diff = options.monthDiff;
+    const hasPrevious = (options.previousMonthCount ?? 0) > 0;
 
-    const stats: [string, number | undefined, string][] = [
-      ["VISTAS TOTALES", options.totalWatched, "#ffffff"],
+    const diffLine = hasPrevious
+      ? `${diff !== undefined && diff > 0 ? "+" : ""}${diff ?? 0} vs ${(
+          options.previousMonthLabel ?? ""
+        ).toLowerCase()}`
+      : undefined;
+
+    // [etiqueta, valor, color del número, línea pequeña debajo]
+    const stats: [string, number | undefined, string, string | undefined][] = [
+      ["VISTAS TOTALES", options.totalWatched, "#ffffff", undefined],
       [
-        monthRecord ? "ESTE MES · RÉCORD 🏆" : "ESTE MES",
+        badge ? `ESTE MES ${badge}` : "ESTE MES",
         options.monthCount,
-        monthRecord ? "#facc15" : "#ffffff",
+        badge ? "#facc15" : "#ffffff",
+        diffLine,
       ],
     ];
 
-    stats.forEach(([label, value, color], i) => {
+    stats.forEach(([label, value, color, small], i) => {
       const x = chartX + i * (statsW + statsGap);
 
       glassCard(ctx, x, statsY, statsW, statsH);
@@ -263,14 +301,20 @@ export function drawSummaryImage(
       ctx.textAlign = "center";
       ctx.fillStyle = "#a1a1aa";
       ctx.font = `700 19px ${font}`;
-      ctx.fillText(label, x + statsW / 2, statsY + 36);
+      ctx.fillText(label, x + statsW / 2, statsY + 34);
 
       ctx.fillStyle = color;
-      ctx.font = `800 48px ${font}`;
-      ctx.fillText(String(value ?? 0), x + statsW / 2, statsY + 94);
+      ctx.font = `800 44px ${font}`;
+      ctx.fillText(String(value ?? 0), x + statsW / 2, statsY + 84);
+
+      if (small) {
+        ctx.fillStyle = "#a1a1aa";
+        ctx.font = `600 18px ${font}`;
+        ctx.fillText(small, x + statsW / 2, statsY + 114);
+      }
     });
 
-    cursorY += statsH + 32;
+    cursorY += statsH + 28;
   }
 
   // ---------- Pósters en abanico (como en Butaca Exprés/Recomendador) ----------
@@ -278,7 +322,7 @@ export function drawSummaryImage(
   // valorada a los lados, más pequeñas y giradas. Cada una lleva su
   // chip (igual que el badge de la tarjeta en la web) encima.
   const cardY = cursorY;
-  const cardH = 410;
+  const cardH = 390;
 
   type FanSlot = {
     card?: SummaryTitleCard;
@@ -292,14 +336,14 @@ export function drawSummaryImage(
     angle: number;
   };
 
-  const mainW = 200;
-  const mainH = 300;
-  const sideW = 160;
-  const sideH = 240;
+  const mainW = 190;
+  const mainH = 285;
+  const sideW = 150;
+  const sideH = 225;
 
-  const mainCY = cardY + 44 + mainH / 2;
-  const sideCY = mainCY + 16;
-  const sideOffsetX = 160;
+  const mainCY = cardY + 40 + mainH / 2;
+  const sideCY = mainCY + 14;
+  const sideOffsetX = 155;
 
   const slots: FanSlot[] = [
     {
@@ -445,59 +489,50 @@ export function drawSummaryImage(
 
   ctx.textAlign = "center";
 
-  // ---------- Géneros, en dos cajas separadas con emoji ----------
-  const genreY = cardY + cardH + 36;
-  const genreH = 110;
-  const genreGap = 20;
-  const genreW = (chartW - genreGap) / 2;
+  // ---------- Tus géneros: ranking top 3 con medalla y emoji ----------
+  const topGenres = (options.topGenres ?? []).slice(0, 3);
 
-  if (options.topGenre) {
-    const x = chartX;
+  const genreY = cardY + cardH + 32;
+  const genreH = 168;
 
-    glassCard(ctx, x, genreY, genreW, genreH);
+  let footTop = genreY;
 
-    ctx.textAlign = "left";
-    ctx.fillStyle = "#a1a1aa";
-    ctx.font = `700 20px ${font}`;
-    ctx.fillText("GÉNERO FAVORITO", x + 28, genreY + 38);
-
-    ctx.fillStyle = "#ffffff";
-    ctx.font = `800 36px ${font}`;
-
-    const [line = ""] = wrapLines(
-      (text) => ctx.measureText(text).width,
-      `${genreEmoji(options.topGenre.name)} ${options.topGenre.name}`,
-      genreW - 56,
-      1
-    );
-
-    ctx.fillText(line, x + 28, genreY + 88);
-  }
-
-  if (options.leastGenre) {
-    const x = chartX + genreW + genreGap;
-
-    glassCard(ctx, x, genreY, genreW, genreH);
+  if (topGenres.length > 0) {
+    glassCard(ctx, chartX, genreY, chartW, genreH);
 
     ctx.textAlign = "left";
-    ctx.fillStyle = "#a1a1aa";
-    ctx.font = `700 20px ${font}`;
-    ctx.fillText("EL QUE MENOS VES", x + 28, genreY + 38);
-
     ctx.fillStyle = "#ffffff";
-    ctx.font = `800 36px ${font}`;
+    ctx.font = `800 26px ${font}`;
+    ctx.fillText("Tus géneros", chartX + 28, genreY + 42);
 
-    const [line = ""] = wrapLines(
-      (text) => ctx.measureText(text).width,
-      `${genreEmoji(options.leastGenre.name)} ${options.leastGenre.name}`,
-      genreW - 56,
-      1
-    );
+    const medals = ["🥇", "🥈", "🥉"];
+    const rowH = 38;
+    const rowsTop = genreY + 64;
 
-    ctx.fillText(line, x + 28, genreY + 88);
+    topGenres.forEach((genre, i) => {
+      const rowY = rowsTop + i * rowH;
+
+      ctx.textAlign = "left";
+      ctx.fillStyle = "#ffffff";
+      ctx.font = `700 26px ${font}`;
+
+      const [line = ""] = wrapLines(
+        (text) => ctx.measureText(text).width,
+        `${medals[i]} ${genreEmoji(genre.name)} ${genre.name}`,
+        chartW - 160,
+        1
+      );
+
+      ctx.fillText(line, chartX + 28, rowY);
+
+      ctx.textAlign = "right";
+      ctx.fillStyle = "#a1a1aa";
+      ctx.font = `600 22px ${font}`;
+      ctx.fillText(String(genre.count), chartX + chartW - 28, rowY);
+    });
+
+    footTop = genreY + genreH + 28;
   }
-
-  let footTop = genreY + genreH + 28;
 
   // ---------- Toque competitivo, en su propia caja ----------
   if (options.competitiveLine) {
@@ -529,7 +564,7 @@ export function drawSummaryImage(
 
   const pillW = ctx.measureText(url).width + 90;
   const pillX = W / 2 - pillW / 2;
-  const footY = Math.min(footTop + 20, 1740);
+  const footY = Math.min(footTop + 20, 1760);
 
   const pillGradient = ctx.createLinearGradient(pillX, 0, pillX + pillW, 0);
 

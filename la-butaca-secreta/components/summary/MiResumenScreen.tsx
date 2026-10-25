@@ -98,30 +98,7 @@ function Bars({ last14 }: { last14: SummaryStats["last14"] }) {
   );
 }
 
-function GenreBox({
-  label,
-  name,
-  align,
-}: {
-  label: string;
-  name: string;
-  align: "left" | "right";
-}) {
-  return (
-    <div
-      className={`${CARD} flex-1 p-4 ${
-        align === "right" ? "text-right" : "text-left"
-      }`}
-    >
-      <p className="text-[11px] font-bold tracking-wide text-zinc-400">
-        {label}
-      </p>
-      <p className="mt-1 text-lg font-black text-white">
-        <span aria-hidden="true">{genreEmoji(name)}</span> {name}
-      </p>
-    </div>
-  );
-}
+const MEDALS = ["🥇", "🥈", "🥉"];
 
 export default function MiResumenScreen() {
   const { session, loading, available } = useAuth();
@@ -332,6 +309,12 @@ export default function MiResumenScreen() {
         <p className="mt-1 text-sm text-zinc-400">
           Tu {stats.monthLabel.toLowerCase()} en {SITE_NAME}
         </p>
+
+        {stats.streakDays >= 2 && (
+          <p className="mt-2 inline-block rounded-full border border-orange-500/40 bg-orange-500/10 px-3 py-1 text-xs font-bold text-orange-300">
+            🔥 {stats.streakDays} días seguidos
+          </p>
+        )}
       </div>
 
       <div className={`${CARD} p-4`}>
@@ -346,6 +329,36 @@ export default function MiResumenScreen() {
         </div>
 
         <Bars last14={stats.last14} />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div className={`${CARD} p-4 text-center`}>
+          <p className="text-[11px] font-bold tracking-wide text-zinc-400">
+            VISTAS TOTALES
+          </p>
+          <p className="mt-1 text-3xl font-black text-white">
+            {stats.totalWatched}
+          </p>
+        </div>
+
+        <div className={`${CARD} p-4 text-center`}>
+          <p className="text-[11px] font-bold tracking-wide text-zinc-400">
+            ESTE MES{stats.monthBadge ? ` ${stats.monthBadge}` : ""}
+          </p>
+          <p
+            className={`mt-1 text-3xl font-black ${
+              stats.monthBadge ? "text-amber-300" : "text-white"
+            }`}
+          >
+            {stats.monthCount}
+          </p>
+          {stats.previousMonthCount > 0 && (
+            <p className="mt-1 text-xs text-zinc-400">
+              {stats.monthDiff > 0 ? `+${stats.monthDiff}` : stats.monthDiff}{" "}
+              vs {stats.previousMonthLabel.toLowerCase()}
+            </p>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-3 gap-2 sm:gap-4">
@@ -398,23 +411,26 @@ export default function MiResumenScreen() {
         )}
       </div>
 
-      {(stats.topGenre || stats.leastGenre) && (
-        <div className="flex gap-4">
-          {stats.topGenre && (
-            <GenreBox
-              label="GÉNERO FAVORITO"
-              name={stats.topGenre.name}
-              align="left"
-            />
-          )}
+      {stats.topGenres.length > 0 && (
+        <div className={`${CARD} p-4`}>
+          <p className="mb-3 text-sm font-bold text-white">Tus géneros</p>
 
-          {stats.leastGenre && (
-            <GenreBox
-              label="EL QUE MENOS VES"
-              name={stats.leastGenre.name}
-              align="right"
-            />
-          )}
+          <div className="flex flex-col gap-2">
+            {stats.topGenres.map((genre, index) => (
+              <div
+                key={genre.name}
+                className="flex items-center justify-between rounded-xl bg-black/20 px-3 py-2"
+              >
+                <span className="flex items-center gap-2 text-sm font-semibold text-white">
+                  <span aria-hidden="true">{MEDALS[index]}</span>
+                  <span aria-hidden="true">{genreEmoji(genre.name)}</span>
+                  {genre.name}
+                </span>
+
+                <span className="text-xs text-zinc-400">{genre.count}</span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
@@ -474,9 +490,15 @@ export default function MiResumenScreen() {
               : undefined,
             topGenre: stats.topGenre,
             leastGenre: stats.leastGenre,
+            topGenres: stats.topGenres,
             totalWatched: stats.totalWatched,
             monthCount: stats.monthCount,
             isPersonalRecordMonth: stats.isPersonalRecordMonth,
+            monthBadge: stats.monthBadge,
+            monthDiff: stats.monthDiff,
+            previousMonthCount: stats.previousMonthCount,
+            previousMonthLabel: stats.previousMonthLabel,
+            streakDays: stats.streakDays,
             competitiveLine: state.line,
           }}
         />
