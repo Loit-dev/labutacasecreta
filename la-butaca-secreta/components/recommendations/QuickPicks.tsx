@@ -16,7 +16,7 @@ import { inferredProfile } from "@/lib/memory";
 import { posterSource, type ShareItem, type ShareKind } from "@/lib/share";
 import { addShown, readRecentlyShown } from "@/lib/shown";
 import type { Recommendation } from "@/lib/tmdb/mapper";
-import { readSeen } from "@/lib/viewed";
+import { addSeen, readSeen } from "@/lib/viewed";
 
 type Phase = "loading" | "ready" | "empty" | "error";
 
@@ -220,6 +220,36 @@ export default function QuickPicks() {
     });
   };
 
+  // Igual que en el cuestionario completo: "Ya la vi" la excluye para
+  // siempre y "No me apetece" la quita de esta tanda (sin pesar en
+  // géneros aquí, porque la Exprés no pasa por el cuestionario).
+  const hideItem = (id: number) => {
+    setItems((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const markSeen = (movie: Picked) => {
+    track("seen_clicked", {
+      type: movie.mediaType,
+      id: movie.id,
+      role: movie.role,
+      source: "today",
+    });
+
+    addSeen(movie.mediaType, movie.id);
+    hideItem(movie.id);
+  };
+
+  const rejectMovie = (movie: Picked) => {
+    track("reject_clicked", {
+      type: movie.mediaType,
+      id: movie.id,
+      role: movie.role,
+      source: "today",
+    });
+
+    hideItem(movie.id);
+  };
+
   const openShare = () => {
     const shared: ShareItem[] = items.map((movie) => ({
       id: movie.id,
@@ -301,6 +331,8 @@ export default function QuickPicks() {
         dots={dots}
         saved={watchlist.has(movie.id, movie.mediaType)}
         onToggleSave={() => toggleSaved(movie)}
+        onSeen={() => markSeen(movie)}
+        onReject={() => rejectMovie(movie)}
         onDetails={() => {
           track("details_open", {
             id: movie.id,
@@ -332,6 +364,26 @@ export default function QuickPicks() {
         <p className="text-zinc-300">
           Hoy no he encontrado nada que encaje del todo. El cuestionario
           completo tiene más donde elegir.
+        </p>
+
+        <Link
+          href="/"
+          className="inline-block rounded-full bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+        >
+          Ir al cuestionario
+        </Link>
+      </div>
+    );
+  }
+
+  // Si ha marcado como vistas o descartado todas las de esta tanda, no
+  // queda nada que enseñar: mismo cierre que la tanda vacía de origen.
+  if (items.length === 0) {
+    return (
+      <div className="space-y-4 text-center">
+        <p className="text-zinc-300">
+          Ya has marcado todas las de hoy. Vuelve mañana para más
+          propuestas, o prueba el cuestionario completo ahora.
         </p>
 
         <Link
