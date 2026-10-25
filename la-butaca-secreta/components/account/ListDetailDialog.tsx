@@ -209,7 +209,7 @@ export default function ListDetailDialog({
                   <button
                     onClick={() => removeTitle(item.id)}
                     aria-label={`Quitar de la lista: ${item.title}`}
-                    className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/80 text-xs text-white opacity-0 transition-opacity hover:bg-black focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white group-hover:opacity-100"
+                    className="absolute right-1 top-1 flex h-7 w-7 items-center justify-center rounded-full bg-black/80 text-sm text-white transition-colors hover:bg-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                   >
                     ✕
                   </button>
