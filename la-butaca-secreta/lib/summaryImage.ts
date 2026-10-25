@@ -36,6 +36,7 @@ export type SummaryOptions = {
   bestRated?: SummaryTitleCard;
   topGenre?: { name: string; count: number };
   leastGenre?: { name: string; count: number };
+  totalWatched?: number;
   monthCount?: number;
   isPersonalRecordMonth?: boolean;
   competitiveLine?: string;
@@ -408,7 +409,7 @@ export function drawSummaryImage(
 
   // ---------- Géneros, en dos cajas separadas con emoji ----------
   const genreY = cardY + cardH + 36;
-  const genreH = 130;
+  const genreH = 110;
   const genreGap = 20;
   const genreW = (chartW - genreGap) / 2;
 
@@ -458,27 +459,42 @@ export function drawSummaryImage(
     ctx.fillText(line, x + 28, genreY + 88);
   }
 
-  // ---------- Fila de estadística (títulos vistos este mes) ----------
-  let footTop = genreY + genreH + 32;
+  // ---------- Vistas totales / este mes, en dos cajas ----------
+  let footTop = genreY + genreH + 28;
 
-  if (options.monthCount) {
-    const label = options.isPersonalRecordMonth
-      ? `🏆 Récord personal: ${options.monthCount} títulos este mes`
-      : `🎬 ${options.monthCount} títulos vistos este mes`;
+  if (options.totalWatched !== undefined || options.monthCount !== undefined) {
+    const statsY = footTop;
+    const statsH = 130;
+    const statsGap = 20;
+    const statsW = (chartW - statsGap) / 2;
 
-    ctx.font = `800 28px ${font}`;
-    ctx.textAlign = "center";
+    const monthRecord = options.isPersonalRecordMonth;
 
-    const statW = Math.min(chartW, ctx.measureText(label).width + 64);
-    const statH = 64;
-    const statX = W / 2 - statW / 2;
+    const stats: [string, number | undefined, string][] = [
+      ["VISTAS TOTALES", options.totalWatched, "#ffffff"],
+      [
+        monthRecord ? "ESTE MES · RÉCORD 🏆" : "ESTE MES",
+        options.monthCount,
+        monthRecord ? "#facc15" : "#ffffff",
+      ],
+    ];
 
-    glassCard(ctx, statX, footTop, statW, statH);
+    stats.forEach(([label, value, color], i) => {
+      const x = chartX + i * (statsW + statsGap);
 
-    ctx.fillStyle = options.isPersonalRecordMonth ? "#facc15" : "#ffffff";
-    ctx.fillText(label, W / 2, footTop + 41);
+      glassCard(ctx, x, statsY, statsW, statsH);
 
-    footTop += statH + 28;
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#a1a1aa";
+      ctx.font = `700 19px ${font}`;
+      ctx.fillText(label, x + statsW / 2, statsY + 38);
+
+      ctx.fillStyle = color;
+      ctx.font = `800 52px ${font}`;
+      ctx.fillText(String(value ?? 0), x + statsW / 2, statsY + 100);
+    });
+
+    footTop += statsH + 28;
   }
 
   if (options.competitiveLine) {
@@ -505,7 +521,7 @@ export function drawSummaryImage(
 
   const pillW = ctx.measureText(url).width + 90;
   const pillX = W / 2 - pillW / 2;
-  const footY = Math.min(footTop + 20, 1620);
+  const footY = Math.min(footTop + 20, 1740);
 
   const pillGradient = ctx.createLinearGradient(pillX, 0, pillX + pillW, 0);
 
