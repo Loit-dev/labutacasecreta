@@ -98,6 +98,33 @@ funciona y es más simple.
 
 ---
 
+## La medalla de "Este mes" compara con meses anteriores, no un umbral fijo
+
+**Fecha**: esta conversación.
+
+**Qué pasó**: `monthBadgeFor()` daba la medalla según un umbral fijo de
+títulos vistos en el mes (🥇 ≥15, 🥈 ≥8, 🥉 ≥3), sin relación con el
+resto de estadísticas de la pantalla. Un usuario con solo 5 vistas en
+el mes —pero que era su mes con más vistas hasta la fecha— veía 🥉 y
+le resultó confuso: "Este mes" coincidía con "Totales" (ambos 5) y
+esperaba la medalla de oro, no la de bronce.
+
+**Decisión**: `monthBadgeFor()` ahora compara el mes actual con el
+propio historial de meses anteriores del usuario (recibe
+`previousMonthCount` y el mapa `priorMonthCounts` ya calculados en
+`buildSummary`): 🥇 si iguala o supera el mejor mes anterior, 🥈 si
+mejora o iguala el mes pasado sin ser el mejor de todos, 🥉 para
+cualquier otro mes con algo visto. Un primer mes sin historial previo
+con el que comparar ya es 🥉.
+
+**Alternativa descartada**: bajar los umbrales fijos (p. ej. 🥇 ≥10)
+— no resuelve el problema de fondo, que es comparar un número
+absoluto en vez de relativo al propio historial.
+
+**Dónde**: `lib/summary.ts`.
+
+---
+
 ## El job `e2e` de CI no bloquea el despliegue
 
 **Decisión**: un fallo del job `e2e` (Playwright) en el paso

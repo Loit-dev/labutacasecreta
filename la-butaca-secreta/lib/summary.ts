@@ -174,12 +174,31 @@ function currentStreak(rows: WatchedRow[], now: Date): number {
   return streak;
 }
 
-function monthBadgeFor(count: number): string | undefined {
-  if (count >= 15) return "🥇";
-  if (count >= 8) return "🥈";
-  if (count >= 3) return "🥉";
+/**
+ * La medalla compara el mes actual con los meses anteriores del
+ * propio historial (no con un umbral fijo de títulos vistos):
+ * 🥇 iguala o supera el mejor mes anterior, 🥈 mejora (o iguala) el
+ * mes pasado sin llegar a ser el mejor de todos, 🥉 cualquier otro
+ * mes con algo visto. Sin meses anteriores con los que comparar, un
+ * primer mes con actividad ya es 🥉.
+ */
+function monthBadgeFor(
+  count: number,
+  previousMonthCount: number,
+  priorMonthCounts: Map<string, number>
+): string | undefined {
+  if (count === 0) return undefined;
 
-  return undefined;
+  const priorValues = [...priorMonthCounts.values()];
+
+  if (priorValues.length === 0) return "🥉";
+
+  const bestPriorMonth = Math.max(...priorValues);
+
+  if (count >= bestPriorMonth) return "🥇";
+  if (count >= previousMonthCount) return "🥈";
+
+  return "🥉";
 }
 
 function pickHeadline(opts: {
@@ -275,7 +294,7 @@ export function buildSummary(
     previousMonthLabel:
       previousMonthName.charAt(0).toUpperCase() + previousMonthName.slice(1),
     monthDiff: monthCount - previousMonthCount,
-    monthBadge: monthBadgeFor(monthCount),
+    monthBadge: monthBadgeFor(monthCount, previousMonthCount, priorMonthCounts),
     lastWatched: sorted[0] ? toTitleStat(sorted[0]) : undefined,
     bestRated: bestRated ? toTitleStat(bestRated) : undefined,
     topGenre: top,
