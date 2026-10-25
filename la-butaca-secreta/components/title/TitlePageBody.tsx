@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import TitleActions from "./TitleActions";
+
 import { genreSlugForLabel, platformKeyForName } from "@/lib/catalog";
 import type { Recommendation } from "@/lib/tmdb/mapper";
 
@@ -183,6 +185,8 @@ export default function TitlePageBody({ type, title }: Props) {
       </div>
 
       <div className="mt-6 flex flex-wrap items-center gap-3">
+        <TitleActions type={type} title={title} />
+
         <a
           href={trailerHref}
           target="_blank"
