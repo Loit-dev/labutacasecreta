@@ -20,6 +20,7 @@ export type EventName =
   | "seen_clicked"
   | "reject_clicked"
   | "forget_seen"
+  | "forget_affinity"
   | "details_open"
   | "trailer_open"
   | "share_open"
