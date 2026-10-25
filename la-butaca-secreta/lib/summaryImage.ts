@@ -45,6 +45,7 @@ export type SummaryOptions = {
   previousMonthCount?: number;
   previousMonthLabel?: string;
   streakDays?: number;
+  averageRating?: number;
   competitiveLine?: string;
   logo?: DrawableImage | null;
   backdrops?: (DrawableImage | null)[];
@@ -163,14 +164,14 @@ export function drawSummaryImage(
   const logo = options.logo;
 
   if (logo && logo.width > 0 && logo.height > 0) {
-    const logoH = 180;
+    const logoH = 120;
     const logoW = (logo.width / logo.height) * logoH;
 
-    ctx.drawImage(logo, W / 2 - logoW / 2, 235, logoW, logoH);
+    ctx.drawImage(logo, W / 2 - logoW / 2, 60, logoW, logoH);
   } else {
     ctx.fillStyle = "#ef4444";
-    ctx.font = `800 34px ${font}`;
-    ctx.fillText(options.siteName.toUpperCase(), W / 2, 380);
+    ctx.font = `800 30px ${font}`;
+    ctx.fillText(options.siteName.toUpperCase(), W / 2, 150);
   }
 
   // ---------- Titular (rotativo) ----------
@@ -203,18 +204,18 @@ export function drawSummaryImage(
   ctx.shadowColor = "rgba(0,0,0,0.6)";
   ctx.shadowBlur = 24;
   ctx.fillStyle = titleGradient;
-  ctx.fillText(options.headline, W / 2, 505);
+  ctx.fillText(options.headline, W / 2, 320);
   ctx.restore();
 
   ctx.fillStyle = "#e4e4e7";
   ctx.font = `500 36px ${font}`;
-  ctx.fillText(`Tu ${options.monthLabel.toLowerCase()} en ${options.siteName}`, W / 2, 560);
+  ctx.fillText(`Tu ${options.monthLabel.toLowerCase()} en ${options.siteName}`, W / 2, 375);
 
   // ---------- Tarjeta: línea de vistas (14 días) ----------
   const chartX = 70;
-  const chartY = 610;
+  const chartY = 420;
   const chartW = W - 140;
-  const chartH = 280;
+  const chartH = 300;
 
   glassCard(ctx, chartX, chartY, chartW, chartH);
 
@@ -235,7 +236,7 @@ export function drawSummaryImage(
     chartX + 40,
     chartY + 90,
     chartW - 80,
-    chartH - 130,
+    chartH - 150,
     options.last14.map((d) => d.count)
   );
 
@@ -245,17 +246,17 @@ export function drawSummaryImage(
   let cursorY = chartY + chartH + 24;
 
   const hasStreak = (options.streakDays ?? 0) >= 1;
+  const hasAvgRating = (options.averageRating ?? 0) > 0;
 
   if (
     options.totalWatched !== undefined ||
     options.monthCount !== undefined ||
-    hasStreak
+    hasStreak ||
+    hasAvgRating
   ) {
     const statsY = cursorY;
     const statsH = 92;
-    const statsGap = 14;
-    const cols = hasStreak ? 3 : 2;
-    const statsW = (chartW - statsGap * (cols - 1)) / cols;
+    const statsGap = 12;
 
     const badge = options.monthBadge;
     const diff = options.monthDiff;
@@ -287,6 +288,18 @@ export function drawSummaryImage(
       ]);
     }
 
+    if (hasAvgRating) {
+      stats.push([
+        "NOTA MEDIA",
+        `★ ${options.averageRating}`,
+        "#facc15",
+        undefined,
+      ]);
+    }
+
+    const cols = stats.length;
+    const statsW = (chartW - statsGap * (cols - 1)) / cols;
+
     stats.forEach(([label, value, color, small], i) => {
       const x = chartX + i * (statsW + statsGap);
 
@@ -294,21 +307,21 @@ export function drawSummaryImage(
 
       ctx.textAlign = "center";
       ctx.fillStyle = "#a1a1aa";
-      ctx.font = `700 ${cols === 3 ? 15 : 17}px ${font}`;
+      ctx.font = `700 ${cols >= 3 ? 14 : 17}px ${font}`;
       ctx.fillText(label, x + statsW / 2, statsY + 26);
 
       ctx.fillStyle = color;
-      ctx.font = `800 ${cols === 3 ? 32 : 36}px ${font}`;
+      ctx.font = `800 ${cols >= 3 ? 30 : 36}px ${font}`;
       ctx.fillText(value, x + statsW / 2, statsY + 62);
 
       if (small) {
         ctx.fillStyle = "#a1a1aa";
-        ctx.font = `600 14px ${font}`;
+        ctx.font = `600 13px ${font}`;
         ctx.fillText(small, x + statsW / 2, statsY + 88);
       }
     });
 
-    cursorY += statsH + 20;
+    cursorY += statsH + 50;
   }
 
   // ---------- Pósters en abanico (como en Butaca Exprés/Recomendador) ----------
@@ -316,7 +329,7 @@ export function drawSummaryImage(
   // valorada a los lados, más pequeñas y giradas. Cada una lleva su
   // chip (igual que el badge de la tarjeta en la web) encima.
   const cardY = cursorY;
-  const cardH = 355;
+  const cardH = 430;
 
   type FanSlot = {
     card?: SummaryTitleCard;
@@ -330,12 +343,12 @@ export function drawSummaryImage(
     angle: number;
   };
 
-  const mainW = 190;
-  const mainH = 280;
-  const sideW = 150;
-  const sideH = 221;
+  const mainW = 200;
+  const mainH = 300;
+  const sideW = 158;
+  const sideH = 237;
 
-  const mainCY = cardY + 26 + mainH / 2;
+  const mainCY = cardY + 40 + mainH / 2;
   const sideCY = mainCY + 14;
   // Más separadas que el ancho de los chips para que no se toquen.
   const sideOffsetX = 205;
@@ -490,7 +503,7 @@ export function drawSummaryImage(
 
   // Deja un margen de sobra bajo la última etiqueta del abanico
   // (nota incluida) para que no se solape con esta sección.
-  const genreY = cardY + cardH + 36;
+  const genreY = cardY + cardH + 40;
 
   let footTop = genreY;
 
@@ -506,10 +519,10 @@ export function drawSummaryImage(
     ctx.font = `700 20px ${font}`;
     ctx.fillText("TUS GÉNEROS", chartX, genreY + 16);
 
-    const rowH = 44;
-    const rowGap = 7;
+    const rowH = 50;
+    const rowGap = 8;
     const rowStep = rowH + rowGap;
-    const rowsTop = genreY + 30;
+    const rowsTop = genreY + 32;
 
     topGenres.forEach((genre, i) => {
       const rank = RANKS[i];
@@ -567,30 +580,47 @@ export function drawSummaryImage(
       ctx.fillText(line, nameX, rowY + rowH / 2 + 7);
     });
 
-    footTop = rowsTop + 2 * rowStep + rowH + 20;
+    footTop = rowsTop + 2 * rowStep + rowH + 22;
   }
 
-  // ---------- Toque competitivo, en su propia caja ----------
+  // ---------- Toque competitivo: banner aparte, no una fila más de
+  // géneros, para que no parezca parte del mismo bloque ----------
   if (options.competitiveLine) {
-    const compY = footTop;
-    const compH = 58;
+    const compY = footTop + 30;
+    const compH = 64;
 
-    glassCard(ctx, chartX, compY, chartW, compH);
+    const compGradient = ctx.createLinearGradient(
+      chartX,
+      0,
+      chartX + chartW,
+      0
+    );
+
+    compGradient.addColorStop(0, "#b45309");
+    compGradient.addColorStop(1, "#ea580c");
+
+    ctx.save();
+    ctx.shadowColor = "rgba(251,146,60,0.45)";
+    ctx.shadowBlur = 26;
+    roundedRect(ctx, chartX, compY, chartW, compH, compH / 2);
+    ctx.fillStyle = compGradient;
+    ctx.fill();
+    ctx.restore();
 
     ctx.textAlign = "center";
-    ctx.fillStyle = "#facc15";
+    ctx.fillStyle = "#ffffff";
     ctx.font = `800 23px ${font}`;
 
     const [line = ""] = wrapLines(
       (text) => ctx.measureText(text).width,
       `🔥 ${options.competitiveLine}`,
-      chartW - 60,
+      chartW - 70,
       1
     );
 
     ctx.fillText(line, W / 2, compY + compH / 2 + 7);
 
-    footTop += compH + 18;
+    footTop = compY + compH + 16;
   }
 
   // ---------- Pie ----------

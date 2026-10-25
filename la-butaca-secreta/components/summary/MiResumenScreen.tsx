@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 
 import { useAuth } from "@/hooks/useAuth";
+import { useWatchlist } from "@/hooks/useWatchlist";
 import { track } from "@/lib/analytics";
 import { genreEmoji } from "@/lib/genreEmoji";
+import { countRejected } from "@/lib/rejected";
 import { posterSource } from "@/lib/share";
 import type { SearchHit } from "@/lib/search";
 import { fetchFavorite, saveFavorite } from "@/lib/supabase/favorite";
@@ -128,6 +130,14 @@ export default function MiResumenScreen() {
   const [picking, setPicking] = useState(false);
 
   const [savingFavorite, setSavingFavorite] = useState(false);
+
+  const watchlist = useWatchlist();
+
+  const [rejectedCount, setRejectedCount] = useState(0);
+
+  useEffect(() => {
+    setRejectedCount(countRejected());
+  }, []);
 
   async function loadSummary(
     userId: string,
@@ -345,7 +355,18 @@ export default function MiResumenScreen() {
 
       <div
         className={`grid gap-2 sm:gap-3 ${
-          stats.streakDays >= 1 ? "grid-cols-3" : "grid-cols-2"
+          (() => {
+            const cols =
+              2 +
+              (stats.streakDays >= 1 ? 1 : 0) +
+              ((stats.averageRating ?? 0) > 0 ? 1 : 0);
+
+            return cols === 4
+              ? "grid-cols-2 sm:grid-cols-4"
+              : cols === 3
+                ? "grid-cols-3"
+                : "grid-cols-2";
+          })()
         }`}
       >
         <div className={`${CARD} p-3 text-center sm:p-4`}>
@@ -386,6 +407,39 @@ export default function MiResumenScreen() {
             </p>
             <p className="mt-1 text-xs text-zinc-400">
               {stats.streakDays === 1 ? "día" : "días seguidos"}
+            </p>
+          </div>
+        )}
+
+        {(stats.averageRating ?? 0) > 0 && (
+          <div className={`${CARD} p-3 text-center sm:p-4`}>
+            <p className="whitespace-nowrap text-[10px] font-bold tracking-wide text-zinc-400 sm:text-[11px]">
+              NOTA MEDIA
+            </p>
+            <p className="mt-1 text-2xl font-black text-amber-300 sm:text-3xl">
+              ★ {stats.averageRating}
+            </p>
+          </div>
+        )}
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 sm:gap-3">
+        <div className={`${CARD} p-3 text-center sm:p-4`}>
+          <p className="whitespace-nowrap text-[10px] font-bold tracking-wide text-zinc-400 sm:text-[11px]">
+            PENDIENTES 📌
+          </p>
+          <p className="mt-1 text-2xl font-black text-white sm:text-3xl">
+            {watchlist.count}
+          </p>
+        </div>
+
+        {rejectedCount > 0 && (
+          <div className={`${CARD} p-3 text-center sm:p-4`}>
+            <p className="whitespace-nowrap text-[10px] font-bold tracking-wide text-zinc-400 sm:text-[11px]">
+              DESCARTADAS 🙅
+            </p>
+            <p className="mt-1 text-2xl font-black text-zinc-300 sm:text-3xl">
+              {rejectedCount}
             </p>
           </div>
         )}
@@ -540,6 +594,7 @@ export default function MiResumenScreen() {
             previousMonthCount: stats.previousMonthCount,
             previousMonthLabel: stats.previousMonthLabel,
             streakDays: stats.streakDays,
+            averageRating: stats.averageRating,
             competitiveLine: state.line,
           }}
         />

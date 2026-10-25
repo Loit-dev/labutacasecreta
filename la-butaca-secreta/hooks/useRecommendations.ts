@@ -26,6 +26,7 @@ import {
   clearSeen,
   readSeen,
 } from "@/lib/viewed";
+import { addRejected } from "@/lib/rejected";
 
 type Phase = "loading" | "ready" | "error";
 
@@ -439,6 +440,7 @@ export function useRecommendations(
       ].slice(-100);
 
       recordAvoid(type, item.genreIds);
+      addRejected(type, item.id);
 
       hide([item.id]);
     },

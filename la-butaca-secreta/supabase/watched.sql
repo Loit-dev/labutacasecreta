@@ -1,6 +1,9 @@
--- Fase 2: guarda la valoración (1-5) de lo que el usuario marca como
--- "Ya la vi", ligada a su cuenta. Pégalo en Supabase → SQL Editor →
--- New query → Run.
+-- Fase 2: guarda la valoración (1-5, con medias estrellas: 1, 1.5,
+-- 2...5) de lo que el usuario marca como "Ya la vi", ligada a su
+-- cuenta. Pégalo en Supabase → SQL Editor → New query → Run.
+-- Si ya tenías esta tabla creada (con "rating" como smallint, solo
+-- estrellas enteras), volver a pegar y ejecutar este archivo entero
+-- amplía la columna para admitir medias estrellas sin perder datos.
 
 create table if not exists public.watched (
   id uuid primary key default gen_random_uuid(),
@@ -8,11 +11,25 @@ create table if not exists public.watched (
   tmdb_id bigint not null,
   media_type text not null check (media_type in ('movie', 'tv')),
   title text not null,
-  rating smallint check (rating between 1 and 5),
+  rating numeric(2, 1),
   genres text[] default '{}',
   seen_at timestamptz not null default now(),
   unique (user_id, tmdb_id, media_type)
 );
+
+-- Tablas creadas antes de las medias estrellas: amplía la columna de
+-- smallint a numeric(2,1) para poder guardar valores como 3.5.
+alter table public.watched
+  alter column rating type numeric(2, 1);
+
+alter table public.watched
+  drop constraint if exists watched_rating_check;
+
+alter table public.watched
+  add constraint watched_rating_check check (
+    rating is null
+    or (rating >= 1 and rating <= 5 and (rating * 2) = floor(rating * 2))
+  );
 
 alter table public.watched enable row level security;
 

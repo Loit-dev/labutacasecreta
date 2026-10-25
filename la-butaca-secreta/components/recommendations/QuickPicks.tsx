@@ -23,6 +23,7 @@ import {
 import { inferredProfile } from "@/lib/memory";
 import type { Rating } from "@/lib/rating";
 import { setRating } from "@/lib/rating";
+import { addRejected } from "@/lib/rejected";
 import { posterSource, type ShareItem, type ShareKind } from "@/lib/share";
 import { addShown, readRecentlyShown } from "@/lib/shown";
 import { saveWatched } from "@/lib/supabase/watched";
@@ -416,6 +417,7 @@ export default function QuickPicks() {
     });
 
     recordAvoid(movie.mediaType, movie.genreIds);
+    addRejected(movie.mediaType, movie.id);
     replaceItem(movie);
   };
 

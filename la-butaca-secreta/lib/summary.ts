@@ -39,6 +39,8 @@ export type SummaryStats = {
   leastGenre?: GenreStat;
   // Top 3 géneros del historial, de más a menos visto
   topGenres: GenreStat[];
+  // Media de tus propias valoraciones (1-5), si has valorado algo
+  averageRating?: number;
   headline: string;
   monthLabel: string;
 };
@@ -240,6 +242,19 @@ export function buildSummary(
 
   const { top, least, topThree } = genreStats(sorted);
 
+  const ratedRows = sorted.filter(
+    (row) => row.rating !== undefined
+  ) as (WatchedRow & { rating: Rating })[];
+
+  const averageRating =
+    ratedRows.length > 0
+      ? Math.round(
+          (ratedRows.reduce((sum, row) => sum + row.rating, 0) /
+            ratedRows.length) *
+            10
+        ) / 10
+      : undefined;
+
   const month = MONTH_NAMES[now.getMonth()];
 
   const previousMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
@@ -266,6 +281,7 @@ export function buildSummary(
     topGenre: top,
     leastGenre: least,
     topGenres: topThree,
+    averageRating,
     headline: pickHeadline({ now, last7, isRecord: isPersonalRecordMonth }),
     monthLabel: month.charAt(0).toUpperCase() + month.slice(1),
   };

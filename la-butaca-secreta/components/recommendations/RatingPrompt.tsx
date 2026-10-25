@@ -44,32 +44,54 @@ export default function RatingPrompt({ title, onConfirm }: Props) {
 
         <div
           role="radiogroup"
-          aria-label="Valoración de 1 a 5 estrellas"
-          className="mt-4 flex justify-center gap-2 text-3xl"
+          aria-label="Valoración de 1 a 5 estrellas, con medias estrellas"
+          className="mt-4 flex justify-center gap-1 text-3xl"
         >
-          {([1, 2, 3, 4, 5] as Rating[]).map((value) => (
-            <button
-              key={value}
-              type="button"
-              role="radio"
-              aria-checked={selected === value}
-              aria-label={`${value} estrella${value > 1 ? "s" : ""}`}
-              onClick={() => setSelected(value)}
-              className="transition-transform hover:scale-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-              style={{
-                filter:
-                  selected !== null && value <= selected
-                    ? "none"
-                    : "grayscale(1) opacity(0.35)",
-              }}
-            >
-              ⭐
-            </button>
-          ))}
+          {[1, 2, 3, 4, 5].map((star) => {
+            const fill = Math.max(0, Math.min(1, (selected ?? 0) - (star - 1)));
+            // La primera estrella no admite "media", el mínimo es 1.
+            const halfValue = (star === 1 ? 1 : star - 0.5) as Rating;
+
+            return (
+              <div
+                key={star}
+                className="relative inline-block h-[1em] w-[1em] select-none"
+              >
+                <span aria-hidden="true" className="absolute inset-0 block [filter:grayscale(1)_opacity(0.35)]">
+                  ⭐
+                </span>
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-y-0 left-0 block overflow-hidden"
+                  style={{ width: `${fill * 100}%` }}
+                >
+                  ⭐
+                </span>
+
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={selected === halfValue}
+                  aria-label={`${halfValue} estrella${halfValue !== 1 ? "s" : ""}`}
+                  onClick={() => setSelected(halfValue)}
+                  className="absolute inset-y-0 left-0 w-1/2 transition-transform hover:scale-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                />
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={selected === star}
+                  aria-label={`${star} estrella${star > 1 ? "s" : ""}`}
+                  onClick={() => setSelected(star as Rating)}
+                  className="absolute inset-y-0 right-0 w-1/2 transition-transform hover:scale-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                />
+              </div>
+            );
+          })}
         </div>
 
         <p className="mt-3 text-xs text-zinc-500">
-          Puedes marcarla como vista sin puntuar
+          Toca la mitad izquierda de una estrella para media estrella.
+          Puedes marcarla como vista sin puntuar.
         </p>
 
         <button

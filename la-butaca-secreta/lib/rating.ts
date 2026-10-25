@@ -1,5 +1,6 @@
 /**
- * Valoración (1-5) de lo que el usuario marca como "Ya la vi".
+ * Valoración (1-5, con medias estrellas: 1, 1.5, 2, 2.5...5) de lo
+ * que el usuario marca como "Ya la vi".
  *
  * Se guarda siempre en su navegador (localStorage), igual que las
  * vistas de lib/viewed.ts, y además en Supabase cuando hay sesión
@@ -7,9 +8,21 @@
  * todavía: solo se guarda, de cara al resumen y a fases futuras.
  */
 
-export type Rating = 1 | 2 | 3 | 4 | 5;
+export type Rating = 1 | 1.5 | 2 | 2.5 | 3 | 3.5 | 4 | 4.5 | 5;
 
 const MAX_RATINGS = 500;
+
+/** ¿Es un número válido de la escala (1-5, en pasos de 0.5)? */
+function isValidRating(value: unknown): value is Rating {
+  if (typeof value !== "number" || !Number.isFinite(value)) return false;
+
+  // value * 2 debe ser un entero entre 2 (=1 estrella) y 10 (=5 estrellas).
+  const doubled = value * 2;
+
+  return (
+    Number.isInteger(doubled) && doubled >= 2 && doubled <= 10
+  );
+}
 
 function storageKey(type: string) {
   return `lbs:rating:${type}`;
@@ -28,14 +41,8 @@ function readAll(type: string): Record<number, Rating> {
     for (const [id, value] of Object.entries(parsed)) {
       const numId = Number(id);
 
-      if (
-        Number.isInteger(numId) &&
-        numId > 0 &&
-        Number.isInteger(value) &&
-        (value as number) >= 1 &&
-        (value as number) <= 5
-      ) {
-        clean[numId] = value as Rating;
+      if (Number.isInteger(numId) && numId > 0 && isValidRating(value)) {
+        clean[numId] = value;
       }
     }
 
