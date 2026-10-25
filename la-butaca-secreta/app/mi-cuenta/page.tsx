@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 
 import AccountScreen from "@/components/account/AccountScreen";
 import PosterWall from "@/components/layout/PosterWall";
@@ -52,13 +51,6 @@ export default function MiCuentaPage() {
             lg:backdrop-blur-2xl
           "
         >
-          <Link
-            href="/"
-            className="mb-6 inline-block text-xs font-semibold text-zinc-300 underline underline-offset-2 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-          >
-            ← Volver
-          </Link>
-
           <AccountScreen />
         </section>
       </main>

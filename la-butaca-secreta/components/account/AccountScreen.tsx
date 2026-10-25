@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 import MiResumenScreen from "@/components/summary/MiResumenScreen";
 
@@ -50,6 +51,13 @@ export default function AccountScreen() {
           );
         })}
       </div>
+
+      <Link
+        href="/"
+        className="inline-block text-xs font-semibold text-zinc-300 underline underline-offset-2 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+      >
+        ← Volver
+      </Link>
 
       <div role="tabpanel">
         {tab === "perfil" && <MiResumenScreen />}
