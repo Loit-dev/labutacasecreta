@@ -54,6 +54,17 @@ export default function Footer() {
       </p>
 
       <p className="mt-2">
+        <a
+          href="https://www.instagram.com/labutacashhh/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline-offset-2 hover:text-zinc-300 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+        >
+          Síguenos en Instagram
+        </a>
+      </p>
+
+      <p className="mt-2">
         <Link
           href="/privacidad"
           className="underline-offset-2 hover:text-zinc-300 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"

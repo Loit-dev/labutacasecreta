@@ -38,7 +38,8 @@ export type EventName =
   | "today_shown"
   | "search_query"
   | "search_result_click"
-  | "search_open";
+  | "search_open"
+  | "instagram_click";
 
 type Value = string | number | boolean;
 

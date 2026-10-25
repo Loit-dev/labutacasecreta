@@ -8,6 +8,7 @@ import {
 } from "react";
 
 import GroupQuiz from "@/components/group/GroupQuiz";
+import InstagramLink from "@/components/layout/InstagramLink";
 import PosterWall from "@/components/layout/PosterWall";
 import CalendarView from "@/components/calendar/CalendarView";
 import MyListButton from "@/components/list/MyListButton";
@@ -164,7 +165,7 @@ export default function Conversation() {
           <div
             role="tablist"
             aria-label="Secciones"
-            className="flex border-b border-white/15"
+            className="flex items-stretch border-b border-white/15"
           >
             {TABS.map(([id, emoji, label], index) => {
               const active = tab === id;
@@ -194,6 +195,8 @@ export default function Conversation() {
                 </button>
               );
             })}
+
+            <InstagramLink />
           </div>
 
           <div
