@@ -35,7 +35,7 @@ export default function AccountTabLink() {
         <circle cx="12" cy="8" r="4" />
         <path d="M4 20c0-4 3.5-7 8-7s8 3 8 7" />
       </svg>
-      <span className="hidden text-[11px] font-bold sm:inline">{label}</span>
+      <span className="text-[11px] font-bold">{label}</span>
     </a>
   );
 }
