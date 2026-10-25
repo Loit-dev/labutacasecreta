@@ -65,6 +65,27 @@ create policy "list_items: insertar lo propio"
     )
   );
 
+-- Falta este permiso: aunque solo "insertemos" títulos, la función
+-- usa upsert (inserta o actualiza si ya existe), y Postgres exige el
+-- permiso de actualizar para poder hacer un upsert, incluso cuando
+-- en la práctica casi siempre inserta de cero. Sin esto, añadir un
+-- título a una lista fallaba en silencio.
+drop policy if exists "list_items: actualizar lo propio" on public.list_items;
+create policy "list_items: actualizar lo propio"
+  on public.list_items for update
+  using (
+    exists (
+      select 1 from public.lists l
+      where l.id = list_items.list_id and l.user_id = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.lists l
+      where l.id = list_items.list_id and l.user_id = auth.uid()
+    )
+  );
+
 drop policy if exists "list_items: borrar lo propio" on public.list_items;
 create policy "list_items: borrar lo propio"
   on public.list_items for delete
