@@ -11,7 +11,6 @@ import GroupQuiz from "@/components/group/GroupQuiz";
 import AccountTabLink from "@/components/layout/AccountTabLink";
 import PosterWall from "@/components/layout/PosterWall";
 import CalendarView from "@/components/calendar/CalendarView";
-import MyListButton from "@/components/list/MyListButton";
 import SearchBox from "@/components/search/SearchBox";
 import { track } from "@/lib/analytics";
 import {
@@ -124,8 +123,6 @@ export default function Conversation() {
   return (
     <>
       <PosterWall />
-
-      <MyListButton />
 
       <main
         id="contenido"
