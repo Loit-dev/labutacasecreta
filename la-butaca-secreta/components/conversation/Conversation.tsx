@@ -8,7 +8,7 @@ import {
 } from "react";
 
 import GroupQuiz from "@/components/group/GroupQuiz";
-import InstagramLink from "@/components/layout/InstagramLink";
+import AccountTabLink from "@/components/layout/AccountTabLink";
 import PosterWall from "@/components/layout/PosterWall";
 import CalendarView from "@/components/calendar/CalendarView";
 import MyListButton from "@/components/list/MyListButton";
@@ -196,7 +196,7 @@ export default function Conversation() {
               );
             })}
 
-            <InstagramLink />
+            <AccountTabLink />
           </div>
 
           <div
