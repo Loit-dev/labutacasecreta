@@ -235,12 +235,50 @@ export function drawSummaryImage(
 
   ctx.textAlign = "center";
 
+  // ---------- Vistas totales / este mes, justo debajo del gráfico ----------
+  let cursorY = chartY + chartH + 28;
+
+  if (options.totalWatched !== undefined || options.monthCount !== undefined) {
+    const statsY = cursorY;
+    const statsH = 118;
+    const statsGap = 20;
+    const statsW = (chartW - statsGap) / 2;
+
+    const monthRecord = options.isPersonalRecordMonth;
+
+    const stats: [string, number | undefined, string][] = [
+      ["VISTAS TOTALES", options.totalWatched, "#ffffff"],
+      [
+        monthRecord ? "ESTE MES · RÉCORD 🏆" : "ESTE MES",
+        options.monthCount,
+        monthRecord ? "#facc15" : "#ffffff",
+      ],
+    ];
+
+    stats.forEach(([label, value, color], i) => {
+      const x = chartX + i * (statsW + statsGap);
+
+      glassCard(ctx, x, statsY, statsW, statsH);
+
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#a1a1aa";
+      ctx.font = `700 19px ${font}`;
+      ctx.fillText(label, x + statsW / 2, statsY + 36);
+
+      ctx.fillStyle = color;
+      ctx.font = `800 48px ${font}`;
+      ctx.fillText(String(value ?? 0), x + statsW / 2, statsY + 94);
+    });
+
+    cursorY += statsH + 32;
+  }
+
   // ---------- Pósters en abanico (como en Butaca Exprés/Recomendador) ----------
   // La favorita va al centro, grande y recta; última vista y mejor
   // valorada a los lados, más pequeñas y giradas. Cada una lleva su
   // chip (igual que el badge de la tarjeta en la web) encima.
-  const cardY = chartY + chartH + 36;
-  const cardH = 460;
+  const cardY = cursorY;
+  const cardH = 410;
 
   type FanSlot = {
     card?: SummaryTitleCard;
@@ -254,14 +292,14 @@ export function drawSummaryImage(
     angle: number;
   };
 
-  const mainW = 215;
-  const mainH = 320;
-  const sideW = 180;
-  const sideH = 270;
+  const mainW = 200;
+  const mainH = 300;
+  const sideW = 160;
+  const sideH = 240;
 
-  const mainCY = cardY + 48 + mainH / 2;
-  const sideCY = mainCY + 18;
-  const sideOffsetX = 175;
+  const mainCY = cardY + 44 + mainH / 2;
+  const sideCY = mainCY + 16;
+  const sideOffsetX = 160;
 
   const slots: FanSlot[] = [
     {
@@ -459,59 +497,29 @@ export function drawSummaryImage(
     ctx.fillText(line, x + 28, genreY + 88);
   }
 
-  // ---------- Vistas totales / este mes, en dos cajas ----------
   let footTop = genreY + genreH + 28;
 
-  if (options.totalWatched !== undefined || options.monthCount !== undefined) {
-    const statsY = footTop;
-    const statsH = 130;
-    const statsGap = 20;
-    const statsW = (chartW - statsGap) / 2;
-
-    const monthRecord = options.isPersonalRecordMonth;
-
-    const stats: [string, number | undefined, string][] = [
-      ["VISTAS TOTALES", options.totalWatched, "#ffffff"],
-      [
-        monthRecord ? "ESTE MES · RÉCORD 🏆" : "ESTE MES",
-        options.monthCount,
-        monthRecord ? "#facc15" : "#ffffff",
-      ],
-    ];
-
-    stats.forEach(([label, value, color], i) => {
-      const x = chartX + i * (statsW + statsGap);
-
-      glassCard(ctx, x, statsY, statsW, statsH);
-
-      ctx.textAlign = "center";
-      ctx.fillStyle = "#a1a1aa";
-      ctx.font = `700 19px ${font}`;
-      ctx.fillText(label, x + statsW / 2, statsY + 38);
-
-      ctx.fillStyle = color;
-      ctx.font = `800 52px ${font}`;
-      ctx.fillText(String(value ?? 0), x + statsW / 2, statsY + 100);
-    });
-
-    footTop += statsH + 28;
-  }
-
+  // ---------- Toque competitivo, en su propia caja ----------
   if (options.competitiveLine) {
+    const compY = footTop;
+    const compH = 92;
+
+    glassCard(ctx, chartX, compY, chartW, compH);
+
     ctx.textAlign = "center";
     ctx.fillStyle = "#facc15";
-    ctx.font = `700 30px ${font}`;
+    ctx.font = `800 30px ${font}`;
 
     const [line = ""] = wrapLines(
       (text) => ctx.measureText(text).width,
-      options.competitiveLine,
+      `🔥 ${options.competitiveLine}`,
       chartW - 60,
       1
     );
 
-    ctx.fillText(line, W / 2, footTop + 10);
+    ctx.fillText(line, W / 2, compY + compH / 2 + 10);
 
-    footTop += 60;
+    footTop += compH + 28;
   }
 
   // ---------- Pie ----------
