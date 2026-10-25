@@ -21,13 +21,15 @@ export default function PrivacyPage() {
         <h2>En resumen</h2>
 
         <p>
-          {SITE_NAME} no tiene cuentas de usuario, no te
-          pide datos personales y no usa cookies ni
-          publicidad. Medimos el uso de la web con una
+          Usar {SITE_NAME} para pedir recomendaciones no
+          requiere cuenta ni datos personales, y no usamos
+          cookies ni publicidad. Si quieres, puedes crear una
+          cuenta gratuita (solo con tu correo) para guardar tu
+          historial, tus listas y tus pendientes entre
+          dispositivos: más abajo explicamos qué se guarda en
+          ese caso. Medimos el uso general de la web con una
           analítica sin cookies y sin datos personales (más
-          abajo te lo explicamos). Tus respuestas sirven para
-          buscar recomendaciones y no se guardan asociadas a
-          ti en ninguna base de datos.
+          abajo te lo explicamos también).
         </p>
       </section>
 
@@ -64,6 +66,64 @@ export default function PrivacyPage() {
           título, año, nota, póster y plataformas de ese
           título. No se envía a ningún servidor y puedes
           vaciarla desde «Mi lista» en cualquier momento.
+        </p>
+      </section>
+
+      <section>
+        <h2>Si creas una cuenta</h2>
+
+        <p>
+          Crear una cuenta es opcional y sirve para que tu
+          actividad te acompañe entre dispositivos, en
+          «Mi cuenta». Entras con un enlace mágico que te
+          enviamos por correo (sin contraseña), a través de{" "}
+          <strong>Supabase</strong>, el proveedor que aloja
+          nuestra base de datos y gestiona el inicio de
+          sesión. Solo guardamos tu correo electrónico para
+          identificarte; no lo usamos para nada más ni lo
+          compartimos.
+        </p>
+
+        <p>
+          Con sesión iniciada, guardamos ligados a tu cuenta:
+        </p>
+
+        <ul>
+          <li>
+            Tu <strong>diario</strong>: qué películas o series
+            marcas como vistas, cuándo y la nota que les pones
+            (si le pones alguna).
+          </li>
+          <li>
+            Tu <strong>película o serie favorita</strong>, la
+            que eliges a mano en «Mi Resumen».
+          </li>
+          <li>
+            Tus <strong>listas</strong>: el nombre de cada
+            lista que crees y los títulos que añadas a ellas.
+          </li>
+        </ul>
+
+        <p>
+          Esos datos están protegidos de forma que solo tu
+          cuenta puede leerlos o modificarlos; nadie más tiene
+          acceso a ellos, nosotros incluidos, salvo para dar
+          soporte técnico si nos escribes con un problema.
+          Puedes editar o borrar cualquier entrada de tu
+          diario o tus listas desde «Mi cuenta» en cualquier
+          momento. Si quieres borrar tu cuenta entera y todo lo
+          asociado a ella, escríbenos
+          {CONTACT_EMAIL ? (
+            <>
+              {" "}a{" "}
+              <a href={`mailto:${CONTACT_EMAIL}`}>
+                {CONTACT_EMAIL}
+              </a>
+            </>
+          ) : (
+            " a través del contacto que figure en el sitio"
+          )}{" "}
+          y lo hacemos sin demora.
         </p>
       </section>
 
@@ -136,6 +196,13 @@ export default function PrivacyPage() {
             fecha) en sus registros de funcionamiento.
           </li>
           <li>
+            <strong>Supabase</strong> aloja la base de datos y
+            el inicio de sesión de quienes crean una cuenta
+            (correo electrónico, diario, favorita y listas,
+            descritos arriba). Solo se usa si decides crear
+            una cuenta.
+          </li>
+          <li>
             <strong>TMDb</strong> proporciona los datos de
             películas y series. Las consultas las hace
             nuestro servidor y no incluyen tus datos
@@ -162,11 +229,15 @@ export default function PrivacyPage() {
         <h2>Tus derechos</h2>
 
         <p>
-          Como no guardamos datos personales asociados a ti,
-          no hay información que acceder, rectificar o
-          suprimir en nuestro lado. Si tienes cualquier duda
-          sobre esta política o sobre tus derechos de
-          protección de datos, puedes escribirnos
+          Si no tienes cuenta, no guardamos datos personales
+          asociados a ti y no hay información que acceder,
+          rectificar o suprimir en nuestro lado. Si tienes
+          cuenta, puedes acceder, corregir o borrar tu diario
+          y tus listas tú mismo desde «Mi cuenta», y pedirnos
+          por correo que borremos la cuenta entera cuando
+          quieras. Si tienes cualquier otra duda sobre esta
+          política o sobre tus derechos de protección de
+          datos, puedes escribirnos
           {CONTACT_EMAIL ? (
             <>
               {" "}a{" "}
@@ -195,9 +266,9 @@ export default function PrivacyPage() {
         <h2>Cambios</h2>
 
         <p>
-          Si en el futuro añadimos cuentas u otras funciones
-          que traten datos personales, actualizaremos esta
-          página antes de activarlas.
+          Si en el futuro añadimos nuevas funciones que
+          traten datos personales, actualizaremos esta página
+          antes de activarlas.
         </p>
       </section>
     </LegalPage>

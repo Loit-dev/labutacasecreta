@@ -94,6 +94,18 @@ export default function LegalNoticePage() {
       </section>
 
       <section>
+        <h2>Cuenta de usuario</h2>
+
+        <p>
+          Crear una cuenta es opcional y se usa para guardar
+          tu diario, tu favorita y tus listas entre
+          dispositivos. Qué datos se guardan y cómo puedes
+          acceder a ellos o borrarlos se explica en la{" "}
+          <a href="/privacidad">política de privacidad</a>.
+        </p>
+      </section>
+
+      <section>
         <h2>Enlaces externos</h2>
 
         <p>
