@@ -210,28 +210,6 @@ export function drawSummaryImage(
   ctx.font = `500 36px ${font}`;
   ctx.fillText(`Tu ${options.monthLabel.toLowerCase()} en ${options.siteName}`, W / 2, 560);
 
-  // ---------- Racha de días seguidos ----------
-  if (options.streakDays && options.streakDays >= 2) {
-    const streakLabel = `🔥 ${options.streakDays} días seguidos`;
-
-    ctx.font = `800 24px ${font}`;
-
-    const streakW = ctx.measureText(streakLabel).width + 44;
-    const streakH = 42;
-    const streakX = W / 2 - streakW / 2;
-    const streakY = 572;
-
-    roundedRect(ctx, streakX, streakY, streakW, streakH, 21);
-    ctx.fillStyle = "rgba(251,146,60,0.12)";
-    ctx.fill();
-    ctx.strokeStyle = "rgba(251,146,60,0.5)";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    ctx.fillStyle = "#fdba74";
-    ctx.fillText(streakLabel, W / 2, streakY + 29);
-  }
-
   // ---------- Tarjeta: línea de vistas (14 días) ----------
   const chartX = 70;
   const chartY = 610;
@@ -263,14 +241,21 @@ export function drawSummaryImage(
 
   ctx.textAlign = "center";
 
-  // ---------- Vistas totales / este mes, justo debajo del gráfico ----------
+  // ---------- Vistas totales / este mes / racha, justo debajo del gráfico ----------
   let cursorY = chartY + chartH + 24;
 
-  if (options.totalWatched !== undefined || options.monthCount !== undefined) {
+  const hasStreak = (options.streakDays ?? 0) >= 1;
+
+  if (
+    options.totalWatched !== undefined ||
+    options.monthCount !== undefined ||
+    hasStreak
+  ) {
     const statsY = cursorY;
-    const statsH = 132;
-    const statsGap = 20;
-    const statsW = (chartW - statsGap) / 2;
+    const statsH = 108;
+    const statsGap = 14;
+    const cols = hasStreak ? 3 : 2;
+    const statsW = (chartW - statsGap * (cols - 1)) / cols;
 
     const badge = options.monthBadge;
     const diff = options.monthDiff;
@@ -283,15 +268,24 @@ export function drawSummaryImage(
       : undefined;
 
     // [etiqueta, valor, color del número, línea pequeña debajo]
-    const stats: [string, number | undefined, string, string | undefined][] = [
-      ["VISTAS TOTALES", options.totalWatched, "#ffffff", undefined],
+    const stats: [string, string, string, string | undefined][] = [
+      ["VISTAS TOTALES", String(options.totalWatched ?? 0), "#ffffff", undefined],
       [
         badge ? `ESTE MES ${badge}` : "ESTE MES",
-        options.monthCount,
+        String(options.monthCount ?? 0),
         badge ? "#facc15" : "#ffffff",
         diffLine,
       ],
     ];
+
+    if (hasStreak) {
+      stats.push([
+        "RACHA 🔥",
+        String(options.streakDays),
+        "#fdba74",
+        options.streakDays === 1 ? "día" : "días seguidos",
+      ]);
+    }
 
     stats.forEach(([label, value, color, small], i) => {
       const x = chartX + i * (statsW + statsGap);
@@ -300,17 +294,17 @@ export function drawSummaryImage(
 
       ctx.textAlign = "center";
       ctx.fillStyle = "#a1a1aa";
-      ctx.font = `700 19px ${font}`;
-      ctx.fillText(label, x + statsW / 2, statsY + 34);
+      ctx.font = `700 ${cols === 3 ? 15 : 17}px ${font}`;
+      ctx.fillText(label, x + statsW / 2, statsY + 28);
 
       ctx.fillStyle = color;
-      ctx.font = `800 44px ${font}`;
-      ctx.fillText(String(value ?? 0), x + statsW / 2, statsY + 84);
+      ctx.font = `800 ${cols === 3 ? 34 : 38}px ${font}`;
+      ctx.fillText(value, x + statsW / 2, statsY + 68);
 
       if (small) {
         ctx.fillStyle = "#a1a1aa";
-        ctx.font = `600 18px ${font}`;
-        ctx.fillText(small, x + statsW / 2, statsY + 114);
+        ctx.font = `600 15px ${font}`;
+        ctx.fillText(small, x + statsW / 2, statsY + 94);
       }
     });
 
@@ -322,7 +316,7 @@ export function drawSummaryImage(
   // valorada a los lados, más pequeñas y giradas. Cada una lleva su
   // chip (igual que el badge de la tarjeta en la web) encima.
   const cardY = cursorY;
-  const cardH = 390;
+  const cardH = 430;
 
   type FanSlot = {
     card?: SummaryTitleCard;
@@ -336,14 +330,15 @@ export function drawSummaryImage(
     angle: number;
   };
 
-  const mainW = 190;
-  const mainH = 285;
-  const sideW = 150;
-  const sideH = 225;
+  const mainW = 200;
+  const mainH = 300;
+  const sideW = 158;
+  const sideH = 237;
 
   const mainCY = cardY + 40 + mainH / 2;
   const sideCY = mainCY + 14;
-  const sideOffsetX = 155;
+  // Más separadas que el ancho de los chips para que no se toquen.
+  const sideOffsetX = 205;
 
   const slots: FanSlot[] = [
     {
@@ -492,8 +487,8 @@ export function drawSummaryImage(
   // ---------- Tus géneros: ranking top 3 con medalla y emoji ----------
   const topGenres = (options.topGenres ?? []).slice(0, 3);
 
-  const genreY = cardY + cardH + 32;
-  const genreH = 168;
+  const genreY = cardY + cardH + 28;
+  const genreH = 150;
 
   let footTop = genreY;
 
@@ -502,48 +497,48 @@ export function drawSummaryImage(
 
     ctx.textAlign = "left";
     ctx.fillStyle = "#ffffff";
-    ctx.font = `800 26px ${font}`;
-    ctx.fillText("Tus géneros", chartX + 28, genreY + 42);
+    ctx.font = `800 24px ${font}`;
+    ctx.fillText("Tus géneros", chartX + 26, genreY + 36);
 
     const medals = ["🥇", "🥈", "🥉"];
-    const rowH = 38;
-    const rowsTop = genreY + 64;
+    const rowH = 32;
+    const rowsTop = genreY + 56;
 
     topGenres.forEach((genre, i) => {
       const rowY = rowsTop + i * rowH;
 
       ctx.textAlign = "left";
       ctx.fillStyle = "#ffffff";
-      ctx.font = `700 26px ${font}`;
+      ctx.font = `700 23px ${font}`;
 
       const [line = ""] = wrapLines(
         (text) => ctx.measureText(text).width,
         `${medals[i]} ${genreEmoji(genre.name)} ${genre.name}`,
-        chartW - 160,
+        chartW - 150,
         1
       );
 
-      ctx.fillText(line, chartX + 28, rowY);
+      ctx.fillText(line, chartX + 26, rowY);
 
       ctx.textAlign = "right";
       ctx.fillStyle = "#a1a1aa";
-      ctx.font = `600 22px ${font}`;
-      ctx.fillText(String(genre.count), chartX + chartW - 28, rowY);
+      ctx.font = `600 19px ${font}`;
+      ctx.fillText(String(genre.count), chartX + chartW - 26, rowY);
     });
 
-    footTop = genreY + genreH + 28;
+    footTop = genreY + genreH + 24;
   }
 
   // ---------- Toque competitivo, en su propia caja ----------
   if (options.competitiveLine) {
     const compY = footTop;
-    const compH = 92;
+    const compH = 78;
 
     glassCard(ctx, chartX, compY, chartW, compH);
 
     ctx.textAlign = "center";
     ctx.fillStyle = "#facc15";
-    ctx.font = `800 30px ${font}`;
+    ctx.font = `800 27px ${font}`;
 
     const [line = ""] = wrapLines(
       (text) => ctx.measureText(text).width,
@@ -552,9 +547,9 @@ export function drawSummaryImage(
       1
     );
 
-    ctx.fillText(line, W / 2, compY + compH / 2 + 10);
+    ctx.fillText(line, W / 2, compY + compH / 2 + 9);
 
-    footTop += compH + 28;
+    footTop += compH + 24;
   }
 
   // ---------- Pie ----------

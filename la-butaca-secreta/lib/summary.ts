@@ -272,18 +272,42 @@ export function buildSummary(
 }
 
 /**
- * "Has visto más que el X % de la gente este mes": solo se muestra
- * con una muestra mínima de cuentas y si el usuario ha visto algo,
- * para no mostrar un porcentaje sin sentido con pocos datos.
+ * El "claim" competitivo que se comparte ("has visto más que el X %
+ * de la gente…"). Solo hace falta que el usuario haya visto algo
+ * este mes: con pocas cuentas todavía (la app recién lanzada) usa un
+ * texto que no depende de un porcentaje, para no decir "más que el
+ * 100 %" con una sola cuenta de muestra. Varía la frase día a día
+ * (varias plantillas) para que no sea siempre el mismo "claim".
  */
 export function competitiveLine(
   percentile: number,
   totalUsers: number,
-  mine: number
+  mine: number,
+  now: Date = new Date()
 ): string | undefined {
-  if (mine === 0 || totalUsers < 5) return undefined;
+  if (mine === 0) return undefined;
+
+  const seed = dayOfYear(now);
+
+  if (totalUsers < 3) {
+    const early = [
+      "Entre los primeros en estrenar Mi Resumen 🎬",
+      "Pionero de La Butaca Secreta este mes",
+      "Abriendo camino en Mi Resumen",
+    ];
+
+    return early[seed % early.length];
+  }
 
   const clamped = Math.min(99, Math.max(1, percentile));
+  const inverse = Math.max(1, 100 - clamped);
 
-  return `Has visto más que el ${clamped} % de la gente este mes`;
+  const templates = [
+    `Has visto más que el ${clamped} % de la gente este mes`,
+    `Estás en el ${clamped} % que más ve este mes`,
+    `Solo un ${inverse} % ve tanto como tú este mes`,
+    `${clamped} de cada 100 usuarios ven menos que tú`,
+  ];
+
+  return templates[seed % templates.length];
 }

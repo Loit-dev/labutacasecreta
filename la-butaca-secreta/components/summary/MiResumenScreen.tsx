@@ -309,12 +309,6 @@ export default function MiResumenScreen() {
         <p className="mt-1 text-sm text-zinc-400">
           Tu {stats.monthLabel.toLowerCase()} en {SITE_NAME}
         </p>
-
-        {stats.streakDays >= 2 && (
-          <p className="mt-2 inline-block rounded-full border border-orange-500/40 bg-orange-500/10 px-3 py-1 text-xs font-bold text-orange-300">
-            🔥 {stats.streakDays} días seguidos
-          </p>
-        )}
       </div>
 
       <div className={`${CARD} p-4`}>
@@ -331,22 +325,26 @@ export default function MiResumenScreen() {
         <Bars last14={stats.last14} />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div className={`${CARD} p-4 text-center`}>
-          <p className="text-[11px] font-bold tracking-wide text-zinc-400">
+      <div
+        className={`grid gap-2 sm:gap-3 ${
+          stats.streakDays >= 1 ? "grid-cols-3" : "grid-cols-2"
+        }`}
+      >
+        <div className={`${CARD} p-3 text-center sm:p-4`}>
+          <p className="text-[10px] font-bold tracking-wide text-zinc-400 sm:text-[11px]">
             VISTAS TOTALES
           </p>
-          <p className="mt-1 text-3xl font-black text-white">
+          <p className="mt-1 text-2xl font-black text-white sm:text-3xl">
             {stats.totalWatched}
           </p>
         </div>
 
-        <div className={`${CARD} p-4 text-center`}>
-          <p className="text-[11px] font-bold tracking-wide text-zinc-400">
+        <div className={`${CARD} p-3 text-center sm:p-4`}>
+          <p className="text-[10px] font-bold tracking-wide text-zinc-400 sm:text-[11px]">
             ESTE MES{stats.monthBadge ? ` ${stats.monthBadge}` : ""}
           </p>
           <p
-            className={`mt-1 text-3xl font-black ${
+            className={`mt-1 text-2xl font-black sm:text-3xl ${
               stats.monthBadge ? "text-amber-300" : "text-white"
             }`}
           >
@@ -359,6 +357,20 @@ export default function MiResumenScreen() {
             </p>
           )}
         </div>
+
+        {stats.streakDays >= 1 && (
+          <div className={`${CARD} p-3 text-center sm:p-4`}>
+            <p className="text-[10px] font-bold tracking-wide text-zinc-400 sm:text-[11px]">
+              RACHA 🔥
+            </p>
+            <p className="mt-1 text-2xl font-black text-orange-300 sm:text-3xl">
+              {stats.streakDays}
+            </p>
+            <p className="mt-1 text-xs text-zinc-400">
+              {stats.streakDays === 1 ? "día" : "días seguidos"}
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-3 gap-2 sm:gap-4">
