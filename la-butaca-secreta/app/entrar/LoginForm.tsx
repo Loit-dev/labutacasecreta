@@ -11,6 +11,7 @@ export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [googleError, setGoogleError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
 
   if (!supabase) {
     return (
@@ -32,7 +33,7 @@ export default function LoginForm() {
 
     if (error) {
       setGoogleError(
-        "Google no está disponible todavía en este login. Prueba con tu email."
+        `Google no está disponible todavía en este login (${error.message}). Prueba con tu email.`
       );
     }
   }
@@ -44,6 +45,7 @@ export default function LoginForm() {
     if (!clean) return;
 
     setStatus("sending");
+    setEmailError(null);
 
     track("mode_selected", { mode: "login_email" });
 
@@ -52,7 +54,12 @@ export default function LoginForm() {
       options: { emailRedirectTo: window.location.origin },
     });
 
-    setStatus(error ? "error" : "sent");
+    if (error) {
+      setEmailError(`${error.message} (${error.status ?? "sin código"})`);
+      setStatus("error");
+    } else {
+      setStatus("sent");
+    }
   }
 
   if (status === "sent") {
@@ -117,7 +124,8 @@ export default function LoginForm() {
 
         {status === "error" && (
           <p className="text-center text-xs text-red-400" role="alert">
-            No he podido enviar el enlace. Prueba otra vez en un momento.
+            No he podido enviar el enlace
+            {emailError ? `: ${emailError}` : ". Prueba otra vez en un momento."}
           </p>
         )}
 
