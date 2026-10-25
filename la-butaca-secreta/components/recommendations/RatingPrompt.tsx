@@ -8,6 +8,10 @@ import type { Rating } from "@/lib/rating";
 
 type Props = {
   title: string;
+  /** Para editar una valoración ya puesta: empieza con esa nota marcada. */
+  initial?: Rating;
+  /** true cuando se abre para cambiar una nota ya puesta (diario), no al marcar como vista por primera vez. */
+  editing?: boolean;
   onConfirm: (rating: Rating | undefined) => void;
 };
 
@@ -22,8 +26,13 @@ type Props = {
 const STAR_PATH =
   "M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z";
 
-export default function RatingPrompt({ title, onConfirm }: Props) {
-  const [selected, setSelected] = useState<Rating | null>(null);
+export default function RatingPrompt({
+  title,
+  initial,
+  editing = false,
+  onConfirm,
+}: Props) {
+  const [selected, setSelected] = useState<Rating | null>(initial ?? null);
 
   const uid = useId();
 
@@ -109,7 +118,9 @@ export default function RatingPrompt({ title, onConfirm }: Props) {
 
         <p className="mt-3 text-xs text-zinc-500">
           Toca la mitad izquierda de una estrella para media estrella.
-          Puedes marcarla como vista sin puntuar.
+          {editing
+            ? " Deja todas las estrellas vacías para quitar la nota."
+            : " Puedes marcarla como vista sin puntuar."}
         </p>
 
         <button
@@ -117,7 +128,7 @@ export default function RatingPrompt({ title, onConfirm }: Props) {
           onClick={close}
           className="mt-4 w-full rounded-2xl bg-white px-5 py-3 text-sm font-bold text-black transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
-          {selected ? "Guardar valoración" : "Marcar como vista"}
+          {editing ? "Guardar" : selected ? "Guardar valoración" : "Marcar como vista"}
         </button>
       </div>
     </div>

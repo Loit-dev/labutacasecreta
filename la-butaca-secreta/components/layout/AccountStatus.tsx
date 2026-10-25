@@ -31,10 +31,10 @@ export default function AccountStatus() {
       {session.user.email}
       {" · "}
       <a
-        href="/mi-resumen"
+        href="/mi-cuenta"
         className="underline-offset-2 hover:text-zinc-300 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
       >
-        Mi Resumen
+        Mi cuenta
       </a>
       {" · "}
       <button

@@ -3,6 +3,12 @@
 import { supabase } from "./client";
 import type { Rating } from "@/lib/rating";
 
+type WatchedKey = {
+  userId: string;
+  tmdbId: number;
+  mediaType: "movie" | "tv";
+};
+
 type SaveWatchedArgs = {
   userId: string;
   tmdbId: number;
@@ -43,5 +49,57 @@ export async function saveWatched({
     );
   } catch (error) {
     console.error("No se pudo guardar en Supabase (watched):", error);
+  }
+}
+
+/**
+ * Cambia solo la valoración de un "visto" ya guardado, sin tocar la
+ * fecha en la que se vio (a diferencia de saveWatched, que la pone a
+ * "ahora" cada vez). Para el diario de Mi cuenta: editar la nota de
+ * una entrada ya antigua no debe moverla a hoy.
+ */
+export async function updateWatchedRating(
+  { userId, tmdbId, mediaType }: WatchedKey,
+  rating: Rating | undefined
+): Promise<boolean> {
+  if (!supabase) return false;
+
+  try {
+    const { error } = await supabase
+      .from("watched")
+      .update({ rating: rating ?? null })
+      .eq("user_id", userId)
+      .eq("tmdb_id", tmdbId)
+      .eq("media_type", mediaType);
+
+    return !error;
+  } catch (error) {
+    console.error("No se pudo actualizar la valoración:", error);
+
+    return false;
+  }
+}
+
+/** Borra una entrada del historial de "vistos" (el diario). */
+export async function deleteWatched({
+  userId,
+  tmdbId,
+  mediaType,
+}: WatchedKey): Promise<boolean> {
+  if (!supabase) return false;
+
+  try {
+    const { error } = await supabase
+      .from("watched")
+      .delete()
+      .eq("user_id", userId)
+      .eq("tmdb_id", tmdbId)
+      .eq("media_type", mediaType);
+
+    return !error;
+  } catch (error) {
+    console.error("No se pudo borrar del historial:", error);
+
+    return false;
   }
 }
