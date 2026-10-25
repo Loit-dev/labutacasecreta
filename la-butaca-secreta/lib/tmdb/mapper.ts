@@ -1,5 +1,6 @@
 import { normalizeTvGenreIds } from "./tvGenres";
 import { ScoredItem } from "@/lib/recommendation/scoring/types";
+import { PLATFORMS } from "@/lib/platforms";
 
 import {
   TMDBCredits,
@@ -122,6 +123,35 @@ function normalizeProviderName(providerName: string) {
 
 function priorityOf(name: string) {
   return MAIN_PLATFORMS.indexOf(name);
+}
+
+// Para una misma plataforma, TMDb puede traer varias entradas con
+// logos distintos (p. ej. "Amazon Prime Video" e "Prime Video con
+// anuncios"), y en qué orden vienen cambia de un título a otro. Antes
+// nos quedábamos con la última del array, así que el mismo "Prime
+// Video" salía con un logo distinto según la película. Este orden fija
+// qué id de TMDb manda para cada nombre, para que siempre se vea el
+// mismo logo oficial: el mismo que ya usa el calendario.
+const CANONICAL_NAME_BY_PLATFORM_KEY: Record<string, string> = {
+  netflix: "Netflix",
+  prime: "Prime Video",
+  disney: "Disney+",
+  max: "Max",
+  filmin: "Filmin",
+};
+
+const PREFERRED_PROVIDER_IDS: Record<string, number[]> = Object.fromEntries(
+  PLATFORMS.map((platform) => [
+    CANONICAL_NAME_BY_PLATFORM_KEY[platform.key],
+    platform.ids,
+  ])
+);
+
+function providerRank(name: string, id: number) {
+  const order = PREFERRED_PROVIDER_IDS[name];
+  const index = order ? order.indexOf(id) : -1;
+
+  return index === -1 ? Number.MAX_SAFE_INTEGER : index;
 }
 
 export interface Recommendation {
@@ -253,24 +283,33 @@ export function mapRecommendation(
     // Las series no suelen tener "Director": usamos el creador
     details?.created_by?.[0]?.name;
 
-  const platforms = Array.from(
-    new Map(
-      esProviders.map((provider) => {
-        const name = normalizeProviderName(
-          provider.provider_name
-        );
+  const platformsByName = new Map<
+    string,
+    { id: number; name: string; logo: string }
+  >();
 
-        return [
-          name,
-          {
-            id: provider.provider_id,
-            name,
-            logo: `${IMAGE_URL}${provider.logo_path}`,
-          },
-        ];
-      })
-    ).values()
-  )
+  for (const provider of esProviders) {
+    const name = normalizeProviderName(provider.provider_name);
+    const candidate = {
+      id: provider.provider_id,
+      name,
+      logo: `${IMAGE_URL}${provider.logo_path}`,
+    };
+    const existing = platformsByName.get(name);
+
+    // Si ya había una entrada para esta plataforma, solo se sustituye
+    // por una con mejor (menor) rango, para que el logo elegido sea
+    // siempre el mismo sin importar en qué orden venga de TMDb.
+    if (
+      !existing ||
+      providerRank(name, candidate.id) <
+        providerRank(name, existing.id)
+    ) {
+      platformsByName.set(name, candidate);
+    }
+  }
+
+  const platforms = Array.from(platformsByName.values())
     // Solo las plataformas principales, en orden de importancia
     .filter(
       (platform) => priorityOf(platform.name) !== -1
