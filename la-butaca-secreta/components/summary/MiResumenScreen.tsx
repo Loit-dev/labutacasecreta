@@ -4,7 +4,10 @@ import { useEffect, useState } from "react";
 
 import { useAuth } from "@/hooks/useAuth";
 import { track } from "@/lib/analytics";
+import { genreEmoji } from "@/lib/genreEmoji";
 import { posterSource } from "@/lib/share";
+import type { SearchHit } from "@/lib/search";
+import { fetchFavorite, saveFavorite } from "@/lib/supabase/favorite";
 import { fetchMonthRank, fetchWatchedHistory } from "@/lib/supabase/summary";
 import {
   buildSummary,
@@ -12,30 +15,46 @@ import {
   type SummaryStats,
 } from "@/lib/summary";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
+import type { Recommendation } from "@/lib/tmdb/mapper";
 
+import FavoriteCard from "./FavoriteCard";
+import FavoritePickerDialog from "./FavoritePickerDialog";
 import ShareSummaryDialog from "./ShareSummaryDialog";
+import SummaryTitleCard from "./SummaryTitleCard";
+
+type TitleEntry = { mediaType: "movie" | "tv"; data: Recommendation };
+
+type Titles = {
+  lastWatched?: TitleEntry;
+  bestRated?: TitleEntry;
+  favorite?: TitleEntry;
+};
 
 type Poster = { lastWatched?: string; bestRated?: string };
 
 type State =
   | { status: "loading" }
   | { status: "empty" }
-  | { status: "ready"; stats: SummaryStats; line?: string; posters: Poster };
+  | {
+      status: "ready";
+      stats: SummaryStats;
+      line?: string;
+      posters: Poster;
+      titles: Titles;
+    };
 
-async function fetchPoster(
+async function fetchTitle(
   tmdbId: number,
   mediaType: "movie" | "tv"
-): Promise<string | undefined> {
+): Promise<Recommendation | undefined> {
   try {
     const response = await fetch(
-      `/api/resumen-poster?type=${mediaType}&id=${tmdbId}`
+      `/api/resumen-title?type=${mediaType}&id=${tmdbId}`
     );
 
     if (!response.ok) return undefined;
 
-    const data = (await response.json()) as { poster?: string | null };
-
-    return posterSource(data.poster ?? undefined);
+    return (await response.json()) as Recommendation;
   } catch {
     return undefined;
   }
@@ -79,47 +98,27 @@ function Bars({ last14 }: { last14: SummaryStats["last14"] }) {
   );
 }
 
-function TitleCard({
+function GenreBox({
   label,
-  title,
-  rating,
-  poster,
+  name,
+  align,
 }: {
   label: string;
-  title?: string;
-  rating?: number;
-  poster?: string;
+  name: string;
+  align: "left" | "right";
 }) {
   return (
-    <div className="flex flex-1 flex-col gap-2 rounded-2xl border border-white/10 bg-black/30 p-3">
-      <span className="text-[11px] font-bold tracking-wide text-orange-400">
+    <div
+      className={`${CARD} flex-1 p-4 ${
+        align === "right" ? "text-right" : "text-left"
+      }`}
+    >
+      <p className="text-[11px] font-bold tracking-wide text-zinc-400">
         {label}
-      </span>
-
-      {title ? (
-        <div className="flex items-center gap-3">
-          {poster && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={poster}
-              alt=""
-              className="h-20 w-14 shrink-0 rounded-lg object-cover"
-            />
-          )}
-
-          <div className="min-w-0">
-            <p className="truncate text-sm font-bold text-white">
-              {title}
-            </p>
-
-            {rating && (
-              <p className="text-sm text-amber-300">★ {rating}</p>
-            )}
-          </div>
-        </div>
-      ) : (
-        <p className="text-sm text-zinc-400">Aún sin datos</p>
-      )}
+      </p>
+      <p className="mt-1 text-lg font-black text-white">
+        <span aria-hidden="true">{genreEmoji(name)}</span> {name}
+      </p>
     </div>
   );
 }
@@ -131,61 +130,135 @@ export default function MiResumenScreen() {
 
   const [sharing, setSharing] = useState(false);
 
+  const [picking, setPicking] = useState(false);
+
+  const [savingFavorite, setSavingFavorite] = useState(false);
+
+  async function loadSummary(
+    userId: string,
+    cancelledRef: { current: boolean }
+  ) {
+    setState({ status: "loading" });
+
+    const [rows, rank, favorite] = await Promise.all([
+      fetchWatchedHistory(userId),
+      fetchMonthRank(),
+      fetchFavorite(userId),
+    ]);
+
+    if (cancelledRef.current) return;
+
+    if (rows.length === 0 && !favorite) {
+      setState({ status: "empty" });
+      track("summary_no_data");
+      return;
+    }
+
+    const stats = buildSummary(rows);
+
+    const line = rank
+      ? competitiveLine(rank.percentile, rank.totalUsers, rank.mine)
+      : undefined;
+
+    const posters: Poster = {};
+    const titles: Titles = {};
+
+    // Evita pedir dos veces la misma ficha si última vista y mejor
+    // valorada (o la favorita) coinciden
+    const cache = new Map<string, Promise<Recommendation | undefined>>();
+
+    function loadTitle(tmdbId: number, mediaType: "movie" | "tv") {
+      const key = `${mediaType}-${tmdbId}`;
+
+      if (!cache.has(key)) {
+        cache.set(key, fetchTitle(tmdbId, mediaType));
+      }
+
+      return cache.get(key)!;
+    }
+
+    const [lastData, bestData, favData] = await Promise.all([
+      stats.lastWatched
+        ? loadTitle(stats.lastWatched.tmdbId, stats.lastWatched.mediaType)
+        : Promise.resolve(undefined),
+      stats.bestRated
+        ? loadTitle(stats.bestRated.tmdbId, stats.bestRated.mediaType)
+        : Promise.resolve(undefined),
+      favorite
+        ? loadTitle(favorite.tmdbId, favorite.mediaType)
+        : Promise.resolve(undefined),
+    ]);
+
+    if (cancelledRef.current) return;
+
+    if (stats.lastWatched && lastData) {
+      titles.lastWatched = { mediaType: stats.lastWatched.mediaType, data: lastData };
+      posters.lastWatched = posterSource(lastData.poster);
+    }
+
+    if (stats.bestRated && bestData) {
+      titles.bestRated = { mediaType: stats.bestRated.mediaType, data: bestData };
+      posters.bestRated = posterSource(bestData.poster);
+    }
+
+    if (favorite && favData) {
+      titles.favorite = { mediaType: favorite.mediaType, data: favData };
+    }
+
+    setState({ status: "ready", stats, line, posters, titles });
+
+    track("summary_open");
+  }
+
   useEffect(() => {
     if (!session) return;
 
-    let cancelled = false;
+    const cancelledRef = { current: false };
 
-    setState({ status: "loading" });
-
-    (async () => {
-      const [rows, rank] = await Promise.all([
-        fetchWatchedHistory(session.user.id),
-        fetchMonthRank(),
-      ]);
-
-      if (cancelled) return;
-
-      if (rows.length === 0) {
-        setState({ status: "empty" });
-        track("summary_no_data");
-        return;
-      }
-
-      const stats = buildSummary(rows);
-
-      const line = rank
-        ? competitiveLine(rank.percentile, rank.totalUsers, rank.mine)
-        : undefined;
-
-      const posters: Poster = {};
-
-      await Promise.all([
-        stats.lastWatched
-          ? fetchPoster(
-              stats.lastWatched.tmdbId,
-              stats.lastWatched.mediaType
-            ).then((p) => (posters.lastWatched = p))
-          : Promise.resolve(),
-        stats.bestRated
-          ? fetchPoster(
-              stats.bestRated.tmdbId,
-              stats.bestRated.mediaType
-            ).then((p) => (posters.bestRated = p))
-          : Promise.resolve(),
-      ]);
-
-      if (cancelled) return;
-
-      setState({ status: "ready", stats, line, posters });
-
-      track("summary_open");
-    })();
+    loadSummary(session.user.id, cancelledRef);
 
     return () => {
-      cancelled = true;
+      cancelledRef.current = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
+
+  async function pickFavorite(hit: SearchHit) {
+    setPicking(false);
+
+    if (!session) return;
+
+    setSavingFavorite(true);
+
+    const ok = await saveFavorite({
+      userId: session.user.id,
+      tmdbId: hit.id,
+      mediaType: hit.type,
+      title: hit.title,
+    });
+
+    if (ok) {
+      track("summary_open", { favorite_set: true });
+
+      const data = await fetchTitle(hit.id, hit.type);
+
+      setState((current) =>
+        current.status === "ready"
+          ? {
+              ...current,
+              titles: {
+                ...current.titles,
+                favorite: data
+                  ? { mediaType: hit.type, data }
+                  : current.titles.favorite,
+              },
+            }
+          : current
+      );
+    }
+
+    setSavingFavorite(false);
+  }
 
   if (!available) {
     return (
@@ -237,7 +310,7 @@ export default function MiResumenScreen() {
     );
   }
 
-  const { stats } = state;
+  const { stats, titles } = state;
 
   return (
     <div className="flex flex-col gap-5">
@@ -268,43 +341,71 @@ export default function MiResumenScreen() {
         <Bars last14={stats.last14} />
       </div>
 
-      <div className={`${CARD} flex flex-col gap-3 p-4 sm:flex-row`}>
-        <TitleCard
-          label="ÚLTIMA VISTA"
-          title={stats.lastWatched?.title}
-          poster={state.posters.lastWatched}
-        />
+      <div className="grid gap-4 sm:grid-cols-3">
+        {titles.lastWatched ? (
+          <SummaryTitleCard
+            badge="👁"
+            badgeTitle="ÚLTIMA VISTA"
+            mediaType={titles.lastWatched.mediaType}
+            title={titles.lastWatched.data}
+          />
+        ) : (
+          <div className={`${CARD} flex h-80 items-center justify-center p-4 text-center text-sm text-zinc-400 md:h-58`}>
+            Aún sin datos
+          </div>
+        )}
 
-        <TitleCard
-          label="MEJOR VALORADA"
-          title={stats.bestRated?.title}
-          rating={stats.bestRated?.rating}
-          poster={state.posters.bestRated}
-        />
+        {titles.favorite ? (
+          <div className="relative">
+            <SummaryTitleCard
+              badge="⭐"
+              badgeTitle="TU FAVORITA"
+              mediaType={titles.favorite.mediaType}
+              title={titles.favorite.data}
+            />
+
+            <button
+              type="button"
+              onClick={() => setPicking(true)}
+              className="absolute right-3 top-3 z-10 rounded-full bg-black/70 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm transition-colors hover:bg-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            >
+              Cambiar
+            </button>
+          </div>
+        ) : (
+          <FavoriteCard onClick={() => setPicking(true)} />
+        )}
+
+        {titles.bestRated ? (
+          <SummaryTitleCard
+            badge="🏆"
+            badgeTitle="MEJOR VALORADA"
+            mediaType={titles.bestRated.mediaType}
+            title={titles.bestRated.data}
+          />
+        ) : (
+          <div className={`${CARD} flex h-80 items-center justify-center p-4 text-center text-sm text-zinc-400 md:h-58`}>
+            Aún sin datos
+          </div>
+        )}
       </div>
 
       {(stats.topGenre || stats.leastGenre) && (
-        <div className={`${CARD} flex gap-4 p-4`}>
+        <div className="flex gap-4">
           {stats.topGenre && (
-            <div className="flex-1">
-              <p className="text-[11px] font-bold tracking-wide text-zinc-400">
-                GÉNERO FAVORITO
-              </p>
-              <p className="text-lg font-black text-white">
-                {stats.topGenre.name}
-              </p>
-            </div>
+            <GenreBox
+              label="GÉNERO FAVORITO"
+              name={stats.topGenre.name}
+              align="left"
+            />
           )}
 
           {stats.leastGenre && (
-            <div className="flex-1 text-right">
-              <p className="text-[11px] font-bold tracking-wide text-zinc-400">
-                EL QUE MENOS VES
-              </p>
-              <p className="text-lg font-black text-white">
-                {stats.leastGenre.name}
-              </p>
-            </div>
+            <GenreBox
+              label="EL QUE MENOS VES"
+              name={stats.leastGenre.name}
+              align="right"
+            />
           )}
         </div>
       )}
@@ -321,6 +422,17 @@ export default function MiResumenScreen() {
       >
         Compartir
       </button>
+
+      {picking && (
+        <FavoritePickerDialog
+          onPick={pickFavorite}
+          onClose={() => setPicking(false)}
+        />
+      )}
+
+      {savingFavorite && (
+        <p className="text-center text-xs text-zinc-400">Guardando…</p>
+      )}
 
       {sharing && (
         <ShareSummaryDialog
