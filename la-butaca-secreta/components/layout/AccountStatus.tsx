@@ -30,6 +30,13 @@ export default function AccountStatus() {
     <p className="mt-2">
       {session.user.email}
       {" · "}
+      <a
+        href="/mi-resumen"
+        className="underline-offset-2 hover:text-zinc-300 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+      >
+        Mi Resumen
+      </a>
+      {" · "}
       <button
         type="button"
         onClick={() => supabase?.auth.signOut()}

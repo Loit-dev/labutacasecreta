@@ -40,7 +40,9 @@ export type EventName =
   | "search_query"
   | "search_result_click"
   | "search_open"
-  | "instagram_click";
+  | "instagram_click"
+  | "summary_open"
+  | "summary_no_data";
 
 type Value = string | number | boolean;
 

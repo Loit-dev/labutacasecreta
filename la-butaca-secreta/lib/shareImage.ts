@@ -46,8 +46,10 @@ const BACKDROP_SLOTS: [number, number, number, number, number][] = [
   [760, 1290, 380, 620, 8],
 ];
 
-// Pósters del fondo (los mismos que decoran la web)
-const BACKDROP_FILES = [
+// Pósters del fondo (los mismos que decoran la web); se exporta para
+// que otros generadores de imagen (p. ej. lib/summaryImage.ts, "Mi
+// Resumen") usen exactamente el mismo fondo.
+export const BACKDROP_FILES = [
   "/share/dune.jpg",
   "/share/dark.jpg",
   "/share/thebear.jpg",
@@ -139,9 +141,11 @@ export function wrapLines(
   return lines;
 }
 
-function drawBackdrop(
+// Exportado para que otros generadores (lib/summaryImage.ts) dibujen
+// el mismo fondo cinematográfico sin duplicar el degradado/viñeteado.
+export function drawBackdrop(
   ctx: CanvasRenderingContext2D,
-  options: Options
+  options: Pick<Options, "backdrops">
 ) {
   const W = SHARE_WIDTH;
   const H = SHARE_HEIGHT;
@@ -542,7 +546,9 @@ export function drawShareImage(
 // Parte que sí necesita el navegador
 // ------------------------------------------------------------
 
-function loadImage(
+// Exportado para que otros generadores (lib/summaryImage.ts) carguen
+// imágenes (pósters, logo, fondo) con el mismo manejo de errores/timeout.
+export function loadImage(
   url: string | undefined,
   timeoutMs = 15000
 ): Promise<HTMLImageElement | null> {
