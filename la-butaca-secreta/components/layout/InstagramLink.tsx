@@ -15,20 +15,28 @@ export default function InstagramLink() {
       rel="noopener noreferrer"
       aria-label="Síguenos en Instagram (@labutacashhh)"
       onClick={() => track("instagram_click")}
-      className="flex flex-none items-center justify-center border-b-[3px] border-transparent bg-black/30 px-3 text-zinc-300 transition-colors hover:bg-white/5 hover:text-white focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-white"
+      className="flex flex-none items-center justify-center gap-1.5 border-b-[3px] border-transparent bg-black/30 px-3 text-white transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-white"
     >
-      <svg
-        viewBox="0 0 24 24"
+      <span
         aria-hidden="true"
-        className="h-[18px] w-[18px]"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth={1.8}
+        className="flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-tr from-amber-400 via-pink-600 to-purple-600"
       >
-        <rect x="3" y="3" width="18" height="18" rx="5" />
-        <circle cx="12" cy="12" r="4" />
-        <circle cx="17.2" cy="6.8" r="1" fill="currentColor" stroke="none" />
-      </svg>
+        <svg
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+          className="h-[15px] w-[15px]"
+          fill="none"
+          stroke="white"
+          strokeWidth={2}
+        >
+          <rect x="3" y="3" width="18" height="18" rx="5" />
+          <circle cx="12" cy="12" r="4" />
+          <circle cx="17.2" cy="6.8" r="1" fill="white" stroke="none" />
+        </svg>
+      </span>
+      <span className="hidden text-[11px] font-bold sm:inline">
+        Síguenos
+      </span>
     </a>
   );
 }
