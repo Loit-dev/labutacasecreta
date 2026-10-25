@@ -24,7 +24,7 @@ export default function AccountScreen() {
   const [tab, setTab] = useState<TabId>("perfil");
 
   return (
-    <div className="flex flex-col gap-5">
+    <div>
       <div
         role="tablist"
         aria-label="Secciones de tu cuenta"
@@ -55,29 +55,31 @@ export default function AccountScreen() {
         })}
       </div>
 
-      <Link
-        href="/"
-        className="inline-block text-xs font-semibold text-zinc-300 underline underline-offset-2 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-      >
-        ← Volver
-      </Link>
+      <div className="flex flex-col gap-5 px-5 py-6 md:px-8 md:py-10">
+        <Link
+          href="/"
+          className="inline-block text-xs font-semibold text-zinc-300 underline underline-offset-2 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+        >
+          ← Volver
+        </Link>
 
-      <div role="tabpanel">
-        {tab === "perfil" && <MiResumenScreen />}
+        <div role="tabpanel">
+          {tab === "perfil" && <MiResumenScreen />}
 
-        {tab === "diario" && (
-          <RequireAccount what="El diario">
-            {(session) => <DiaryTab session={session} />}
-          </RequireAccount>
-        )}
+          {tab === "diario" && (
+            <RequireAccount what="El diario">
+              {(session) => <DiaryTab session={session} />}
+            </RequireAccount>
+          )}
 
-        {tab === "listas" && (
-          <RequireAccount what="Las listas">
-            {(session) => <ListsTab session={session} />}
-          </RequireAccount>
-        )}
+          {tab === "listas" && (
+            <RequireAccount what="Las listas">
+              {(session) => <ListsTab session={session} />}
+            </RequireAccount>
+          )}
 
-        {tab === "pendientes" && <PendingTab />}
+          {tab === "pendientes" && <PendingTab />}
+        </div>
       </div>
     </div>
   );

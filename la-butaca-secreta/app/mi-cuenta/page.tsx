@@ -29,6 +29,7 @@ export default function MiCuentaPage() {
             z-30
             w-full
             max-w-lg
+            overflow-hidden
 
             rounded-3xl
 
@@ -38,11 +39,6 @@ export default function MiCuentaPage() {
             bg-black/5
             md:bg-black/15
             lg:bg-black/30
-
-            px-5
-            py-6
-            md:px-8
-            md:py-10
 
             shadow-2xl
 
