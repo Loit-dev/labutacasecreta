@@ -48,6 +48,7 @@ export default function TitlePageBody({ type, title }: Props) {
             src={title.poster}
             alt={title.title}
             fill
+            priority
             unoptimized={title.poster.endsWith(".svg")}
             className="object-cover"
             sizes="144px"
