@@ -612,3 +612,34 @@ ya explicado arriba (emoji expresivos en un minijuego).
 `components/conversation/AnswerIcon.tsx` (ahora exporta también
 `emojiIcon`), `components/conversation/ChatHistory.tsx`,
 `components/summary/MiResumenScreen.tsx`.
+
+---
+
+## 2026-10 · Descartadas: ver la lista y poder deshacerlas
+
+**Decisión**: "Descartadas" en Mi Resumen era solo un contador (cuántos
+títulos se habían marcado "No me apetece"), sin lista ni forma de
+deshacerlo — `lib/rejected.ts` solo guardaba el id, no título ni
+póster, así que no había nada que enseñar. Se reescribió para guardar
+el mismo tipo de datos que `lib/watchlist.ts` (título, año, nota,
+póster) y se añadió `DiscardedDialog.tsx`: al tocar la tarjeta
+"Descartadas" se abre un diálogo con la rejilla de pósters y una ✕
+encima de cada uno para quitarlo — mismo diseño que
+`ListDetailDialog.tsx` (listas personalizadas), que es lo que se pidió
+explícitamente ("la x, como dentro de las listas").
+
+**Formato antiguo**: antes se guardaba por separado
+(`lbs:rejected:movie` / `lbs:rejected:tv`, solo números). Se cambia a
+una única clave `lbs:rejected:v2` con objetos completos; el formato
+antiguo se descarta sin más al leerlo (el contador vuelve a 0 la
+primera vez que alguien abre esta versión) — es solo una preferencia
+local, no datos de cuenta, así que no hay nada que migrar de verdad.
+
+**Dónde**: `lib/rejected.ts` (reescrito, con `RejectedItem`,
+`readRejectedList`, `removeRejected`, `REJECTED_EVENT`),
+`hooks/useRejected.ts` (nuevo, mismo patrón que `useWatchlist`),
+`components/summary/DiscardedDialog.tsx` (nuevo),
+`components/summary/MiResumenScreen.tsx` (la tarjeta DESCARTADAS pasa
+a ser un botón), `hooks/useRecommendations.ts` y
+`components/recommendations/QuickPicks.tsx` (pasan el título/póster/
+año al descartar, no solo el id), `tests/rejected.test.ts` (nuevo).

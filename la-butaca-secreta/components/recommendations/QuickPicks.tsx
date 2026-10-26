@@ -421,7 +421,14 @@ export default function QuickPicks() {
     });
 
     recordAvoid(movie.mediaType, movie.genreIds);
-    addRejected(movie.mediaType, movie.id);
+    addRejected({
+      id: movie.id,
+      type: movie.mediaType,
+      title: movie.title,
+      year: movie.year || undefined,
+      rating: movie.rating || undefined,
+      poster: movie.poster,
+    });
     replaceItem(movie);
   };
 
