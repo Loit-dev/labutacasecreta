@@ -86,6 +86,34 @@ export async function updateWatchedRating(
   }
 }
 
+/**
+ * Cambia solo la fecha en la que se vio un título ya guardado (desde
+ * el diario de Mi cuenta: tocar la fecha de una entrada para
+ * corregirla). La lista se reordena cronológicamente a partir de la
+ * nueva fecha, como con cualquier otra entrada.
+ */
+export async function updateWatchedSeenAt(
+  { userId, tmdbId, mediaType }: WatchedKey,
+  seenAt: string
+): Promise<boolean> {
+  if (!supabase) return false;
+
+  try {
+    const { error } = await supabase
+      .from("watched")
+      .update({ seen_at: seenAt })
+      .eq("user_id", userId)
+      .eq("tmdb_id", tmdbId)
+      .eq("media_type", mediaType);
+
+    return !error;
+  } catch (error) {
+    console.error("No se pudo actualizar la fecha:", error);
+
+    return false;
+  }
+}
+
 /** Borra una entrada del historial de "vistos" (el diario). */
 export async function deleteWatched({
   userId,

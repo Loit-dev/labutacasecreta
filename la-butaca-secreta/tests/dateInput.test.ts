@@ -1,7 +1,7 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
 
-import { dateInputToISO, todayDateInput } from "@/lib/dateInput";
+import { dateInputToISO, isoToDateInput, todayDateInput } from "@/lib/dateInput";
 
 describe("fecha del selector \"¿cuándo la viste?\"", () => {
   test("todayDateInput da YYYY-MM-DD de hoy", () => {
@@ -31,5 +31,11 @@ describe("fecha del selector \"¿cuándo la viste?\"", () => {
 
     assert.doesNotThrow(() => new Date(iso).toISOString());
     assert.ok(!Number.isNaN(new Date(iso).getTime()));
+  });
+
+  test("isoToDateInput es el inverso de dateInputToISO", () => {
+    for (const value of ["2026-01-01", "2026-06-15", "2026-12-31"]) {
+      assert.equal(isoToDateInput(dateInputToISO(value)), value);
+    }
   });
 });

@@ -471,16 +471,18 @@ export default function MiResumenScreen() {
               badgeTitle="TU FAVORITA"
               mediaType={titles.favorite.mediaType}
               title={titles.favorite.data}
+              onPosterClick={() => setPicking(true)}
+              posterClickLabel="Cambiar tu favorita"
             />
 
-            <button
-              type="button"
-              onClick={() => setPicking(true)}
-              aria-label="Cambiar tu favorita"
-              className="absolute right-1 top-1 z-10 rounded-full bg-black/70 px-1.5 py-0.5 text-[9px] font-semibold text-white backdrop-blur-sm transition-colors hover:bg-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            {/* Toda la portada ya es pulsable (onPosterClick, arriba);
+                esto es solo la pista visual de que se puede tocar. */}
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute right-1 top-1 z-30 rounded-full bg-black/70 px-1.5 py-0.5 text-[9px] font-semibold text-white backdrop-blur-sm"
             >
               Cambiar
-            </button>
+            </span>
           </div>
         ) : (
           <FavoriteCard onClick={() => setPicking(true)} />

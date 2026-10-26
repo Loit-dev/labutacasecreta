@@ -73,6 +73,15 @@ type Props = {
   onDetails?: () => void;
   onSeen?: () => void;
   onReject?: () => void;
+  /**
+   * Si se da, toda la portada se vuelve pulsable (encima del póster,
+   * la nota, etc.) para esta acción en vez de ir a la ficha del
+   * título (p.ej. "Mi Resumen": tocar la portada de la favorita para
+   * cambiarla). `onDetails` (el botón "Ver") sigue llevando a la
+   * ficha como siempre.
+   */
+  onPosterClick?: () => void;
+  posterClickLabel?: string;
 };
 
 export default function RecommendationCard({
@@ -94,6 +103,8 @@ export default function RecommendationCard({
   onDetails,
   onSeen,
   onReject,
+  onPosterClick,
+  posterClickLabel,
 }: Props) {
   return (
     <article
@@ -192,6 +203,14 @@ export default function RecommendationCard({
     </span>
   </button>
 )}
+        {onPosterClick && (
+          <button
+            type="button"
+            onClick={onPosterClick}
+            aria-label={posterClickLabel ?? `Cambiar: ${title}`}
+            className="absolute inset-0 z-20 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-white"
+          />
+        )}
       </div>
 
       <div
