@@ -81,6 +81,11 @@ export const metadata: Metadata = {
     follow: true,
   },
 
+  // Verificación de propiedad del sitio en Google Search Console
+  verification: {
+    google: "1axYKhgmC2YcMj6PlYbyz0lTINnA_y-2s3x1AudJWL0",
+  },
+
   // Icono al «Añadir a pantalla de inicio» (iPhone)
   icons: {
     apple: "/icons/apple-touch-icon.png",
