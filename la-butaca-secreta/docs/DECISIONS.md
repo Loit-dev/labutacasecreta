@@ -445,3 +445,33 @@ LegalPage.tsx`, `components/recommendations/DetailsModal.tsx`,
 `components/recommendations/RatingPrompt.tsx`,
 `components/recommendations/ShareDialog.tsx`,
 `components/recommendations/SharedRecommendations.tsx`.
+
+---
+
+## 2026-10 · Fecha elegible al marcar "Ya la vi"
+
+**Decisión**: al marcar un título como visto (`RatingPrompt.tsx`, en
+el flujo normal, no al editar una nota ya puesta desde el diario), se
+puede elegir la fecha en la que se vio con un `<input type="date">`,
+con el día de hoy por defecto y sin permitir fechas futuras (`max`).
+Se guarda en `watched.seen_at` tal cual (la columna ya era
+`timestamptz` libre, sin cambios de esquema).
+
+**Por qué el mediodía local y no medianoche**: `lib/dateInput.ts`
+convierte el `YYYY-MM-DD` del input a ISO usando el mediodía en el
+huso horario del navegador (no medianoche UTC), para que un desfase
+de huso horario al guardar o releer no cambie el día mostrado en el
+diario (`DiaryTab.tsx` agrupa y pinta usando `new Date(seenAt)` en
+hora local).
+
+**Por qué no al editar desde el diario**: cambiar solo la nota de una
+entrada antigua (`updateWatchedRating`) deliberadamente no toca la
+fecha (decisión previa, ver el comentario en
+`lib/supabase/watched.ts`); el selector de fecha solo tiene sentido la
+primera vez que se marca como vista.
+
+**Dónde**: `lib/dateInput.ts` (nuevo), `components/recommendations/
+RatingPrompt.tsx`, `lib/supabase/watched.ts` (`saveWatched` acepta
+`seenAt` opcional), `components/recommendations/Recommendations.tsx`,
+`components/recommendations/QuickPicks.tsx`,
+`components/title/TitleActions.tsx`.

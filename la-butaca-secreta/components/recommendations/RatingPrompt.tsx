@@ -4,6 +4,7 @@ import { useId, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { useDialog } from "@/hooks/useDialog";
+import { todayDateInput } from "@/lib/dateInput";
 import type { Rating } from "@/lib/rating";
 
 type Props = {
@@ -12,7 +13,12 @@ type Props = {
   initial?: Rating;
   /** true cuando se abre para cambiar una nota ya puesta (diario), no al marcar como vista por primera vez. */
   editing?: boolean;
-  onConfirm: (rating: Rating | undefined) => void;
+  /**
+   * `seenAt` es la fecha elegida (YYYY-MM-DD, huso horario local), hoy
+   * por defecto; se omite al editar una nota ya puesta, porque ahí no
+   * se toca la fecha (ver lib/supabase/watched.ts).
+   */
+  onConfirm: (rating: Rating | undefined, seenAt?: string) => void;
 };
 
 /**
@@ -34,9 +40,12 @@ export default function RatingPrompt({
 }: Props) {
   const [selected, setSelected] = useState<Rating | null>(initial ?? null);
 
+  const [seenAt, setSeenAt] = useState(todayDateInput);
+
   const uid = useId();
 
-  const close = () => onConfirm(selected ?? undefined);
+  const close = () =>
+    onConfirm(selected ?? undefined, editing ? undefined : seenAt);
 
   const dialogRef = useDialog<HTMLDivElement>(close);
 
@@ -122,6 +131,19 @@ export default function RatingPrompt({
             ? " Deja todas las estrellas vacías para quitar la nota."
             : " Puedes marcarla como vista sin puntuar."}
         </p>
+
+        {!editing && (
+          <label className="mt-4 flex items-center justify-center gap-2 text-sm text-zinc-300">
+            ¿Cuándo la viste?
+            <input
+              type="date"
+              value={seenAt}
+              max={todayDateInput()}
+              onChange={(event) => setSeenAt(event.target.value)}
+              className="rounded-lg border border-zinc-700/80 bg-black/40 px-2 py-1 text-white [color-scheme:dark] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            />
+          </label>
+        )}
 
         <button
           type="button"

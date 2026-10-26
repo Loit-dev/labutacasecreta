@@ -20,6 +20,7 @@ import { useWatchlist } from "@/hooks/useWatchlist";
 import { track } from "@/lib/analytics";
 import { recordAvoid, recordBoost } from "@/lib/genreAffinity";
 import { UserProfile } from "@/lib/conversation/types";
+import { dateInputToISO } from "@/lib/dateInput";
 import { formatNames } from "@/lib/group";
 import type { Rating } from "@/lib/rating";
 import { setRating } from "@/lib/rating";
@@ -372,7 +373,7 @@ export default function Recommendations({
   // Confirma (o salta) la valoración al marcar "Ya la vi": guarda en
   // local y, si hay sesión, también en Supabase; luego marca como
   // vista como siempre.
-  const confirmRating = (rating: Rating | undefined) => {
+  const confirmRating = (rating: Rating | undefined, seenAt?: string) => {
     const movie = ratingFor;
 
     if (!movie) return;
@@ -400,6 +401,7 @@ export default function Recommendations({
         rating,
         genres: movie.genres,
         posterUrl: movie.poster,
+        seenAt: seenAt ? dateInputToISO(seenAt) : undefined,
       });
     }
 
