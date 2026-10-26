@@ -32,19 +32,19 @@ export default function PlatformPicker({
   }
 
   return (
-    <div data-platform-picker className="mt-8">
-      <p className="marquee-font flex items-center justify-center gap-1.5 text-center text-base text-zinc-200">
-        <TvIcon size={16} /> ¿Dónde vas a verla?
+    <div data-platform-picker className="mt-4">
+      <p className="marquee-font flex items-center justify-center gap-1.5 text-center text-sm text-zinc-200">
+        <TvIcon size={14} /> ¿Dónde vas a verla?
       </p>
 
-      <p className="mt-1 text-center text-xs text-zinc-400">
+      <p className="mt-0.5 text-center text-xs text-zinc-400">
         Marca tus plataformas y solo te recomendaré lo que puedas ver.
       </p>
 
       <div
         role="group"
         aria-label="Tus plataformas"
-        className="mt-3 flex flex-wrap justify-center gap-1.5 sm:gap-2"
+        className="mt-2 flex flex-wrap justify-center gap-1.5 sm:gap-2"
       >
         {PLATFORMS.map((platform) => {
           const on = selected.includes(platform.key);

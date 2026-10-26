@@ -107,7 +107,7 @@ function Perforation() {
   return (
     <div
       aria-hidden="true"
-      className="mt-6 h-px opacity-60"
+      className="mt-4 h-px opacity-60"
       style={{
         backgroundImage:
           "repeating-linear-gradient(90deg, transparent 0 6px, rgba(250,246,236,0.16) 6px 8px)",
@@ -180,10 +180,6 @@ export default function ModeSelect({
       </Link>
 
       <Perforation />
-
-      <p className="mt-4 text-center text-[11px] font-semibold uppercase tracking-[0.15em] text-zinc-500">
-        Sin IA generativa — recomendaciones por reglas propias
-      </p>
 
       <PlatformPicker
         selected={platforms}
