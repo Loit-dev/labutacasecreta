@@ -28,7 +28,7 @@ export default function MiCuentaPage() {
             relative
             z-30
             w-full
-            max-w-lg
+            max-w-4xl
             overflow-hidden
 
             rounded-3xl
