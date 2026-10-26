@@ -64,7 +64,7 @@ export default function PendingTab() {
             <button
               onClick={() => remove(item.id, item.type)}
               aria-label={`Quitar de pendientes: ${item.title}`}
-              className="shrink-0 rounded-lg border border-zinc-700 px-3 py-2 text-xs font-medium text-zinc-200 hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              className="marquee-font shrink-0 rounded-lg border border-zinc-700 px-3 py-2 text-xs text-zinc-200 hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
               Quitar
             </button>

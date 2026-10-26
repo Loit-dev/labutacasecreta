@@ -383,3 +383,32 @@ de esa navegación principal. `BRAND.md` se actualiza en consecuencia.
 `components/conversation/Conversation.tsx`,
 `components/layout/AccountTabLink.tsx`,
 `components/recommendations/RecommendationCard.tsx`, `docs/BRAND.md`.
+
+---
+
+**Fecha**: 26 oct 2026.
+
+**Qué pasó**: tras llevar a producción la cohesión visual general, se
+pidió extender el mismo enfoque al apartado "Mi cuenta" (perfil,
+diario, listas, pendientes) y a la pantalla de login, que se habían
+quedado con el estilo antiguo (emoji, Manrope, bordes sólidos).
+
+**Decisión**: la barra de pestañas de `AccountScreen.tsx` pasa a usar
+el mismo patrón que la barra principal (`Conversation.tsx`): borde
+inferior discontinuo dorado en la pestaña activa, etiquetas en
+`.marquee-font`, e iconos SVG propios nuevos (`DiaryIcon`, `ListsIcon`,
+`PendingIcon` en `TabIcons.tsx`, reutilizando `AccountIcon` para
+"Perfil"). Dentro de cada pestaña: la cabecera de mes del diario, el
+botón "Crear" de listas y el botón "Quitar" de pendientes pasan a
+`.marquee-font`. El titular de "Mi Resumen" (`MiResumenScreen.tsx`)
+también pasa a `.marquee-font` (frases cortas, encajan bien). En la
+pantalla de login (`app/entrar/`), el titular y el botón "Continuar
+con Google" (ahora con borde discontinuo dorado, a juego con el resto
+de botones "ticket") y "Enviarme el enlace mágico" pasan a
+`.marquee-font`.
+
+**Dónde**: `components/account/AccountScreen.tsx`,
+`components/account/DiaryTab.tsx`, `components/account/ListsTab.tsx`,
+`components/account/PendingTab.tsx`, `components/conversation/
+TabIcons.tsx`, `components/summary/MiResumenScreen.tsx`,
+`app/entrar/page.tsx`, `app/entrar/LoginForm.tsx`.
