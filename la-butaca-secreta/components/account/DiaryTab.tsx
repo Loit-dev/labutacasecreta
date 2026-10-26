@@ -154,7 +154,7 @@ export default function DiaryTab({ session }: { session: Session }) {
     <div className="flex flex-col gap-5">
       {groups.map((group) => (
         <div key={group.label}>
-          <p className="mb-2 text-xs font-bold tracking-wide text-zinc-400">
+          <p className="marquee-font mb-2 text-sm text-zinc-400">
             {group.label}
           </p>
 

@@ -53,3 +53,39 @@ export function AccountIcon() {
     </svg>
   );
 }
+
+// Iconos de la pestaña "Mi cuenta" (components/account/AccountScreen.tsx):
+// mismo lenguaje visual que los de arriba.
+
+export function DiaryIcon() {
+  return (
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M4 5.5c2.2-1 5-1 8 0v13c-3-1-5.8-1-8 0v-13zM20 5.5c-2.2-1-5-1-8 0v13c3-1 5.8-1 8 0v-13z"
+        stroke="#facc15"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function ListsIcon() {
+  return (
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M9 6.5h11M9 12h11M9 17.5h11" stroke="#facc15" strokeWidth="1.6" strokeLinecap="round" />
+      <circle cx="4.2" cy="6.5" r="1.3" fill="#facc15" />
+      <circle cx="4.2" cy="12" r="1.3" fill="#facc15" />
+      <circle cx="4.2" cy="17.5" r="1.3" fill="#facc15" />
+    </svg>
+  );
+}
+
+export function PendingIcon() {
+  return (
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="8" stroke="#facc15" strokeWidth="1.6" />
+      <path d="M12 7.5V12l3 2" stroke="#facc15" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}

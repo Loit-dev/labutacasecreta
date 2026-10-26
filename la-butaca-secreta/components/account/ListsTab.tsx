@@ -135,7 +135,7 @@ export default function ListsTab({ session }: { session: Session }) {
 
           <button
             onClick={submitCreate}
-            className="shrink-0 rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            className="marquee-font shrink-0 rounded-xl bg-red-600 px-4 py-2 text-base text-white hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
           >
             Crear
           </button>

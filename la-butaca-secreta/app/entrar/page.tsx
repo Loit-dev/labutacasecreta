@@ -55,7 +55,7 @@ export default function LoginPage() {
         >
           <Link
             href="/"
-            className="mb-6 inline-block text-xs font-semibold text-zinc-300 underline underline-offset-2 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            className="marquee-font mb-6 inline-block text-sm text-zinc-300 underline underline-offset-2 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
           >
             ← Seguir sin cuenta
           </Link>
@@ -65,10 +65,7 @@ export default function LoginPage() {
               🎬
             </div>
 
-            <h1
-              className="mt-2 text-xl font-bold text-white"
-              style={{ fontFamily: "var(--font-manrope)" }}
-            >
+            <h1 className="marquee-font mt-2 text-2xl text-white">
               {SITE_NAME}
             </h1>
 

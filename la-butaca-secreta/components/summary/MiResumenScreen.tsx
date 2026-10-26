@@ -327,10 +327,7 @@ export default function MiResumenScreen() {
   return (
     <div className="flex flex-col gap-5">
       <div className="text-center">
-        <h1
-          className="text-2xl font-black text-white"
-          style={{ fontFamily: "var(--font-manrope)" }}
-        >
+        <h1 className="marquee-font text-3xl text-white">
           {stats.headline}
         </h1>
 
