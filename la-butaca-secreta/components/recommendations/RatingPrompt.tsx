@@ -54,7 +54,7 @@ export default function RatingPrompt({
         onClick={(event) => event.stopPropagation()}
         className="w-full max-w-sm rounded-2xl border border-zinc-700/80 bg-gradient-to-br from-zinc-900 via-black to-zinc-950 px-6 py-6 text-center shadow-[0_8px_20px_rgba(0,0,0,0.45)]"
       >
-        <p className="text-base font-bold text-white">
+        <p className="marquee-font text-xl text-white">
           ¿Qué te pareció <span className="text-zinc-300">{title}</span>?
         </p>
 
@@ -126,7 +126,7 @@ export default function RatingPrompt({
         <button
           type="button"
           onClick={close}
-          className="mt-4 w-full rounded-2xl bg-white px-5 py-3 text-sm font-bold text-black transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          className="marquee-font mt-4 w-full rounded-2xl bg-white px-5 py-3 text-base text-black transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
           {editing ? "Guardar" : selected ? "Guardar valoración" : "Marcar como vista"}
         </button>

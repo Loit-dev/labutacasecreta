@@ -25,10 +25,7 @@ export default function NotFound() {
         🎬
       </p>
 
-      <h1
-        className="mt-4 text-3xl font-extrabold tracking-tight text-white sm:text-4xl"
-        style={{ fontFamily: "var(--font-manrope)" }}
-      >
+      <h1 className="marquee-font mt-4 text-4xl text-white sm:text-5xl">
         Esta escena no existe
       </h1>
 
@@ -40,14 +37,14 @@ export default function NotFound() {
       <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
         <Link
           href="/"
-          className="rounded-full bg-red-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          className="marquee-font rounded-full bg-red-600 px-5 py-2.5 text-base text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
           Pedir recomendaciones
         </Link>
 
         <Link
           href="/?tab=calendario"
-          className="rounded-full border border-zinc-700 bg-zinc-800 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-zinc-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          className="marquee-font rounded-full border border-zinc-700 bg-zinc-800 px-5 py-2.5 text-base text-white transition-colors hover:bg-zinc-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
           Ver el calendario
         </Link>

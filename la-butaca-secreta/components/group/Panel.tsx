@@ -38,7 +38,7 @@ export default function Panel({
       }`}
     >
       {eyebrow && (
-        <p className="text-center text-xs font-semibold uppercase tracking-widest text-zinc-400">
+        <p className="marquee-font text-center text-sm text-zinc-400">
           {eyebrow}
         </p>
       )}
@@ -46,10 +46,9 @@ export default function Panel({
       <h2
         ref={heading}
         tabIndex={-1}
-        className={`mt-1 text-center font-bold text-white outline-none ${
-          large ? "text-2xl md:text-3xl" : "text-xl"
+        className={`marquee-font mt-1 text-center text-white outline-none ${
+          large ? "text-3xl md:text-4xl" : "text-2xl"
         }`}
-        style={{ fontFamily: "var(--font-manrope)" }}
       >
         {title}
       </h2>

@@ -18,15 +18,12 @@ export default function LegalPage({
     <main className="relative z-30 mx-auto w-full max-w-3xl px-6 py-12">
       <Link
         href="/"
-        className="text-sm text-zinc-400 underline-offset-2 hover:text-white hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+        className="marquee-font text-base text-zinc-400 underline-offset-2 hover:text-white hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
       >
         ← Volver a {SITE_NAME}
       </Link>
 
-      <h1
-        className="mt-6 text-3xl font-extrabold tracking-tight text-white sm:text-4xl"
-        style={{ fontFamily: "var(--font-manrope)" }}
-      >
+      <h1 className="marquee-font mt-6 text-4xl text-white sm:text-5xl">
         {title}
       </h1>
 

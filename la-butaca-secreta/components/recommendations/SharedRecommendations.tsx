@@ -191,7 +191,7 @@ export default function SharedRecommendations({
       <div className="mt-10 text-center">
         <Link
           href="/"
-          className="inline-block rounded-xl bg-red-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          className="marquee-font inline-block rounded-xl bg-red-600 px-6 py-3 text-base text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
           <span aria-hidden="true">🎬</span> Quiero las mías: hacer
           el cuestionario

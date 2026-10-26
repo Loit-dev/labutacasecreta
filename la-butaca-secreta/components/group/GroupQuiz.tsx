@@ -67,7 +67,7 @@ function labelOf(question: string, value: string) {
 }
 
 const primaryButton =
-  "rounded-xl bg-red-700 px-6 py-3 font-semibold text-white transition hover:bg-red-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white";
+  "marquee-font rounded-md bg-red-700 px-6 py-3 text-lg text-white transition hover:bg-red-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white";
 
 export default function GroupQuiz({
   platforms = "",
