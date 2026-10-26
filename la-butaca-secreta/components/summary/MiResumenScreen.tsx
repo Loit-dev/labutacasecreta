@@ -80,21 +80,31 @@ function Bars({ last14 }: { last14: SummaryStats["last14"] }) {
 
   return (
     <div
-      className="flex h-24 items-end gap-1.5"
+      className="flex h-28 items-end gap-1.5"
       role="img"
       aria-label={`Vistas de los últimos 14 días: ${last14
-        .map((d) => d.count)
+        .map((d) => `${d.date}: ${d.count}`)
         .join(", ")}`}
     >
       {last14.map((d) => (
         <div
           key={d.date}
-          className="flex-1 rounded-t-md bg-gradient-to-t from-orange-600 to-amber-400"
-          style={{
-            height: `${Math.max(6, (d.count / max) * 100)}%`,
-          }}
+          className="flex h-full flex-1 flex-col items-center justify-end"
           title={`${d.date}: ${d.count}`}
-        />
+        >
+          {/* Altura fija siempre reservada, aunque esté vacía, para que
+              todas las barras sigan arrancando a la misma altura. */}
+          <span className="mb-1 h-3 text-[9px] font-bold leading-3 text-amber-300">
+            {d.count > 0 ? d.count : ""}
+          </span>
+
+          <div
+            className="w-full rounded-t-md bg-gradient-to-t from-orange-600 to-amber-400"
+            style={{
+              height: `${Math.max(6, (d.count / max) * 100)}%`,
+            }}
+          />
+        </div>
       ))}
     </div>
   );
@@ -337,7 +347,7 @@ export default function MiResumenScreen() {
       </div>
 
       <div className={`${CARD} p-4`}>
-        <div className="mb-3 flex items-center justify-between">
+        <div className="mb-4 flex items-center justify-between border-b border-dashed border-white/10 pb-3">
           <span className="text-sm font-bold text-white">
             Vistas · últimos 14 días
           </span>
