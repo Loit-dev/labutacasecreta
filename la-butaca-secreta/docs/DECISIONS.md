@@ -227,3 +227,42 @@ filtro por "contiene la cadena" resuelve el caso real detectado sin
 añadir una dependencia ni lógica que haya que mantener.
 
 **Dónde**: `app/api/search/route.ts`.
+
+---
+
+## Tres mejoras visuales: inicio, tarjeta de recomendación y calendario
+
+**Fecha**: 26 oct 2026.
+
+**Qué pasó**: a partir de tres mockups (pedidos para ver cómo podría
+mejorarse la apariencia de la web), se llevaron a código los tres
+cambios, sin tocar ninguna lógica ni contrato de props existente:
+
+1. **Inicio más visual** (`components/conversation/ModeSelect.tsx`):
+   los emoji de Solo/Acompañado/Butaca Exprés se sustituyen por iconos
+   SVG propios en una insignia de color, con una flecha al final de
+   cada tarjeta.
+2. **Tarjeta de recomendación enriquecida**
+   (`components/recommendations/RecommendationCard.tsx`): la nota
+   (⭐) pasa a una insignia sobre el póster en vez de ir en el texto, y
+   los botones «Guardar» / «Ya la vi» / «No me apetece» pasan de texto
+   con emoji a icono + etiqueta apilados. Sin cambios en `Props`: los
+   8 sitios que usan esta tarjeta (`Recommendations`, `QuickPicks`,
+   `FavoriteCard`, `SummaryTitleCard`, `SharedRecommendations`,
+   `CatalogGrid`...) no se han tocado.
+3. **Calendario con pósters** (`components/calendar/CalendarView.tsx`):
+   tira horizontal «Próximos estrenos» con miniatura de póster por
+   día (calculada sobre el mes ya cargado, sin pedir ningún dato
+   nuevo), y los días de la cuadrícula con estreno muestran el póster
+   de fondo en vez de solo los logos de plataforma.
+
+**Alternativa descartada**: para el calendario, pedir también el mes
+siguiente para alimentar "Próximos estrenos" a final de mes.
+Descartado por ahora para no añadir una petición de red adicional al
+cargar la página (ver la entrada de arriba, "datos de hoy
+precargados..."): la tira solo usa lo que ya está en memoria y puede
+quedar vacía los últimos días del mes.
+
+**Dónde**: `components/conversation/ModeSelect.tsx`,
+`components/recommendations/RecommendationCard.tsx`,
+`components/calendar/CalendarView.tsx`.
