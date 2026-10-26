@@ -10,6 +10,9 @@ type Props = {
   badgeTitle: string;
   mediaType: "movie" | "tv";
   title: Recommendation;
+  /** Si se da, tocar la portada entera hace esto en vez de ir a la ficha. */
+  onPosterClick?: () => void;
+  posterClickLabel?: string;
 };
 
 /**
@@ -24,6 +27,8 @@ export default function SummaryTitleCard({
   badgeTitle,
   mediaType,
   title,
+  onPosterClick,
+  posterClickLabel,
 }: Props) {
   const router = useRouter();
 
@@ -45,6 +50,8 @@ export default function SummaryTitleCard({
           `/${mediaType === "tv" ? "serie" : "pelicula"}/${title.id}`
         )
       }
+      onPosterClick={onPosterClick}
+      posterClickLabel={posterClickLabel}
     />
   );
 }

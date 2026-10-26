@@ -6,10 +6,16 @@ import Link from "next/link";
 import type { Session } from "@supabase/supabase-js";
 
 import RatingPrompt from "@/components/recommendations/RatingPrompt";
+import { dateInputToISO, isoToDateInput } from "@/lib/dateInput";
 import type { Rating } from "@/lib/rating";
-import { deleteWatched, updateWatchedRating } from "@/lib/supabase/watched";
+import {
+  deleteWatched,
+  updateWatchedRating,
+  updateWatchedSeenAt,
+} from "@/lib/supabase/watched";
 import { fetchWatchedHistory, type WatchedRow } from "@/lib/supabase/summary";
 
+import EditSeenDateDialog from "./EditSeenDateDialog";
 import StarDisplay from "./StarDisplay";
 
 const MONTH_ABBR = [
@@ -32,6 +38,13 @@ type EditTarget = {
   mediaType: "movie" | "tv";
   title: string;
   rating?: Rating;
+};
+
+type DateEditTarget = {
+  tmdbId: number;
+  mediaType: "movie" | "tv";
+  title: string;
+  seenAt: string;
 };
 
 function monthLabel(dateStr: string): string {
@@ -57,6 +70,7 @@ function monthAbbr(dateStr: string): string {
 export default function DiaryTab({ session }: { session: Session }) {
   const [rows, setRows] = useState<WatchedRow[] | null>(null);
   const [editing, setEditing] = useState<EditTarget | null>(null);
+  const [editingDate, setEditingDate] = useState<DateEditTarget | null>(null);
   const [busyKey, setBusyKey] = useState<string | null>(null);
 
   useEffect(() => {
@@ -98,6 +112,45 @@ export default function DiaryTab({ session }: { session: Session }) {
             ? { ...row, rating }
             : row
         ) ?? null
+      );
+    }
+  };
+
+  // Cambia la fecha de una entrada ya puesta (tocar la fecha de una
+  // fila) y recoloca el diario cronológicamente con la nueva fecha:
+  // se reordena todo el array, no solo esa fila, porque el agrupado
+  // por mes de más abajo da por hecho que `rows` ya viene de más
+  // reciente a más antiguo.
+  const confirmDate = async (seenAtInput: string) => {
+    const target = editingDate;
+
+    setEditingDate(null);
+
+    if (!target) return;
+
+    const key = `${target.mediaType}-${target.tmdbId}`;
+
+    setBusyKey(key);
+
+    const seenAt = dateInputToISO(seenAtInput);
+
+    const ok = await updateWatchedSeenAt(
+      { userId: session.user.id, tmdbId: target.tmdbId, mediaType: target.mediaType },
+      seenAt
+    );
+
+    setBusyKey(null);
+
+    if (ok) {
+      setRows((prev) =>
+        prev
+          ?.map((row) =>
+            row.tmdbId === target.tmdbId && row.mediaType === target.mediaType
+              ? { ...row, seenAt }
+              : row
+          )
+          .sort((a, b) => (a.seenAt < b.seenAt ? 1 : a.seenAt > b.seenAt ? -1 : 0)) ??
+        null
       );
     }
   };
@@ -168,14 +221,28 @@ export default function DiaryTab({ session }: { session: Session }) {
                   key={key}
                   className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/30 p-3"
                 >
-                  <div className="flex h-11 w-9 shrink-0 flex-col items-center justify-center rounded-lg border border-zinc-700">
+                  <button
+                    type="button"
+                    disabled={busyKey === key}
+                    onClick={() =>
+                      setEditingDate({
+                        tmdbId: row.tmdbId,
+                        mediaType: row.mediaType,
+                        title: row.title,
+                        seenAt: row.seenAt,
+                      })
+                    }
+                    aria-label={`Cambiar la fecha en la que viste ${row.title}`}
+                    title="Cambiar fecha"
+                    className="flex h-11 w-9 shrink-0 flex-col items-center justify-center rounded-lg border border-zinc-700 transition-colors hover:border-amber-300/60 disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                  >
                     <span className="text-sm font-bold text-zinc-200">
                       {dayNumber(row.seenAt)}
                     </span>
                     <span className="text-[9px] font-bold tracking-wide text-zinc-500">
                       {monthAbbr(row.seenAt)}
                     </span>
-                  </div>
+                  </button>
 
                   <Link
                     href={href}
@@ -247,6 +314,15 @@ export default function DiaryTab({ session }: { session: Session }) {
           initial={editing.rating}
           editing
           onConfirm={confirmRating}
+        />
+      )}
+
+      {editingDate && (
+        <EditSeenDateDialog
+          title={editingDate.title}
+          initial={isoToDateInput(editingDate.seenAt)}
+          onConfirm={confirmDate}
+          onCancel={() => setEditingDate(null)}
         />
       )}
     </div>

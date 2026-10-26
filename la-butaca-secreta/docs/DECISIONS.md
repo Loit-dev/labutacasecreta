@@ -475,3 +475,31 @@ RatingPrompt.tsx`, `lib/supabase/watched.ts` (`saveWatched` acepta
 `seenAt` opcional), `components/recommendations/Recommendations.tsx`,
 `components/recommendations/QuickPicks.tsx`,
 `components/title/TitleActions.tsx`.
+
+---
+
+## 2026-10 · Toda la portada cambia la favorita; fecha editable desde el diario
+
+**Decisión (favorita)**: en "Mi Resumen", tocar la portada entera de
+"Tu favorita" (no solo el pequeño rótulo "Cambiar") abre el selector
+de favorita. `RecommendationCard` gana un `onPosterClick` opcional
+(botón transparente `absolute inset-0 z-20` sobre el póster, por
+encima de la nota y del resto de capas decorativas) que no afecta a
+ningún otro uso de la tarjeta porque nadie más lo pasa. El rótulo
+"Cambiar" se queda como pista visual (`pointer-events-none`, ya no es
+un `<button>` aparte) para no duplicar la acción.
+
+**Decisión (fecha en el diario)**: en el diario de Mi cuenta, tocar la
+fecha (día/mes) de una entrada abre `EditSeenDateDialog` para
+corregirla; al guardar, se llama a la nueva `updateWatchedSeenAt`
+(`lib/supabase/watched.ts`) y el array local `rows` se reordena entero
+por `seenAt` descendente, no solo esa fila, porque el agrupado por mes
+de `DiaryTab.tsx` dan por hecho que las filas ya vienen ordenadas de
+más reciente a más antigua.
+
+**Dónde**: `components/recommendations/RecommendationCard.tsx`
+(`onPosterClick`, `posterClickLabel`), `components/summary/
+SummaryTitleCard.tsx`, `components/summary/MiResumenScreen.tsx`,
+`components/account/EditSeenDateDialog.tsx` (nuevo),
+`components/account/DiaryTab.tsx`, `lib/supabase/watched.ts`
+(`updateWatchedSeenAt`), `lib/dateInput.ts` (`isoToDateInput`).

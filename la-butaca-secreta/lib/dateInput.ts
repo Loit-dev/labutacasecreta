@@ -23,3 +23,12 @@ export function dateInputToISO(value: string): string {
 
   return new Date(year, (month || 1) - 1, day || 1, 12, 0, 0).toISOString();
 }
+
+/** El inverso: un timestamp ISO a YYYY-MM-DD en huso horario local. */
+export function isoToDateInput(iso: string): string {
+  const date = new Date(iso);
+
+  const pad = (n: number) => String(n).padStart(2, "0");
+
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
