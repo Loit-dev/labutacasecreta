@@ -347,7 +347,7 @@ export default function MiResumenScreen() {
       </div>
 
       <div className={`${CARD} p-4`}>
-        <div className="mb-3 flex items-center justify-between">
+        <div className="mb-4 flex items-center justify-between border-b border-dashed border-white/10 pb-3">
           <span className="text-sm font-bold text-white">
             Vistas · últimos 14 días
           </span>
