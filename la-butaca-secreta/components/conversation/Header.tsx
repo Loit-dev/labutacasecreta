@@ -3,33 +3,26 @@ export default function Header() {
     <header className="text-center">
       <h1
         className="
+          marquee-font
           mx-auto
           mt-1
           max-w-4xl
-          text-3xl
-          font-extrabold
-          tracking-tight
+          text-4xl
           leading-none
           text-white
           sm:mt-4
-          sm:text-5xl
+          sm:text-6xl
         "
-        style={{
-          fontFamily: "var(--font-manrope)",
-        }}
       >
-        Descubre historias
+        Tu sesión
         <br />
-        <span className="text-white">
-          hechas{" "}
-        </span>
         <span className="bg-gradient-to-r from-amber-300 via-red-500 to-red-700 bg-clip-text text-transparent">
-          para ti.
+          empieza aquí.
         </span>
       </h1>
 
       <p className="mx-auto mt-2 max-w-xl text-sm text-zinc-400 sm:mt-4 sm:text-lg">
-        Cuéntame qué te apetece y encontraré algo para ti.
+        Elige tu entrada. Nosotros apagamos las luces.
       </p>
     </header>
   );

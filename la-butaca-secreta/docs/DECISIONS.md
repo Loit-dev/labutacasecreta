@@ -310,3 +310,47 @@ pendiente decidir si se documenta como excepción permanente en
 **Dónde**: `components/conversation/ModeSelect.tsx`,
 `components/conversation/Header.tsx`,
 `components/recommendations/RecommendationCard.tsx`.
+
+---
+
+**Fecha**: 26 oct 2026.
+
+**Qué pasó**: tras ver el mockup "Inicio — entrada de cine" (ticket
+rasgado, tipografía Bebas Neue en mayúsculas), se pidió explícitamente
+usar esa tipografía real en el sitio y dar cohesión visual completa a
+toda la web con el enfoque "entrada de cine" — en particular la barra
+de pestañas, que no encajaba con el resto.
+
+**Decisión**: se añade **Bebas Neue** como tercera familia tipográfica
+(`--font-marquee` en `app/layout.tsx`, clase `.marquee-font` en
+`globals.css`), reservada a titulares grandes y rótulos cortos de UI
+(nunca texto de lectura). Esto revierte la decisión de la entrada
+anterior de simular el efecto "marquesina" solo con Manrope en
+mayúsculas — el usuario confirmó que quería la tipografía real del
+mockup, no la simulación. Se aplica en: `Header.tsx` (titular "Tu
+sesión / empieza aquí.", con la bajada "Elige tu entrada. Nosotros
+apagamos las luces."); `ModeSelect.tsx` (título "¿Cómo vas a verla?",
+botones renombrados a "Butaca 1 · Solo" / "Butacas · Acompañado" /
+"Pase Exprés", y nueva nota "Sin IA generativa — recomendaciones por
+reglas propias" bajo la perforación); la barra de pestañas y el enlace
+de cuenta en `Conversation.tsx`/`AccountTabLink.tsx` (borde discontinuo
+dorado en vez de rojo sólido, etiquetas en `.marquee-font`); las
+etiquetas cortas de `RecommendationCard.tsx` (badge, "Ver detalles",
+Guardar/Ya la vi/No me apetece); y los titulares y botones de
+navegación de `CalendarView.tsx` ("Calendario de estrenos", el mes,
+"Próximos estrenos", el título del día). El texto de lectura (sinopsis,
+pistas, hints descriptivos) se queda en Geist/Manrope sin cambios.
+
+**Alternativa descartada**: la entrada anterior había descartado una
+tercera familia por la regla de `BRAND.md`. Esa regla se actualiza
+aquí explícitamente — ya no aplica — en vez de quedar en contradicción
+con el código.
+
+**Dónde**: `app/layout.tsx`, `app/globals.css`,
+`components/conversation/Header.tsx`,
+`components/conversation/ModeSelect.tsx`,
+`components/conversation/PlatformPicker.tsx`,
+`components/conversation/Conversation.tsx`,
+`components/layout/AccountTabLink.tsx`,
+`components/recommendations/RecommendationCard.tsx`,
+`components/calendar/CalendarView.tsx`, `docs/BRAND.md`.

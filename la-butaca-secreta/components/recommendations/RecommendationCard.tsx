@@ -214,8 +214,8 @@ export default function RecommendationCard({
           <div
             className={
               compact
-                ? "truncate text-[9px] font-semibold uppercase tracking-wide text-yellow-400"
-                : "text-xs font-semibold uppercase tracking-wider text-yellow-400"
+                ? "marquee-font truncate text-[11px] text-yellow-400"
+                : "marquee-font text-sm text-yellow-400"
             }
           >
             <span aria-hidden="true">{badge}</span> {badgeTitle}
@@ -278,8 +278,8 @@ export default function RecommendationCard({
   aria-label={`Ver detalles de ${title}`}
   className={
     compact
-      ? "mt-auto w-full rounded-md bg-red-600 px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-      : "mt-auto w-full rounded-md bg-red-600 px-4 py-3 text-sm font-semibold uppercase tracking-wide text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+      ? "marquee-font mt-auto w-full rounded-md bg-red-600 px-2 py-1.5 text-xs text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+      : "marquee-font mt-auto w-full rounded-md bg-red-600 px-4 py-3 text-base text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
   }
 >
   {compact ? "Ver" : "Ver detalles"}
@@ -305,7 +305,7 @@ export default function RecommendationCard({
               >
                 <SaveIcon filled={saved} />
                 <span
-                  className={`text-[10.5px] font-semibold ${
+                  className={`marquee-font text-xs ${
                     saved ? "text-yellow-300" : "text-zinc-300"
                   }`}
                 >
@@ -322,7 +322,7 @@ export default function RecommendationCard({
                 className="flex flex-1 flex-col items-center gap-1 rounded-md border border-dashed border-zinc-700/70 bg-zinc-800/40 px-1 py-2 transition-colors hover:border-zinc-500 hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
               >
                 <SeenIcon />
-                <span className="text-[10.5px] font-semibold text-zinc-300">
+                <span className="marquee-font text-xs text-zinc-300">
                   Ya la vi
                 </span>
               </button>
@@ -336,7 +336,7 @@ export default function RecommendationCard({
                 className="flex flex-1 flex-col items-center gap-1 rounded-md border border-dashed border-zinc-700/70 bg-zinc-800/40 px-1 py-2 transition-colors hover:border-zinc-500 hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
               >
                 <RejectIcon />
-                <span className="text-[10.5px] font-semibold text-zinc-300">
+                <span className="marquee-font text-xs text-zinc-300">
                   No me apetece
                 </span>
               </button>

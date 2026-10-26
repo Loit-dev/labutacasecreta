@@ -135,6 +135,14 @@ section {
   font-family: var(--font-manrope);
 }
 
+/* Tipografía de marquesina ("entrada de cine"): solo titulares y
+   rótulos cortos (ver docs/BRAND.md). Letras más separadas porque
+   Bebas Neue es condensada y, sin tracking, se aprieta demasiado. */
+.marquee-font {
+  font-family: var(--font-marquee);
+  letter-spacing: 0.04em;
+}
+
 /* Animación tarjetas recomendaciones */
 
 @keyframes fadeInCard {

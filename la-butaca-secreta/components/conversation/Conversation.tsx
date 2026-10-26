@@ -171,7 +171,7 @@ export default function Conversation({ initialCalendar }: Props) {
           <div
             role="tablist"
             aria-label="Secciones"
-            className="flex items-stretch border-b border-white/15"
+            className="flex items-stretch border-b border-dashed border-amber-200/20"
           >
             {TABS.map(([id, emoji, label], index) => {
               const active = tab === id;
@@ -191,9 +191,9 @@ export default function Conversation({ initialCalendar }: Props) {
                   onKeyDown={(event) =>
                     handleTabKeyDown(event, index)
                   }
-                  className={`min-w-0 flex-1 border-b-[3px] px-1 pb-2.5 pt-3.5 text-center text-[10px] font-bold leading-tight transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-white sm:px-2 sm:text-sm ${
+                  className={`marquee-font min-w-0 flex-1 border-b-[3px] px-1 pb-2.5 pt-3.5 text-center text-xs leading-tight transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-white sm:px-2 sm:text-base ${
                     active
-                      ? "border-red-500 bg-white/10 text-white"
+                      ? "border-amber-300 bg-white/10 text-white"
                       : "border-transparent bg-black/30 text-zinc-300 hover:bg-white/5 hover:text-white"
                   }`}
                 >

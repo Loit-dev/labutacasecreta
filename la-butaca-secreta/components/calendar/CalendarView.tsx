@@ -367,7 +367,7 @@ export default function CalendarView({
       <div>
         <h2
           id="calendar-title"
-          className="text-lg font-bold text-white"
+          className="marquee-font text-2xl text-white"
         >
           Calendario de estrenos
         </h2>
@@ -389,7 +389,7 @@ export default function CalendarView({
 
           <p
             aria-live="polite"
-            className="text-base font-semibold capitalize text-white"
+            className="marquee-font text-lg capitalize text-white"
           >
             {monthTitle(month)}
           </p>
@@ -440,7 +440,7 @@ export default function CalendarView({
 
         {current && upcoming.length > 0 && (
           <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+            <h3 className="marquee-font text-sm text-zinc-400">
               Próximos estrenos
             </h3>
 
@@ -575,7 +575,7 @@ export default function CalendarView({
 
         {current && selected && (
           <section aria-live="polite" className="mt-1">
-            <h3 className="text-sm font-bold capitalize text-white">
+            <h3 className="marquee-font text-base capitalize text-white">
               {dayTitle(selected)}
             </h3>
 

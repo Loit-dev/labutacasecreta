@@ -90,13 +90,13 @@ const MODES: {
   {
     id: "solo",
     icon: SoloIcon,
-    title: "Solo",
+    title: "Butaca 1 · Solo",
     hint: "Unas preguntas y listo.",
   },
   {
     id: "group",
     icon: GroupIcon,
-    title: "Acompañado",
+    title: "Butacas · Acompañado",
     hint: "En pareja o en grupo. Cada uno elige y, si no coincidís, se desempata jugando.",
   },
 ];
@@ -123,10 +123,7 @@ export default function ModeSelect({
 }: Props) {
   return (
     <div data-mode-select>
-      <p
-        className="text-center text-xl font-extrabold uppercase tracking-wide text-white"
-        style={{ fontFamily: "var(--font-manrope)" }}
-      >
+      <p className="marquee-font text-center text-2xl text-white">
         ¿Cómo vas a verla?
       </p>
 
@@ -146,10 +143,7 @@ export default function ModeSelect({
               </span>
 
               <span className="min-w-0 flex-1">
-                <span
-                  className="block text-lg font-extrabold uppercase tracking-wide text-white"
-                  style={{ fontFamily: "var(--font-manrope)" }}
-                >
+                <span className="marquee-font block text-xl text-white">
                   {mode.title}
                 </span>
 
@@ -173,11 +167,8 @@ export default function ModeSelect({
         </span>
 
         <span className="min-w-0 flex-1">
-          <span
-            className="block text-lg font-extrabold uppercase tracking-wide text-white"
-            style={{ fontFamily: "var(--font-manrope)" }}
-          >
-            Butaca Exprés
+          <span className="marquee-font block text-xl text-white">
+            Pase Exprés
           </span>
 
           <span className="mt-1 block text-sm text-zinc-400">
@@ -189,6 +180,10 @@ export default function ModeSelect({
       </Link>
 
       <Perforation />
+
+      <p className="mt-4 text-center text-[11px] font-semibold uppercase tracking-[0.15em] text-zinc-500">
+        Sin IA generativa — recomendaciones por reglas propias
+      </p>
 
       <PlatformPicker
         selected={platforms}

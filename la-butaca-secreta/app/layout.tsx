@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Manrope } from "next/font/google";
+import { Bebas_Neue, Geist, Manrope } from "next/font/google";
 
 import Analytics from "@/components/layout/Analytics";
 import Footer from "@/components/layout/Footer";
@@ -21,6 +21,16 @@ const geistSans = Geist({
 
 const manrope = Manrope({
   variable: "--font-manrope",
+  subsets: ["latin"],
+});
+
+// Tipografía de marquesina (titulares "entrada de cine"): solo para
+// titulares grandes y rótulos cortos, nunca para texto de lectura. Ver
+// DECISIONS.md, "Entrada de cine: tipografía de marquesina" y
+// docs/BRAND.md.
+const bebasNeue = Bebas_Neue({
+  variable: "--font-marquee",
+  weight: "400",
   subsets: ["latin"],
 });
 
@@ -98,6 +108,7 @@ export default function RootLayout({
       className={`
         ${geistSans.variable}
         ${manrope.variable}
+        ${bebasNeue.variable}
         h-full
         antialiased
       `}

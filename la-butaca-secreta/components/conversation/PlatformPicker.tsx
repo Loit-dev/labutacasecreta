@@ -32,10 +32,7 @@ export default function PlatformPicker({
 
   return (
     <div data-platform-picker className="mt-8">
-      <p
-        className="text-center text-sm font-semibold text-zinc-200"
-        style={{ fontFamily: "var(--font-manrope)" }}
-      >
+      <p className="marquee-font text-center text-base text-zinc-200">
         <span aria-hidden="true">📺</span> ¿Dónde vas a verla?
       </p>
 
