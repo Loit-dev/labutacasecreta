@@ -227,3 +227,159 @@ filtro por "contiene la cadena" resuelve el caso real detectado sin
 añadir una dependencia ni lógica que haya que mantener.
 
 **Dónde**: `app/api/search/route.ts`.
+
+---
+
+## Tres mejoras visuales: inicio, tarjeta de recomendación y calendario
+
+**Fecha**: 26 oct 2026.
+
+**Qué pasó**: a partir de tres mockups (pedidos para ver cómo podría
+mejorarse la apariencia de la web), se llevaron a código los tres
+cambios, sin tocar ninguna lógica ni contrato de props existente:
+
+1. **Inicio más visual** (`components/conversation/ModeSelect.tsx`):
+   los emoji de Solo/Acompañado/Butaca Exprés se sustituyen por iconos
+   SVG propios en una insignia de color, con una flecha al final de
+   cada tarjeta.
+2. **Tarjeta de recomendación enriquecida**
+   (`components/recommendations/RecommendationCard.tsx`): la nota
+   (⭐) pasa a una insignia sobre el póster en vez de ir en el texto, y
+   los botones «Guardar» / «Ya la vi» / «No me apetece» pasan de texto
+   con emoji a icono + etiqueta apilados. Sin cambios en `Props`: los
+   8 sitios que usan esta tarjeta (`Recommendations`, `QuickPicks`,
+   `FavoriteCard`, `SummaryTitleCard`, `SharedRecommendations`,
+   `CatalogGrid`...) no se han tocado.
+3. **Calendario con pósters** (`components/calendar/CalendarView.tsx`):
+   tira horizontal «Próximos estrenos» con miniatura de póster por
+   día (calculada sobre el mes ya cargado, sin pedir ningún dato
+   nuevo), y los días de la cuadrícula con estreno muestran el póster
+   de fondo en vez de solo los logos de plataforma.
+
+**Alternativa descartada**: para el calendario, pedir también el mes
+siguiente para alimentar "Próximos estrenos" a final de mes.
+Descartado por ahora para no añadir una petición de red adicional al
+cargar la página (ver la entrada de arriba, "datos de hoy
+precargados..."): la tira solo usa lo que ya está en memoria y puede
+quedar vacía los últimos días del mes.
+
+**Dónde**: `components/conversation/ModeSelect.tsx`,
+`components/recommendations/RecommendationCard.tsx`,
+`components/calendar/CalendarView.tsx`.
+
+---
+
+## Dirección visual más atrevida: "entrada de cine" en Inicio y tarjeta
+
+**Fecha**: 26 oct 2026.
+
+**Qué pasó**: tras la entrada anterior, se pidió explícitamente ir más
+lejos visualmente, aprovechando el nombre "La Butaca Secreta": una
+estética de entrada de cine / sala secreta (bordes discontinuos tipo
+ticket, acento dorado de marquesina junto al rojo, separador tipo
+"cupón rasgado").
+
+**Decisión**: `ModeSelect.tsx` y `RecommendationCard.tsx` pasan a
+`rounded-md`/`rounded-lg` con borde discontinuo (`border-dashed`) en
+vez de `rounded-2xl`/`rounded-3xl` con borde sólido; los iconos del
+selector de modo pasan de rosa/naranja a dorado (`#facc15`), que ya se
+usaba en el resto de la web para nota y "guardado"; se añade un
+separador de "perforación" (`repeating-linear-gradient`) entre el
+póster y el contenido de la tarjeta, y bajo el selector de modo; el
+titular de Inicio (`Header.tsx`) lleva ahora un degradado
+ámbar→rojo en vez de solo rojo/naranja. Los títulos de los botones de
+modo y "Ver detalles" pasan a mayúsculas con tracking ancho.
+
+**Alternativa descartada**: añadir una tercera familia tipográfica
+(p. ej. una fuente condensada estilo "marquesina de cine") para
+reforzar el efecto. Descartada porque `BRAND.md` fija explícitamente
+solo dos familias (Geist/Manrope) y dice que un componente con más
+carácter usa `.title-font` (Manrope), no una fuente nueva; el efecto
+"marquesina" se consigue con Manrope en mayúsculas, extra-bold y
+tracking ancho, sin romper esa regla.
+
+**Nota pendiente**: `BRAND.md` dice que la iconografía de pestañas y
+navegación es emoji, y que el SVG a medida es solo para marcas de
+terceros/iconos "serios". El selector de modo (`ModeSelect.tsx`) usa
+SVG a medida desde la entrada anterior, lo cual es una excepción
+deliberada a esa regla para esta pantalla concreta (no para las
+pestañas Recomendador/Calendario/Buscar, que siguen en emoji). Queda
+pendiente decidir si se documenta como excepción permanente en
+`BRAND.md` o se revierte a emoji.
+
+**Dónde**: `components/conversation/ModeSelect.tsx`,
+`components/conversation/Header.tsx`,
+`components/recommendations/RecommendationCard.tsx`.
+
+---
+
+**Fecha**: 26 oct 2026.
+
+**Qué pasó**: tras ver el mockup "Inicio — entrada de cine" (ticket
+rasgado, tipografía Bebas Neue en mayúsculas), se pidió explícitamente
+usar esa tipografía real en el sitio y dar cohesión visual completa a
+toda la web con el enfoque "entrada de cine" — en particular la barra
+de pestañas, que no encajaba con el resto.
+
+**Decisión**: se añade **Bebas Neue** como tercera familia tipográfica
+(`--font-marquee` en `app/layout.tsx`, clase `.marquee-font` en
+`globals.css`), reservada a titulares grandes y rótulos cortos de UI
+(nunca texto de lectura). Esto revierte la decisión de la entrada
+anterior de simular el efecto "marquesina" solo con Manrope en
+mayúsculas — el usuario confirmó que quería la tipografía real del
+mockup, no la simulación. Se aplica en: `Header.tsx` (titular "Tu
+sesión / empieza aquí.", con la bajada "Elige tu entrada. Nosotros
+apagamos las luces."); `ModeSelect.tsx` (título "¿Cómo vas a verla?",
+botones renombrados a "Butaca 1 · Solo" / "Butacas · Acompañado" /
+"Pase Exprés", y nueva nota "Sin IA generativa — recomendaciones por
+reglas propias" bajo la perforación); la barra de pestañas y el enlace
+de cuenta en `Conversation.tsx`/`AccountTabLink.tsx` (borde discontinuo
+dorado en vez de rojo sólido, etiquetas en `.marquee-font`); las
+etiquetas cortas de `RecommendationCard.tsx` (badge, "Ver detalles",
+Guardar/Ya la vi/No me apetece); y los titulares y botones de
+navegación de `CalendarView.tsx` ("Calendario de estrenos", el mes,
+"Próximos estrenos", el título del día). El texto de lectura (sinopsis,
+pistas, hints descriptivos) se queda en Geist/Manrope sin cambios.
+
+**Alternativa descartada**: la entrada anterior había descartado una
+tercera familia por la regla de `BRAND.md`. Esa regla se actualiza
+aquí explícitamente — ya no aplica — en vez de quedar en contradicción
+con el código.
+
+**Dónde**: `app/layout.tsx`, `app/globals.css`,
+`components/conversation/Header.tsx`,
+`components/conversation/ModeSelect.tsx`,
+`components/conversation/PlatformPicker.tsx`,
+`components/conversation/Conversation.tsx`,
+`components/layout/AccountTabLink.tsx`,
+`components/recommendations/RecommendationCard.tsx`,
+`components/calendar/CalendarView.tsx`, `docs/BRAND.md`.
+
+---
+
+**Fecha**: 26 oct 2026.
+
+**Qué pasó**: viendo el resultado de la entrada anterior, se pidió
+explícitamente extender el estilo de icono SVG dorado del selector de
+modo (`ModeSelect.tsx`) a la barra de pestañas y a los botones de
+acción de la tarjeta de recomendación.
+
+**Decisión**: se crean iconos SVG propios para Recomendador, Calendario
+y Buscar (`components/conversation/TabIcons.tsx`, trazo `#facc15`,
+mismo lenguaje visual que `SoloIcon`/`GroupIcon`), sustituyendo los
+emoji 🎬📅🔎 de la barra de pestañas; el icono de cuenta
+(`AccountTabLink.tsx`) pasa a usar el mismo `AccountIcon` compartido
+en vez de un SVG duplicado en blanco. En `RecommendationCard.tsx`, los
+iconos de Guardar/Ya la vi/No me apetece se envuelven en un anillo
+circular (`rounded-full border`, color a juego con cada acción: dorado
+para guardado, verde esmeralda para "ya la vi", gris para "no me
+apetece"), igual que los iconos grandes del selector de modo. Esto
+resuelve la "nota pendiente" de la entrada del 26 oct sobre SVG vs.
+emoji: a partir de ahora el SVG a medida es el estándar para pestañas
+y botones de acción; el emoji queda solo para listas/pantallas fuera
+de esa navegación principal. `BRAND.md` se actualiza en consecuencia.
+
+**Dónde**: `components/conversation/TabIcons.tsx` (nuevo),
+`components/conversation/Conversation.tsx`,
+`components/layout/AccountTabLink.tsx`,
+`components/recommendations/RecommendationCard.tsx`, `docs/BRAND.md`.

@@ -63,6 +63,17 @@ function dayTitle(date: string) {
   });
 }
 
+// Etiqueta corta para la tira de "Próximos estrenos" (p.ej. "Jue 6")
+function shortDayLabel(date: string) {
+  const parsed = new Date(`${date}T12:00:00Z`);
+
+  const weekday = parsed
+    .toLocaleDateString("es-ES", { weekday: "short", timeZone: "UTC" })
+    .replace(".", "");
+
+  return `${weekday.charAt(0).toUpperCase()}${weekday.slice(1)} ${parsed.getUTCDate()}`;
+}
+
 function PlatformLogo({
   platform,
   logos,
@@ -262,6 +273,44 @@ export default function CalendarView({
 
   const current = data[month];
 
+  // Tira "Próximos estrenos": pósters de los próximos días con estreno
+  // en las plataformas del usuario, dentro del mes ya cargado (no se
+  // pide un mes más solo para esto: así no se arriesga a tardar).
+  const upcoming = useMemo(() => {
+    if (!current) return [];
+
+    const parsed = parseMonth(month);
+
+    if (!parsed) return [];
+
+    const daysInMonth = new Date(
+      Date.UTC(parsed.year, parsed.month, 0)
+    ).getUTCDate();
+
+    const result: { date: string; entry: CalendarEntry }[] = [];
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = `${month}-${String(day).padStart(2, "0")}`;
+
+      if (date < today) continue;
+
+      const entries = (current.days[date] ?? [])
+        .map((entry) => ({
+          ...entry,
+          platforms: entry.platforms.filter((p) => mine.includes(p)),
+        }))
+        .filter((entry) => entry.platforms.length > 0);
+
+      if (entries.length > 0) {
+        result.push({ date, entry: entries[0] });
+      }
+
+      if (result.length >= 8) break;
+    }
+
+    return result;
+  }, [current, month, today, mine]);
+
   const weeks = useMemo(() => {
     const parsed = parseMonth(month);
 
@@ -318,7 +367,7 @@ export default function CalendarView({
       <div>
         <h2
           id="calendar-title"
-          className="text-lg font-bold text-white"
+          className="marquee-font text-2xl text-white"
         >
           Calendario de estrenos
         </h2>
@@ -340,7 +389,7 @@ export default function CalendarView({
 
           <p
             aria-live="polite"
-            className="text-base font-semibold capitalize text-white"
+            className="marquee-font text-lg capitalize text-white"
           >
             {monthTitle(month)}
           </p>
@@ -389,6 +438,45 @@ export default function CalendarView({
           </p>
         )}
 
+        {current && upcoming.length > 0 && (
+          <div>
+            <h3 className="marquee-font text-sm text-zinc-400">
+              Próximos estrenos
+            </h3>
+
+            <ul className="mt-2 flex gap-2.5 overflow-x-auto pb-1 [scrollbar-width:thin]">
+              {upcoming.map(({ date, entry }) => (
+                <li key={`${date}-${entry.type}-${entry.id}`} className="shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => select(date)}
+                    aria-label={`${entry.title}, ${dayTitle(date)}`}
+                    className="block w-16 rounded-xl text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                  >
+                    {entry.poster ? (
+                      <Image
+                        src={entry.poster}
+                        alt=""
+                        width={64}
+                        height={92}
+                        className="h-23 w-16 rounded-xl object-cover"
+                      />
+                    ) : (
+                      <span className="flex h-23 w-16 items-center justify-center rounded-xl bg-zinc-800 text-[10px] text-zinc-500">
+                        Sin póster
+                      </span>
+                    )}
+
+                    <span className="mt-1.5 block truncate text-[10.5px] font-medium text-zinc-300">
+                      {shortDayLabel(date)}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         {current && (
           <div role="group" aria-label={`Días de ${monthTitle(month)}`}>
             <div
@@ -416,25 +504,58 @@ export default function CalendarView({
 
                   const isSelected = date === selected;
 
+                  const posterEntry = entries.find(
+                    (entry): entry is CalendarEntry & { poster: string } =>
+                      Boolean(entry.poster)
+                  );
+
                   return (
                     <button
                       key={date}
                       onClick={() => select(date)}
                       aria-pressed={isSelected}
                       aria-label={`${dayTitle(date)}: ${entries.length} ${entries.length === 1 ? "estreno" : "estrenos"}`}
-                      className={`flex min-h-14 flex-col items-center gap-1 rounded-xl border p-1 text-xs transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:min-h-20 ${
+                      className={`relative flex min-h-14 flex-col items-center gap-1 overflow-hidden rounded-xl border p-1 text-xs transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:min-h-20 ${
                         isSelected
-                          ? "border-red-500 bg-red-500/15 text-white"
+                          ? "border-red-500 ring-2 ring-red-500/40"
                           : date === today
-                            ? "border-zinc-500 bg-zinc-800 text-white"
-                            : "border-zinc-800 bg-zinc-950/60 text-zinc-300 hover:border-zinc-600"
+                            ? "border-zinc-500"
+                            : "border-zinc-800 hover:border-zinc-600"
+                      } ${
+                        posterEntry
+                          ? ""
+                          : isSelected
+                            ? "bg-red-500/15 text-white"
+                            : date === today
+                              ? "bg-zinc-800 text-white"
+                              : "bg-zinc-950/60 text-zinc-300"
                       }`}
                     >
-                      <span className="font-semibold">
+                      {posterEntry && (
+                        <>
+                          <Image
+                            src={posterEntry.poster}
+                            alt=""
+                            fill
+                            className="object-cover"
+                            sizes="48px"
+                          />
+                          <div
+                            aria-hidden="true"
+                            className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/55 to-black/60"
+                          />
+                        </>
+                      )}
+
+                      <span
+                        className={`relative z-10 font-semibold ${
+                          posterEntry ? "text-white" : ""
+                        }`}
+                      >
                         {Number(date.substring(8))}
                       </span>
 
-                      <span className="flex flex-wrap justify-center gap-0.5">
+                      <span className="relative z-10 flex flex-wrap justify-center gap-0.5">
                         {logos.slice(0, 4).map((platform) => (
                           <PlatformLogo
                             key={platform}
@@ -454,7 +575,7 @@ export default function CalendarView({
 
         {current && selected && (
           <section aria-live="polite" className="mt-1">
-            <h3 className="text-sm font-bold capitalize text-white">
+            <h3 className="marquee-font text-base capitalize text-white">
               {dayTitle(selected)}
             </h3>
 

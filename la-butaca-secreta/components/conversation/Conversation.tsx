@@ -26,11 +26,12 @@ import {
 import Header from "./Header";
 import ModeSelect, { type Mode } from "./ModeSelect";
 import SoloChat from "./SoloChat";
+import { CalendarIcon, RecommenderIcon, SearchIcon } from "./TabIcons";
 
 const TABS = [
-  ["recommender", "🎬", "Recomendador"],
-  ["calendar", "📅", "Calendario"],
-  ["search", "🔎", "Buscar"],
+  ["recommender", RecommenderIcon, "Recomendador"],
+  ["calendar", CalendarIcon, "Calendario"],
+  ["search", SearchIcon, "Buscar"],
 ] as const;
 
 type Props = {
@@ -165,15 +166,15 @@ export default function Conversation({ initialCalendar }: Props) {
             <img
               src="/Logo.png"
               alt="La Butaca Secreta"
-              className="absolute left-4 top-16 hidden md:block md:h-12 lg:h-14 w-auto opacity-90"
+              className="absolute left-4 top-20 hidden md:block md:h-12 lg:top-24 lg:h-14 w-auto opacity-90"
             />
           )}
           <div
             role="tablist"
             aria-label="Secciones"
-            className="flex items-stretch border-b border-white/15"
+            className="flex items-stretch border-b border-dashed border-amber-200/20"
           >
-            {TABS.map(([id, emoji, label], index) => {
+            {TABS.map(([id, Icon, label], index) => {
               const active = tab === id;
 
               return (
@@ -191,15 +192,13 @@ export default function Conversation({ initialCalendar }: Props) {
                   onKeyDown={(event) =>
                     handleTabKeyDown(event, index)
                   }
-                  className={`min-w-0 flex-1 border-b-[3px] px-1 pb-2.5 pt-3.5 text-center text-[10px] font-bold leading-tight transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-white sm:px-2 sm:text-sm ${
+                  className={`marquee-font flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 border-b-[3px] px-1 pb-2.5 pt-3.5 text-center text-xs leading-tight transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-white sm:px-2 sm:text-base ${
                     active
-                      ? "border-red-500 bg-white/10 text-white"
+                      ? "border-amber-300 bg-white/10 text-white"
                       : "border-transparent bg-black/30 text-zinc-300 hover:bg-white/5 hover:text-white"
                   }`}
                 >
-                  <span aria-hidden="true" className="block">
-                    {emoji}
-                  </span>
+                  <Icon />
                   {label}
                 </button>
               );

@@ -1,5 +1,56 @@
 import Image from "next/image";
 
+// Iconos propios en vez de emoji para la nota y las acciones (ver
+// DECISIONS.md, "Tarjeta de recomendación enriquecida").
+function StarIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="#facc15" aria-hidden="true">
+      <path d="M12 2l3.1 6.6 7.2.9-5.3 5 1.4 7.2L12 18.3 5.6 21.7 7 14.5l-5.3-5 7.2-.9z" />
+    </svg>
+  );
+}
+
+function SaveIcon({ filled }: { filled: boolean }) {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M7 3h10a1 1 0 011 1v17l-6-3.5L6 21V4a1 1 0 011-1z"
+        stroke={filled ? "#facc15" : "#d4d4d8"}
+        fill={filled ? "#facc15" : "none"}
+        strokeWidth="1.7"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function SeenIcon() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M5 13l4 4L19 7"
+        stroke="#4ade80"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function RejectIcon() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M6 6l12 12M18 6L6 18"
+        stroke="#a1a1aa"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 type Props = {
   badge: string;
   badgeTitle: string;
@@ -47,7 +98,7 @@ export default function RecommendationCard({
   return (
     <article
       aria-label={title}
-      className="flex h-full flex-col overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900 shadow-xl"
+      className="flex h-full flex-col overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900 shadow-xl"
     >
        <div
         className={`relative w-full overflow-hidden ${
@@ -55,6 +106,17 @@ export default function RecommendationCard({
         }`}
       >
         <Image src={poster} alt={title} fill unoptimized={poster.endsWith(".svg")} className="object-cover object-top md:object-contain md:bg-black" sizes="(max-width: 768px) 100vw, 33vw" />
+        {rating > 0 && (
+          <span
+            className={`absolute left-3 top-3 z-10 flex items-center gap-1 rounded-full border border-amber-300/50 bg-black/70 font-bold text-white backdrop-blur-sm ${
+              compact ? "px-1.5 py-0.5 text-[10px]" : "px-2.5 py-1 text-xs"
+            }`}
+          >
+            <StarIcon />
+            <span className="sr-only">Nota </span>
+            {rating}
+          </span>
+        )}
         {dots && dots.total > 1 && (
           <>
             <div
@@ -133,6 +195,15 @@ export default function RecommendationCard({
       </div>
 
       <div
+        aria-hidden="true"
+        className="h-px shrink-0 opacity-60"
+        style={{
+          backgroundImage:
+            "repeating-linear-gradient(90deg, transparent 0 6px, rgba(250,246,236,0.16) 6px 8px)",
+        }}
+      />
+
+      <div
         className={
           compact
             ? "flex flex-1 flex-col space-y-1 p-2"
@@ -143,8 +214,8 @@ export default function RecommendationCard({
           <div
             className={
               compact
-                ? "truncate text-[9px] font-semibold uppercase tracking-wide text-yellow-400"
-                : "text-xs font-semibold uppercase tracking-wider text-yellow-400"
+                ? "marquee-font truncate text-[11px] text-yellow-400"
+                : "marquee-font text-sm text-yellow-400"
             }
           >
             <span aria-hidden="true">{badge}</span> {badgeTitle}
@@ -168,12 +239,6 @@ export default function RecommendationCard({
               : "flex flex-wrap gap-3 text-sm text-zinc-400"
           }
         >
-          <span>
-            <span aria-hidden="true">⭐</span>
-            <span className="sr-only">Nota </span>{" "}
-            {rating}
-          </span>
-
           {runtime && !compact ? (
             <span>{runtime} min</span>
           ) : null}
@@ -213,8 +278,8 @@ export default function RecommendationCard({
   aria-label={`Ver detalles de ${title}`}
   className={
     compact
-      ? "mt-auto w-full rounded-lg bg-red-600 px-2 py-1.5 text-[10px] font-semibold text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-      : "mt-auto w-full rounded-xl bg-red-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+      ? "marquee-font mt-auto w-full rounded-md bg-red-600 px-2 py-1.5 text-xs text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+      : "marquee-font mt-auto w-full rounded-md bg-red-600 px-4 py-3 text-base text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
   }
 >
   {compact ? "Ver" : "Ver detalles"}
@@ -232,14 +297,26 @@ export default function RecommendationCard({
                     : `Guardar en mi lista: ${title}`
                 }
                 title="Guardar para ver luego"
-                className={`flex-1 rounded-full border px-1 py-1.5 text-[11px] font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
+                className={`flex flex-1 flex-col items-center gap-1 rounded-md border px-1 py-2 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
                   saved
-                    ? "border-yellow-500/70 bg-yellow-400/10 text-yellow-300 hover:bg-yellow-400/20"
-                    : "border-zinc-700 text-zinc-300 hover:border-zinc-500 hover:bg-zinc-800 hover:text-white"
+                    ? "border-yellow-500/70 bg-yellow-400/10"
+                    : "border-dashed border-zinc-700 hover:border-zinc-500 hover:bg-zinc-800"
                 }`}
               >
-                <span aria-hidden="true">{saved ? "✓" : "🔖"}</span>{" "}
-                {saved ? "Guardada" : "Guardar"}
+                <span
+                  className={`flex h-8 w-8 items-center justify-center rounded-full border ${
+                    saved ? "border-amber-300/50" : "border-zinc-600/50"
+                  }`}
+                >
+                  <SaveIcon filled={saved} />
+                </span>
+                <span
+                  className={`marquee-font text-xs ${
+                    saved ? "text-yellow-300" : "text-zinc-300"
+                  }`}
+                >
+                  {saved ? "Guardada" : "Guardar"}
+                </span>
               </button>
             )}
 
@@ -248,9 +325,14 @@ export default function RecommendationCard({
                 onClick={onSeen}
                 aria-label={`Ya la vi: ${title}`}
                 title="No volveré a recomendártela"
-                className="flex-1 rounded-full border border-zinc-700/70 bg-zinc-800/40 px-1 py-1.5 text-[11px] font-medium text-zinc-300 transition-colors hover:border-zinc-500 hover:bg-zinc-800 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                className="flex flex-1 flex-col items-center gap-1 rounded-md border border-dashed border-zinc-700/70 bg-zinc-800/40 px-1 py-2 transition-colors hover:border-zinc-500 hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
               >
-                <span aria-hidden="true">👁</span> Ya la vi
+                <span className="flex h-8 w-8 items-center justify-center rounded-full border border-emerald-400/40">
+                  <SeenIcon />
+                </span>
+                <span className="marquee-font text-xs text-zinc-300">
+                  Ya la vi
+                </span>
               </button>
             )}
 
@@ -259,9 +341,14 @@ export default function RecommendationCard({
                 onClick={onReject}
                 aria-label={`No me apetece: ${title}`}
                 title="Buscaré algo distinto"
-                className="flex-1 rounded-full border border-zinc-700/70 bg-zinc-800/40 px-1 py-1.5 text-[11px] font-medium text-zinc-300 transition-colors hover:border-zinc-500 hover:bg-zinc-800 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                className="flex flex-1 flex-col items-center gap-1 rounded-md border border-dashed border-zinc-700/70 bg-zinc-800/40 px-1 py-2 transition-colors hover:border-zinc-500 hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
               >
-                <span aria-hidden="true">👎</span> No me apetece
+                <span className="flex h-8 w-8 items-center justify-center rounded-full border border-zinc-600/50">
+                  <RejectIcon />
+                </span>
+                <span className="marquee-font text-xs text-zinc-300">
+                  No me apetece
+                </span>
               </button>
             )}
           </div>
