@@ -14,6 +14,8 @@ import RecommendationSkeleton from "./RecommendationSkeleton";
 import ShareDialog from "./ShareDialog";
 import { badgeFor } from "./badges";
 
+import { ClapperIcon, RefreshIcon, ShareIcon } from "@/components/icons/Icons";
+
 import { useAuth } from "@/hooks/useAuth";
 import { useRecommendations } from "@/hooks/useRecommendations";
 import { useWatchlist } from "@/hooks/useWatchlist";
@@ -277,9 +279,9 @@ export default function Recommendations({
 
         <button
           onClick={retry}
-          className="rounded-full border border-zinc-700 bg-zinc-900 px-4 py-2 text-xs shadow-lg md:rounded-xl md:px-5 md:py-3 md:text-sm shadow-black/60 text-sm font-medium text-white transition-all hover:border-red-500/50 hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          className="inline-flex items-center gap-1.5 rounded-full border border-zinc-700 bg-zinc-900 px-4 py-2 text-xs shadow-lg md:rounded-xl md:px-5 md:py-3 md:text-sm shadow-black/60 text-sm font-medium text-white transition-all hover:border-red-500/50 hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
-          🔄 Reintentar
+          <RefreshIcon size={14} /> Reintentar
         </button>
       </div>
     );
@@ -294,16 +296,16 @@ export default function Recommendations({
     return (
       <div className="space-y-4 text-center">
         <p className="text-zinc-300">
-          😕 Ya te he enseñado todo lo que encaja con lo
+          Ya te he enseñado todo lo que encaja con lo
           que me has contado. Si quieres, empezamos de
           nuevo con otras respuestas.
         </p>
 
         <button
           onClick={() => window.location.reload()}
-          className="rounded-full border border-zinc-700 bg-zinc-900/80 px-4 py-2 text-xs font-medium text-white md:rounded-xl md:px-5 md:py-3 md:text-sm transition-all hover:border-red-500/50 hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          className="inline-flex items-center gap-1.5 rounded-full border border-zinc-700 bg-zinc-900/80 px-4 py-2 text-xs font-medium text-white md:rounded-xl md:px-5 md:py-3 md:text-sm transition-all hover:border-red-500/50 hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
-          🎬 Empezar de nuevo
+          <ClapperIcon size={14} /> Empezar de nuevo
         </button>
 
         {seenCount > 0 && (
@@ -439,7 +441,7 @@ export default function Recommendations({
           id="recommendations-title"
           className="text-base font-bold text-white md:text-3xl"
         >
-          <span aria-hidden="true">🎬</span> Creo que estas
+          <ClapperIcon size={16} className="inline -translate-y-0.5" /> Creo que estas
           tres pueden ser justo lo que buscas.
         </h2>
 
@@ -506,7 +508,7 @@ export default function Recommendations({
           onClick={openShare}
           className="rounded-full bg-red-600 px-4 py-2 text-xs font-semibold text-white shadow-lg md:rounded-xl md:px-5 md:py-3 md:text-sm shadow-black/60 transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
-          <span aria-hidden="true">📤</span> Compartir mis
+          <ShareIcon size={14} className="inline -translate-y-px" /> Compartir mis
           sugerencias
         </button>
 
@@ -519,7 +521,7 @@ export default function Recommendations({
             }
             className="rounded-full border border-zinc-700 bg-zinc-900/80 px-4 py-2 text-xs font-medium text-white md:rounded-xl md:px-5 md:py-3 md:text-sm transition-all hover:border-red-500/50 hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:cursor-wait disabled:opacity-60"
           >
-            <span aria-hidden="true">🔄</span> Dame otras 3
+            <RefreshIcon size={14} className="inline -translate-y-px" /> Dame otras 3
             recomendaciones
           </button>
         )}

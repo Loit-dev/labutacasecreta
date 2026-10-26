@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import CatalogGrid from "./CatalogGrid";
+import { BoltIcon } from "@/components/icons/Icons";
 import { CATALOG_GENRES, type CatalogPage } from "@/lib/catalog";
 import { PLATFORMS } from "@/lib/platforms";
 
@@ -56,7 +57,7 @@ export default function CatalogPageBody({
           href="/hoy"
           className="rounded-full bg-red-600 px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-black/60 transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
-          <span aria-hidden="true">⚡</span> Prueba Butaca Exprés
+          <BoltIcon size={14} className="inline -translate-y-px" /> Prueba Butaca Exprés
         </Link>
 
         <Link

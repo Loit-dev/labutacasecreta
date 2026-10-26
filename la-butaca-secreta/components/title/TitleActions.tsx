@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useWatchlist } from "@/hooks/useWatchlist";
 import { track } from "@/lib/analytics";
 import { dateInputToISO } from "@/lib/dateInput";
+import { BookmarkIcon, CheckBadgeIcon, EyeIcon, StarFilledIcon } from "@/components/icons/Icons";
 import { recordAvoid, recordBoost } from "@/lib/genreAffinity";
 import type { Rating } from "@/lib/rating";
 import { readRating, setRating } from "@/lib/rating";
@@ -107,21 +108,25 @@ export default function TitleActions({ type, title }: Props) {
       <button
         type="button"
         onClick={toggleSaved}
-        className="rounded-xl border border-zinc-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+        className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
       >
-        <span aria-hidden="true">{saved ? "✅" : "🔖"}</span>{" "}
+        {saved ? <CheckBadgeIcon size={16} /> : <BookmarkIcon size={16} />}
         {saved ? "En mi lista" : "Guardar"}
       </button>
 
       <button
         type="button"
         onClick={openRating}
-        className="rounded-xl border border-zinc-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+        className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
       >
-        <span aria-hidden="true">👁</span>{" "}
+        <EyeIcon size={16} />
         {seen
           ? rating
-            ? `Vista · ⭐ ${rating}`
+            ? (
+              <span className="inline-flex items-center gap-1">
+                Vista · <StarFilledIcon size={13} className="text-amber-300" /> {rating}
+              </span>
+            )
             : "Vista (valorar)"
           : "Ya la vi"}
       </button>

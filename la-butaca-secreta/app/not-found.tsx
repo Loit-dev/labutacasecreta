@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 import PosterWall from "@/components/layout/PosterWall";
+import { ClapperIcon } from "@/components/icons/Icons";
 import { SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -21,8 +22,8 @@ export default function NotFound() {
     <main className="relative z-30 flex min-h-[90vh] flex-col items-center justify-center px-6 py-16 text-center">
       <PosterWall />
 
-      <p className="text-7xl" aria-hidden="true">
-        🎬
+      <p className="flex justify-center text-zinc-300" aria-hidden="true">
+        <ClapperIcon size={72} />
       </p>
 
       <h1 className="marquee-font mt-4 text-4xl text-white sm:text-5xl">

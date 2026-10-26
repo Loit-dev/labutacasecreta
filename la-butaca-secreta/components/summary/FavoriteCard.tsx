@@ -1,5 +1,7 @@
 "use client";
 
+import { StarFilledIcon } from "@/components/icons/Icons";
+
 type Props = {
   onClick: () => void;
 };
@@ -31,8 +33,8 @@ export default function FavoriteCard({ onClick }: Props) {
       </div>
 
       <div className="flex flex-1 flex-col justify-center p-2 text-center">
-        <div className="truncate text-[9px] font-semibold uppercase tracking-wide text-yellow-400">
-          <span aria-hidden="true">⭐</span>
+        <div className="flex justify-center text-yellow-400">
+          <StarFilledIcon size={12} />
         </div>
 
         <p className="mt-1 text-[10px] text-zinc-400">

@@ -15,6 +15,7 @@ import { badgeFor } from "./badges";
 import { useWatchlist } from "@/hooks/useWatchlist";
 import { track } from "@/lib/analytics";
 import type { Recommendation } from "@/lib/tmdb/mapper";
+import { ClapperIcon } from "@/components/icons/Icons";
 
 type Props = {
   items: Recommendation[];
@@ -193,7 +194,7 @@ export default function SharedRecommendations({
           href="/"
           className="marquee-font inline-block rounded-xl bg-red-600 px-6 py-3 text-base text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
-          <span aria-hidden="true">🎬</span> Quiero las mías: hacer
+          <ClapperIcon size={14} className="inline -translate-y-px" /> Quiero las mías: hacer
           el cuestionario
         </Link>
       </div>

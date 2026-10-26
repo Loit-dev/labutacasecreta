@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useWatchlist } from "@/hooks/useWatchlist";
+import { DiscardIcon, FireIcon, PinIcon } from "@/components/icons/Icons";
+import { emojiIcon } from "@/components/conversation/AnswerIcon";
 import { track } from "@/lib/analytics";
 import { genreEmoji } from "@/lib/genreEmoji";
 import { countRejected } from "@/lib/rejected";
@@ -406,8 +408,8 @@ export default function MiResumenScreen() {
 
         {stats.streakDays >= 1 && (
           <div className={`${CARD} p-3 text-center sm:p-4`}>
-            <p className="whitespace-nowrap text-[10px] font-bold tracking-wide text-zinc-400 sm:text-[11px]">
-              RACHA 🔥
+            <p className="flex items-center justify-center gap-1 whitespace-nowrap text-[10px] font-bold tracking-wide text-zinc-400 sm:text-[11px]">
+              RACHA <FireIcon size={11} className="text-orange-400" />
             </p>
             <p className="mt-1 text-2xl font-black text-orange-300 sm:text-3xl">
               {stats.streakDays}
@@ -432,8 +434,8 @@ export default function MiResumenScreen() {
 
       <div className="grid grid-cols-2 gap-2 sm:gap-3">
         <div className={`${CARD} p-3 text-center sm:p-4`}>
-          <p className="whitespace-nowrap text-[10px] font-bold tracking-wide text-zinc-400 sm:text-[11px]">
-            PENDIENTES 📌
+          <p className="flex items-center justify-center gap-1 whitespace-nowrap text-[10px] font-bold tracking-wide text-zinc-400 sm:text-[11px]">
+            PENDIENTES <PinIcon size={11} />
           </p>
           <p className="mt-1 text-2xl font-black text-white sm:text-3xl">
             {watchlist.count}
@@ -441,8 +443,8 @@ export default function MiResumenScreen() {
         </div>
 
         <div className={`${CARD} p-3 text-center sm:p-4`}>
-          <p className="whitespace-nowrap text-[10px] font-bold tracking-wide text-zinc-400 sm:text-[11px]">
-            DESCARTADAS 🙅
+          <p className="flex items-center justify-center gap-1 whitespace-nowrap text-[10px] font-bold tracking-wide text-zinc-400 sm:text-[11px]">
+            DESCARTADAS <DiscardIcon size={11} />
           </p>
           <p className="mt-1 text-2xl font-black text-zinc-300 sm:text-3xl">
             {rejectedCount}
@@ -508,6 +510,7 @@ export default function MiResumenScreen() {
 
           {stats.topGenres.map((genre, index) => {
             const rank = GENRE_RANKS[index];
+            const GenreIcon = emojiIcon(genreEmoji(genre.name));
 
             return (
               <div
@@ -521,8 +524,12 @@ export default function MiResumenScreen() {
                     {rank.label}
                   </span>
 
-                  <span className="truncate text-sm font-bold text-white">
-                    <span aria-hidden="true">{genreEmoji(genre.name)}</span>{" "}
+                  <span className="flex min-w-0 items-center gap-1.5 truncate text-sm font-bold text-white">
+                    {GenreIcon && (
+                      <span className="shrink-0 text-amber-300" aria-hidden="true">
+                        <GenreIcon size={14} />
+                      </span>
+                    )}
                     {genre.name}
                   </span>
                 </div>
@@ -538,8 +545,8 @@ export default function MiResumenScreen() {
 
       {state.line && (
         <div className="flex items-center justify-center gap-2.5 rounded-full bg-gradient-to-r from-amber-700 via-orange-600 to-orange-500 px-6 py-4 text-center shadow-[0_6px_18px_rgba(251,146,60,0.35)] sm:px-8 sm:py-5">
-          <span aria-hidden="true" className="text-2xl sm:text-3xl">
-            🔥
+          <span aria-hidden="true" className="text-white">
+            <FireIcon size={28} />
           </span>
           <p className="text-base font-extrabold text-white sm:text-lg">
             {state.line}

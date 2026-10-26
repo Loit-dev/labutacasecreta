@@ -503,3 +503,112 @@ SummaryTitleCard.tsx`, `components/summary/MiResumenScreen.tsx`,
 `components/account/EditSeenDateDialog.tsx` (nuevo),
 `components/account/DiaryTab.tsx`, `lib/supabase/watched.ts`
 (`updateWatchedSeenAt`), `lib/dateInput.ts` (`isoToDateInput`).
+
+---
+
+## 2026-10 · Barrido de emojis → iconos SVG (estilo "entrada de cine")
+
+**Decisión**: sustituir los emojis "funcionales" (🎬📺🔥⭐🏆👁📌🙅✅
+🔖💡🎭⚡📤🔄🥇🥈🥉📲🔎📬) por los mismos iconos SVG de trazo que ya se
+usaban en pestañas/botones (`components/conversation/TabIcons.tsx`),
+para que toda la interfaz visible comparta un único lenguaje visual
+en vez de mezclar emoji de colores con iconos de línea dorada.
+
+**Qué se deja igual (a propósito)**:
+- Símbolos tipográficos que ya encajaban con la estética (no son
+  emoji de color): `← → ✓ ✕ ★ ✔ ⚠`. Se quedan tal cual en todos los
+  sitios donde aparecen (diálogos, calendario, valoración por
+  estrellas con `★`, flechas de carrusel...).
+- Emoji expresivos/de reacción y los gestos de piedra-papel-tijera en
+  `components/group/GroupQuiz.tsx` y `components/group/RpsDuel.tsx`
+  (😕😌🤔🙈😂🎉✊✋✌, y también 🗳️/🟢 dentro de esa misma pantalla, para
+  no romper la coherencia de ese bloque de microcopy): forzarlos a un
+  icono de línea monocromo dorado les quitaría la gracia en un
+  contexto de juego/grupo, que es precisamente donde más aportan.
+- `components/recommendations/badges.ts`, `lib/summaryImage.ts`,
+  `lib/shareImage.ts` y el resto de generadores de imagen por
+  `<canvas>`/`next/og`: siguen usando los emoji como datos de texto
+  porque dibujan los glifos directamente (`ctx.fillText`) y no pueden
+  renderizar un componente React. Las pantallas (no las imágenes
+  generadas) pasan por un wrapper nuevo, `components/recommendations/
+  BadgeIcon.tsx`, que traduce esos mismos emoji-dato a un icono SVG
+  solo en el renderizado en pantalla.
+- Datos de `lib/` que no se pintan directamente tal cual (géneros,
+  personalidad del cuestionario, nodos de conversación, scoring...)
+  se dejan sin tocar por el mismo motivo: son datos, no la pantalla.
+
+**Cómo**: nuevo `components/icons/Icons.tsx` con componentes
+`{ size?, className? }` que usan `currentColor`/`stroke="currentColor"`
+(a diferencia de los iconos ya existentes en `TabIcons.tsx`, que
+llevan el dorado fijo) para poder heredar el color de texto de cada
+contexto (botones con fondo rojo, texto blanco, ámbar...).
+
+**Dónde** (iconos nuevos: `ClapperIcon`, `TvIcon`, `FireIcon`,
+`StarFilledIcon`, `TrophyIcon`, `EyeIcon`, `PinIcon`, `DiscardIcon`,
+`CheckBadgeIcon`, `BookmarkIcon`, `BulbIcon`, `MasksIcon`, `BoltIcon`,
+`ShareIcon`, `RefreshIcon`, `MedalIcon`, `SearchIcon`, `PhoneIcon`,
+`MailIcon`): `components/recommendations/BadgeIcon.tsx` (nuevo) y, en
+el resto de archivos, sustitución del emoji por su icono equivalente
+en `components/recommendations/{RecommendationCard,DetailsModal,
+RecommendationSkeleton,Recommendations,SharedRecommendations,
+QuickPicks}.tsx`, `components/conversation/{AnswerButton,
+PlatformPicker,ChatHistory}.tsx`, `components/account/{ListsTab,
+DiaryTab}.tsx`, `components/summary/{MiResumenScreen,FavoriteCard}
+.tsx`, `components/title/{TitleActions,TitlePageBody}.tsx`,
+`components/actor/ActorPageBody.tsx`, `components/catalog/
+{CatalogPageBody,CatalogGrid}.tsx`, `components/layout/
+InstallButton.tsx`, `components/list/MyListButton.tsx`,
+`components/calendar/CalendarView.tsx`, `app/not-found.tsx`,
+`app/entrar/{page,LoginForm}.tsx`, `app/buscar/page.tsx`.
+
+**Ampliación — botones de respuesta del cuestionario**: las opciones
+del cuestionario (`data/conversation/nodes.ts`) también llevaban
+emoji delante de cada texto ("🙋 Solo", "😂 Reírme", "🚀 Ciencia
+ficción"...). En vez de tocar `nodes.ts` (son datos, y los reutiliza
+el motor de puntuación), se añadió `components/conversation/
+AnswerIcon.tsx`: un mapa emoji → icono y una función
+`splitAnswerLabel(label)` que separa el emoji inicial del resto del
+texto solo para pintarlo. Si un emoji no está en el mapa, se
+devuelve el texto completo sin icono (no rompe nada, solo se queda
+sin icono) — así una opción nueva en `nodes.ts` no obliga a tocar
+este archivo a la vez. `components/conversation/AnswerButton.tsx`
+usa esa función en vez de la comprobación manual que tenía antes
+para "🎬 Película" / "📺 Serie".
+
+**Dónde**: `components/icons/Icons.tsx` (17 iconos nuevos: `PersonIcon`,
+`HeartIcon`, `CheersIcon`, `FamilyIcon`, `LaughIcon`, `TensionIcon`,
+`BrainIcon`, `RocketIcon`, `SurpriseIcon`, `DiceIcon`, `GhostIcon`,
+`SwirlIcon`, `BanIcon`, `ThumbsUpIcon`, `SparkleIcon`, `LeafIcon`,
+`GemIcon`), `components/conversation/AnswerIcon.tsx` (nuevo),
+`components/conversation/AnswerButton.tsx`.
+
+**Segunda ampliación — eco del chat, título de pregunta y géneros de
+Mi Resumen**: quedaban tres sitios donde el mismo emoji de datos se
+colaba sin pasar por un botón: el mensaje que repite en el chat la
+opción que acabas de elegir (mismo `label` con emoji), el título de
+la pregunta de restricciones ("🚫 Antes de terminar...", el único
+título de `nodes.ts` que lleva emoji) y los nombres de género en
+"Tus géneros" de Mi Resumen (`lib/genreEmoji.ts`, que da un emoji
+por género de TMDb). `components/conversation/AnswerIcon.tsx` se
+convirtió en el mapa emoji → icono único para toda la web (fusiona
+las opciones del cuestionario y los géneros, que comparten varios
+emoji) y expone `emojiIcon(emoji)` además de `splitAnswerLabel`.
+`ChatHistory.tsx` usa `splitAnswerLabel` en cada mensaje (de bot o de
+usuario) para sustituir el emoji inicial por su icono si lo
+reconoce, sin tocar los mensajes de personalidad que no llevan emoji
+delante. `MiResumenScreen.tsx` usa `emojiIcon(genreEmoji(nombre))`
+para la lista de géneros. 10 iconos nuevos de género (`CompassIcon`,
+`PaletteIcon`, `CrimeIcon`, `CameraIcon`, `WizardHatIcon`,
+`ScrollIcon`, `MusicNoteIcon`, `SwordsIcon`, `CowboyHatIcon`, y
+`SearchIcon` reutilizado para "Misterio").
+
+**Sigue sin tocarse, a propósito**: el texto de personalidad del bot
+(`lib/conversation/personality.ts`) lleva emoji sueltos en mitad de
+frases completas (no al principio de un texto corto), y
+`GroupQuiz.tsx`/`RpsDuel.tsx` siguen fuera del barrido por el motivo
+ya explicado arriba (emoji expresivos en un minijuego).
+
+**Dónde**: `components/icons/Icons.tsx` (10 iconos de género),
+`components/conversation/AnswerIcon.tsx` (ahora exporta también
+`emojiIcon`), `components/conversation/ChatHistory.tsx`,
+`components/summary/MiResumenScreen.tsx`.

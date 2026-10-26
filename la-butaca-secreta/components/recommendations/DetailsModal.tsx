@@ -5,6 +5,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { createPortal } from "react-dom";
 
+import BadgeIcon from "./BadgeIcon";
+
+import {
+  BookmarkIcon,
+  BulbIcon,
+  MasksIcon,
+  SearchIcon,
+  StarFilledIcon,
+} from "@/components/icons/Icons";
 import { useDialog } from "@/hooks/useDialog";
 import { track } from "@/lib/analytics";
 import type { Recommendation } from "@/lib/tmdb/mapper";
@@ -109,7 +118,9 @@ export default function DetailsModal({
 
               <div className="min-w-0 flex-1 space-y-2">
                 <div className="marquee-font text-sm text-yellow-400">
-                  <span aria-hidden="true">{badge}</span>{" "}
+                  <span className="inline-flex -translate-y-px items-center">
+                    <BadgeIcon badge={badge} size={14} className="text-yellow-400" />
+                  </span>{" "}
                   {badgeTitle}
                 </div>
 
@@ -120,9 +131,9 @@ export default function DetailsModal({
                 </h2>
 
                 <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm text-zinc-300">
-                  <span>
-                    <span aria-hidden="true">⭐</span>
-                    <span className="sr-only">Nota </span>{" "}
+                  <span className="inline-flex items-center gap-1">
+                    <StarFilledIcon size={13} className="text-amber-300" />
+                    <span className="sr-only">Nota </span>
                     {movie.rating}
                   </span>
 
@@ -193,9 +204,9 @@ export default function DetailsModal({
                           ) : (
                             <span
                               aria-hidden="true"
-                              className="flex h-full w-full items-center justify-center text-lg text-zinc-500"
+                              className="flex h-full w-full items-center justify-center text-zinc-500"
                             >
-                              🎭
+                              <MasksIcon size={22} />
                             </span>
                           )}
                         </div>
@@ -212,7 +223,7 @@ export default function DetailsModal({
 
             {movie.reason && (
               <p className="rounded-xl bg-yellow-400/10 px-3 py-2 text-xs italic leading-relaxed text-yellow-200">
-                <span aria-hidden="true">💡</span>{" "}
+                <BulbIcon size={13} className="inline -translate-y-px" />{" "}
                 {movie.reason}
               </p>
             )}
@@ -269,8 +280,12 @@ export default function DetailsModal({
                       : "border-zinc-600 text-white hover:bg-zinc-800"
                   }`}
                 >
-                  <span aria-hidden="true">
-                    {saved ? "✓" : "🔖"}
+                  <span className="inline-flex -translate-y-px items-center">
+                    {saved ? (
+                      <span aria-hidden="true">✓</span>
+                    ) : (
+                      <BookmarkIcon size={14} />
+                    )}
                   </span>{" "}
                   {saved ? "Guardada" : "Guardar"}
                 </button>
@@ -294,7 +309,10 @@ export default function DetailsModal({
                   rel="noopener noreferrer"
                   className="marquee-font rounded-xl bg-red-600 px-4 py-2.5 text-base text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                 >
-                  <span aria-hidden="true">🔎</span> Buscar tráiler
+                  <span className="inline-flex -translate-y-px items-center">
+                    <SearchIcon />
+                  </span>{" "}
+                  Buscar tráiler
                   <span className="sr-only">
                     {" "}
                     (se abre en una pestaña nueva)

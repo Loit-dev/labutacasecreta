@@ -1,3 +1,5 @@
+import { splitAnswerLabel } from "./AnswerIcon";
+
 type Props = {
   label: string;
   onClick: () => void;
@@ -7,13 +9,7 @@ export default function AnswerButton({
   label,
   onClick,
 }: Props) {
-  const isMovie =
-    label.includes("Película") ||
-    label.includes("🎬");
-
-  const isSeries =
-    label.includes("Serie") ||
-    label.includes("📺");
+  const { Icon, text } = splitAnswerLabel(label);
 
   return (
     <button
@@ -103,28 +99,14 @@ export default function AnswerButton({
             gap-3
           "
         >
-          {isMovie && (
-            <span
-              className="shrink-0 text-2xl"
-              aria-hidden="true"
-            >
-              🎬
-            </span>
-          )}
-
-          {isSeries && (
-            <span
-              className="shrink-0 text-2xl"
-              aria-hidden="true"
-            >
-              📺
+          {Icon && (
+            <span className="shrink-0 text-amber-300">
+              <Icon size={26} />
             </span>
           )}
 
           <span className="marquee-font text-lg leading-snug text-white">
-            {label
-              .replace("🎬 ", "")
-              .replace("📺 ", "")}
+            {text}
           </span>
         </div>
 

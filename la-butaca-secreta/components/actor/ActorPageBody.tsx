@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import ActorCreditsGrid from "./ActorCreditsGrid";
 
+import { BoltIcon, MasksIcon } from "@/components/icons/Icons";
 import type { ActorDetails } from "@/lib/tmdb/shared";
 
 type Props = {
@@ -30,9 +31,9 @@ export default function ActorPageBody({ actor }: Props) {
           ) : (
             <span
               aria-hidden="true"
-              className="flex h-full w-full items-center justify-center text-3xl text-zinc-500"
+              className="flex h-full w-full items-center justify-center text-zinc-500"
             >
-              🎭
+              <MasksIcon size={32} />
             </span>
           )}
         </div>
@@ -55,7 +56,7 @@ export default function ActorPageBody({ actor }: Props) {
           href="/hoy"
           className="rounded-full bg-red-600 px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-black/60 transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
-          <span aria-hidden="true">⚡</span> Prueba Butaca Exprés
+          <BoltIcon size={14} className="inline -translate-y-px" /> Prueba Butaca Exprés
         </Link>
 
         <Link

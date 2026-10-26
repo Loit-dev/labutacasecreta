@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { StarFilledIcon } from "@/components/icons/Icons";
 import type { Recommendation } from "@/lib/tmdb/mapper";
 
 type Props = {
@@ -41,10 +42,15 @@ export default function CatalogGrid({ items, detailBasePath }: Props) {
               {item.title}
             </h3>
 
-            <p className="mt-0.5 text-xs text-zinc-400">
+            <p className="mt-0.5 flex items-center gap-1 text-xs text-zinc-400">
               {item.year > 0 ? item.year : ""}
               {item.year > 0 && item.rating > 0 ? " · " : ""}
-              {item.rating > 0 ? `⭐ ${item.rating}` : ""}
+              {item.rating > 0 && (
+                <span className="inline-flex items-center gap-0.5">
+                  <StarFilledIcon size={11} className="text-amber-300" />
+                  {item.rating}
+                </span>
+              )}
             </p>
           </div>
         </Link>
