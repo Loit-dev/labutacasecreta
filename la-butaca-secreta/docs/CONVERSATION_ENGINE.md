@@ -36,23 +36,36 @@ Todo depende de las respuestas anteriores.
 
 ---
 
-## 3. Nunca preguntar lo que ya sabemos
+## 3. Nunca preguntar lo que ya sabemos (dentro de esta conversación)
 
-Si una respuesta permite deducir información suficiente, no se formularán preguntas redundantes.
+Si una respuesta de **esta misma conversación** permite deducir otra
+(p. ej. quien elige "Solo" no necesita que le preguntemos con quién
+va), no se formulan preguntas redundantes.
+
+Esto **no** incluye recordar entre visitas qué género o ánimo se pidió
+otras veces para saltarse la pregunta la próxima vez: se probó y se
+descartó (ver `docs/DECISIONS.md`, 26 oct 2026) porque lo que apetece
+ver cambia de un día para otro, y saltarla sin avisar generaba una
+barra de progreso que arrancaba ya adelantada sin explicación. El
+cuestionario normal (modo "Solo"/"Acompañado") siempre pregunta todo.
+La única excepción intencional es **Butaca Exprés**, que por diseño no
+pregunta nada y usa ese historial para adivinar lo mejor posible.
 
 ---
 
-## 4. Restricciones contextuales
+## 4. Restricciones contextuales (idea, no implementada aún)
 
-La pregunta:
+La pregunta "¿Hay algo que hoy no te apetezca ver?" es obligatoria y
+sus opciones son siempre las mismas (ver `data/conversation/nodes.ts`,
+nodo `restrictions`): terror, violento, romántico, musical,
+documental, ninguna.
 
-"¿Hay algo que hoy no te apetezca ver?"
+La idea original era que esas opciones cambiaran según el ánimo
+elegido (ejemplos más abajo), pero nunca se implementó así en código.
+Se deja aquí como idea para retomar si interesa, no como descripción
+de lo que hace hoy la web.
 
-es obligatoria.
-
-Pero las opciones cambian según el contexto de la conversación.
-
-Ejemplos:
+Ejemplos de la idea original:
 
 Si el usuario busca tensión:
 

@@ -137,3 +137,93 @@ siquiera a construir la web (`npm run build`) o a ejecutar un solo
 test, y nunca se ha correlacionado con ningún cambio real a lo largo
 de muchos commits. Sigue abierto en `ROADMAP.md` arreglarlo de raíz
 para que vuelva a aportar una señal útil.
+
+---
+
+## El cuestionario "Solo" ya no se salta preguntas por memoria
+
+**Fecha**: 26 oct 2026.
+
+**Qué pasó**: `useConversation.ts` usaba `confidentDefaults()`
+(`lib/memory.ts`, basada en `localStorage`) para preguntar en silencio
+el género o el ánimo cuando ya se habían repetido en visitas
+anteriores. Efecto secundario detectado en auditoría: la barra de
+progreso podía arrancar ya a mitad (53%) sin que nada en pantalla
+explicara por qué, y parecía un fallo.
+
+**Decisión**: quitar ese salto por completo. El cuestionario "Solo"
+siempre pregunta contenido, ánimo, género, modo de descubrimiento,
+frescura y restricciones; lo único preseleccionado sigue siendo
+"¿con quién vas?" (ya respondido al elegir "Solo" en la pantalla
+anterior, no es una suposición sobre gustos).
+
+**Alternativa descartada**: mantener el salto pero avisar con un
+mensaje del bot explicando por qué se adelantaba la barra de
+progreso. Se implementó primero así, pero el usuario pidió
+directamente no saltarse ninguna pregunta: lo que apetece ver cambia
+de un día para otro, y asumir que siempre es el mismo género no es
+correcto aunque se avise.
+
+**Dónde**: `hooks/useConversation.ts`. `lib/memory.ts` no se tocó:
+sigue alimentando `inferredProfile()`, que usa Butaca Exprés (ahí sí
+es intencional no preguntar nada).
+
+---
+
+## Calendario: datos de hoy precargados en el servidor + caché avisada
+
+**Fecha**: 26 oct 2026.
+
+**Qué pasó**: la pestaña Calendario pedía siempre los datos al
+navegador al abrirse. La ruta (`app/api/calendar`) puede tardar hasta
+el límite de `maxDuration` (60s) la primera vez que se pide un mes
+(compara contra TMDb y TVmaze), y si tardaba o fallaba la interfaz se
+quedaba en "Buscando estrenos…" sin ningún aviso ni forma de
+reintentar.
+
+**Decisión**: tres cambios complementarios, no uno solo:
+1. `app/page.tsx` trae los datos del mes actual en el servidor
+   (mismo `revalidate` de 3600s que ya usaba el `Cache-Control` de la
+   ruta) y se los pasa a `CalendarView` ya listos, así el caso más
+   común (abrir la app y ver "hoy") no depende de ninguna petición
+   desde el navegador.
+2. `CalendarView.tsx`: aviso de "esto está tardando más de lo
+   normal" a los 6s, y a los 25s se da la carga por fallida con un
+   botón "Reintentar" (antes no había forma de reintentar sin
+   recargar la página entera).
+3. Tarea programada por hora que pide el mes actual y el siguiente
+   solo para mantener caliente la caché de Vercel y que a un
+   visitante real casi nunca le toque una carga en frío.
+
+**Alternativa descartada**: bajar `maxDuration` o simplificar la
+consulta a TMDb/TVmaze para que sea más rápida de raíz. Se descartó
+por ahora: cambia la cobertura/exactitud del calendario, que es un
+problema distinto al de la experiencia de carga.
+
+**Dónde**: `app/page.tsx`, `components/calendar/CalendarView.tsx`.
+
+---
+
+## Buscador: se filtra por relevancia real del título, no solo por el orden de TMDb
+
+**Fecha**: 26 oct 2026.
+
+**Qué pasó**: `/api/search` usaba directamente el orden de
+`/search/multi` de TMDb, que pondera por popularidad. Con consultas
+cortas o de títulos muy populares, colaba algún resultado sin
+relación real (p. ej. buscar «Dune» devolvía «Anatomía de una caída»
+entre los ocho resultados).
+
+**Decisión**: después de pedir a TMDb, quedarse solo con los
+resultados cuyo título (en cualquier idioma: `title`/`name`/
+`original_title`/`original_name`, sin acentos) contiene lo escrito.
+Si ninguno lo contiene (típico de erratas o títulos muy traducidos),
+se deja el orden original de TMDb tal cual, para no devolver una
+lista vacía por ser demasiado estrictos.
+
+**Alternativa descartada**: una distancia de edición (Levenshtein) u
+otra heurística de similitud más compleja. Se descartó por ahora: el
+filtro por "contiene la cadena" resuelve el caso real detectado sin
+añadir una dependencia ni lógica que haya que mantener.
+
+**Dónde**: `app/api/search/route.ts`.

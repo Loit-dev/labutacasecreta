@@ -23,4 +23,4 @@ export const CONTACT_EMAIL =
   process.env.NEXT_PUBLIC_CONTACT_EMAIL;
 
 // Fecha de la última revisión de los textos legales
-export const LEGAL_UPDATED = "21 de octubre de 2026";
+export const LEGAL_UPDATED = "26 de octubre de 2026";

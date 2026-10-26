@@ -43,6 +43,10 @@ No es el MVP lo que falta, son mejoras sobre lo que ya funciona:
   "Instalar el navegador" (entorno, no la app) desde antes de esta
   documentación; sería bueno arreglarlo para que vuelva a ser una
   señal útil en vez de algo que se ignora siempre.
+- **Restricciones contextuales**: la pregunta "¿algo que evitar?"
+  siempre muestra las mismas opciones; la idea original (que
+  cambiaran según el ánimo elegido) no se implementó — ver
+  `CONVERSATION_ENGINE.md`, principio 4.
 
 ## Notas para quien retome esto
 

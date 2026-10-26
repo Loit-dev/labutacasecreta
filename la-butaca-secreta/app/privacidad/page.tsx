@@ -41,7 +41,18 @@ export default function PrivacyPage() {
           «en pareja») se envían a nuestro servidor, sin
           identificarte, para consultar a TMDb y devolverte
           tres recomendaciones. Terminada la petición, no se
-          conservan.
+          conservan en el servidor.
+        </p>
+
+        <p>
+          En tu navegador sí guardamos, de forma local y sin
+          identificarte, un conteo de qué tipo de contenido,
+          género y ánimo sueles pedir cuando terminas el
+          cuestionario. Solo se usa para que «Butaca Exprés»
+          (el modo sin preguntas) acierte mejor desde el
+          principio; el cuestionario normal siempre pregunta
+          todo, nunca se salta nada por esto. Puedes borrarlo
+          limpiando los datos del sitio en tu navegador.
         </p>
       </section>
 
@@ -66,6 +77,16 @@ export default function PrivacyPage() {
           título, año, nota, póster y plataformas de ese
           título. No se envía a ningún servidor y puedes
           vaciarla desde «Mi lista» en cualquier momento.
+        </p>
+
+        <p>
+          Cuando valoras un título o marcas «No me apetece»,
+          también guardamos en tu navegador un conteo por
+          género (sin identificar el título concreto) que usamos
+          para ajustar las siguientes recomendaciones hacia lo
+          que sueles valorar mejor. Puedes borrarlo en cualquier
+          momento con el enlace «Olvidar lo que he aprendido de
+          tus gustos», sin que eso borre tus valoraciones.
         </p>
       </section>
 
