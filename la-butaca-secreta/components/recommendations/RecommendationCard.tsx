@@ -303,7 +303,13 @@ export default function RecommendationCard({
                     : "border-dashed border-zinc-700 hover:border-zinc-500 hover:bg-zinc-800"
                 }`}
               >
-                <SaveIcon filled={saved} />
+                <span
+                  className={`flex h-8 w-8 items-center justify-center rounded-full border ${
+                    saved ? "border-amber-300/50" : "border-zinc-600/50"
+                  }`}
+                >
+                  <SaveIcon filled={saved} />
+                </span>
                 <span
                   className={`marquee-font text-xs ${
                     saved ? "text-yellow-300" : "text-zinc-300"
@@ -321,7 +327,9 @@ export default function RecommendationCard({
                 title="No volveré a recomendártela"
                 className="flex flex-1 flex-col items-center gap-1 rounded-md border border-dashed border-zinc-700/70 bg-zinc-800/40 px-1 py-2 transition-colors hover:border-zinc-500 hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
               >
-                <SeenIcon />
+                <span className="flex h-8 w-8 items-center justify-center rounded-full border border-emerald-400/40">
+                  <SeenIcon />
+                </span>
                 <span className="marquee-font text-xs text-zinc-300">
                   Ya la vi
                 </span>
@@ -335,7 +343,9 @@ export default function RecommendationCard({
                 title="Buscaré algo distinto"
                 className="flex flex-1 flex-col items-center gap-1 rounded-md border border-dashed border-zinc-700/70 bg-zinc-800/40 px-1 py-2 transition-colors hover:border-zinc-500 hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
               >
-                <RejectIcon />
+                <span className="flex h-8 w-8 items-center justify-center rounded-full border border-zinc-600/50">
+                  <RejectIcon />
+                </span>
                 <span className="marquee-font text-xs text-zinc-300">
                   No me apetece
                 </span>

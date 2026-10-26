@@ -62,19 +62,16 @@ no una fuente nueva.
 
 ## Iconografía
 
-Mezcla deliberada de dos estilos, cada uno con su sitio:
-
-- **Emoji** para las pestañas y elementos de navegación/listado
-  (👤 Perfil, 📖 Diario, 📝 Listas, ⏳ Pendientes, 🎬 Recomendador,
-  📅 Calendario, 🔎 Buscar…): rápidos de reconocer, sin pedir un set
-  de iconos propio, y coherentes con el tono cercano de
-  `PERSONALITY.md`.
-- **SVG inline a medida** para marcas de terceros e iconos que
-  necesitan verse "serios" u oficiales (el icono de Instagram, el
-  icono de cuenta/login junto a él): `stroke="currentColor"`,
-  `strokeWidth={2}`, trazo redondeado (`strokeLinecap`/
-  `strokeLinejoin="round"`), sin relleno — nunca una librería de
-  iconos externa.
+**SVG inline a medida en todas partes** (ver DECISIONS.md, "Iconos
+nuevos en pestañas y botones"): trazo dorado `#facc15`,
+`strokeWidth` entre `1.4` y `1.6`, sin relleno salvo detalles puntuales
+(p. ej. los puntos del calendario), coherente con el icono de
+Instagram y el de cuenta/login que ya usaban este estilo. Los iconos
+compartidos de la barra de pestañas viven en
+`components/conversation/TabIcons.tsx`. Emoji solo queda para listas y
+elementos puntuales fuera de la navegación principal (p. ej. 👤 Perfil,
+📖 Diario, 📝 Listas, ⏳ Pendientes en otras pantallas), no para
+pestañas ni botones de acción.
 
 ## Logos de terceros
 

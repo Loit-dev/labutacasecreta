@@ -354,3 +354,32 @@ con el código.
 `components/layout/AccountTabLink.tsx`,
 `components/recommendations/RecommendationCard.tsx`,
 `components/calendar/CalendarView.tsx`, `docs/BRAND.md`.
+
+---
+
+**Fecha**: 26 oct 2026.
+
+**Qué pasó**: viendo el resultado de la entrada anterior, se pidió
+explícitamente extender el estilo de icono SVG dorado del selector de
+modo (`ModeSelect.tsx`) a la barra de pestañas y a los botones de
+acción de la tarjeta de recomendación.
+
+**Decisión**: se crean iconos SVG propios para Recomendador, Calendario
+y Buscar (`components/conversation/TabIcons.tsx`, trazo `#facc15`,
+mismo lenguaje visual que `SoloIcon`/`GroupIcon`), sustituyendo los
+emoji 🎬📅🔎 de la barra de pestañas; el icono de cuenta
+(`AccountTabLink.tsx`) pasa a usar el mismo `AccountIcon` compartido
+en vez de un SVG duplicado en blanco. En `RecommendationCard.tsx`, los
+iconos de Guardar/Ya la vi/No me apetece se envuelven en un anillo
+circular (`rounded-full border`, color a juego con cada acción: dorado
+para guardado, verde esmeralda para "ya la vi", gris para "no me
+apetece"), igual que los iconos grandes del selector de modo. Esto
+resuelve la "nota pendiente" de la entrada del 26 oct sobre SVG vs.
+emoji: a partir de ahora el SVG a medida es el estándar para pestañas
+y botones de acción; el emoji queda solo para listas/pantallas fuera
+de esa navegación principal. `BRAND.md` se actualiza en consecuencia.
+
+**Dónde**: `components/conversation/TabIcons.tsx` (nuevo),
+`components/conversation/Conversation.tsx`,
+`components/layout/AccountTabLink.tsx`,
+`components/recommendations/RecommendationCard.tsx`, `docs/BRAND.md`.
