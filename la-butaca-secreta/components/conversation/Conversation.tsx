@@ -165,7 +165,7 @@ export default function Conversation({ initialCalendar }: Props) {
             <img
               src="/Logo.png"
               alt="La Butaca Secreta"
-              className="absolute left-4 top-16 hidden md:block md:h-12 lg:h-14 w-auto opacity-90"
+              className="absolute left-4 top-20 hidden md:block md:h-12 lg:top-24 lg:h-14 w-auto opacity-90"
             />
           )}
           <div

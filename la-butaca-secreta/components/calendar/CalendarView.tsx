@@ -542,7 +542,7 @@ export default function CalendarView({
                           />
                           <div
                             aria-hidden="true"
-                            className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-black/35"
+                            className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/55 to-black/60"
                           />
                         </>
                       )}
