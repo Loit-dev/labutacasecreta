@@ -266,3 +266,47 @@ quedar vacía los últimos días del mes.
 **Dónde**: `components/conversation/ModeSelect.tsx`,
 `components/recommendations/RecommendationCard.tsx`,
 `components/calendar/CalendarView.tsx`.
+
+---
+
+## Dirección visual más atrevida: "entrada de cine" en Inicio y tarjeta
+
+**Fecha**: 26 oct 2026.
+
+**Qué pasó**: tras la entrada anterior, se pidió explícitamente ir más
+lejos visualmente, aprovechando el nombre "La Butaca Secreta": una
+estética de entrada de cine / sala secreta (bordes discontinuos tipo
+ticket, acento dorado de marquesina junto al rojo, separador tipo
+"cupón rasgado").
+
+**Decisión**: `ModeSelect.tsx` y `RecommendationCard.tsx` pasan a
+`rounded-md`/`rounded-lg` con borde discontinuo (`border-dashed`) en
+vez de `rounded-2xl`/`rounded-3xl` con borde sólido; los iconos del
+selector de modo pasan de rosa/naranja a dorado (`#facc15`), que ya se
+usaba en el resto de la web para nota y "guardado"; se añade un
+separador de "perforación" (`repeating-linear-gradient`) entre el
+póster y el contenido de la tarjeta, y bajo el selector de modo; el
+titular de Inicio (`Header.tsx`) lleva ahora un degradado
+ámbar→rojo en vez de solo rojo/naranja. Los títulos de los botones de
+modo y "Ver detalles" pasan a mayúsculas con tracking ancho.
+
+**Alternativa descartada**: añadir una tercera familia tipográfica
+(p. ej. una fuente condensada estilo "marquesina de cine") para
+reforzar el efecto. Descartada porque `BRAND.md` fija explícitamente
+solo dos familias (Geist/Manrope) y dice que un componente con más
+carácter usa `.title-font` (Manrope), no una fuente nueva; el efecto
+"marquesina" se consigue con Manrope en mayúsculas, extra-bold y
+tracking ancho, sin romper esa regla.
+
+**Nota pendiente**: `BRAND.md` dice que la iconografía de pestañas y
+navegación es emoji, y que el SVG a medida es solo para marcas de
+terceros/iconos "serios". El selector de modo (`ModeSelect.tsx`) usa
+SVG a medida desde la entrada anterior, lo cual es una excepción
+deliberada a esa regla para esta pantalla concreta (no para las
+pestañas Recomendador/Calendario/Buscar, que siguen en emoji). Queda
+pendiente decidir si se documenta como excepción permanente en
+`BRAND.md` o se revierte a emoji.
+
+**Dónde**: `components/conversation/ModeSelect.tsx`,
+`components/conversation/Header.tsx`,
+`components/recommendations/RecommendationCard.tsx`.

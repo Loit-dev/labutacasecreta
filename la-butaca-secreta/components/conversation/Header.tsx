@@ -23,7 +23,7 @@ export default function Header() {
         <span className="text-white">
           hechas{" "}
         </span>
-        <span className="bg-gradient-to-r from-red-800 via-red-700 to-orange-600 bg-clip-text text-transparent">
+        <span className="bg-gradient-to-r from-amber-300 via-red-500 to-red-700 bg-clip-text text-transparent">
           para ti.
         </span>
       </h1>

@@ -98,7 +98,7 @@ export default function RecommendationCard({
   return (
     <article
       aria-label={title}
-      className="flex h-full flex-col overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900 shadow-xl"
+      className="flex h-full flex-col overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900 shadow-xl"
     >
        <div
         className={`relative w-full overflow-hidden ${
@@ -108,7 +108,7 @@ export default function RecommendationCard({
         <Image src={poster} alt={title} fill unoptimized={poster.endsWith(".svg")} className="object-cover object-top md:object-contain md:bg-black" sizes="(max-width: 768px) 100vw, 33vw" />
         {rating > 0 && (
           <span
-            className={`absolute left-3 top-3 z-10 flex items-center gap-1 rounded-full bg-black/60 font-bold text-white backdrop-blur-sm ${
+            className={`absolute left-3 top-3 z-10 flex items-center gap-1 rounded-full border border-amber-300/50 bg-black/70 font-bold text-white backdrop-blur-sm ${
               compact ? "px-1.5 py-0.5 text-[10px]" : "px-2.5 py-1 text-xs"
             }`}
           >
@@ -195,6 +195,15 @@ export default function RecommendationCard({
       </div>
 
       <div
+        aria-hidden="true"
+        className="h-px shrink-0 opacity-60"
+        style={{
+          backgroundImage:
+            "repeating-linear-gradient(90deg, transparent 0 6px, rgba(250,246,236,0.16) 6px 8px)",
+        }}
+      />
+
+      <div
         className={
           compact
             ? "flex flex-1 flex-col space-y-1 p-2"
@@ -269,8 +278,8 @@ export default function RecommendationCard({
   aria-label={`Ver detalles de ${title}`}
   className={
     compact
-      ? "mt-auto w-full rounded-lg bg-red-600 px-2 py-1.5 text-[10px] font-semibold text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-      : "mt-auto w-full rounded-xl bg-red-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+      ? "mt-auto w-full rounded-md bg-red-600 px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+      : "mt-auto w-full rounded-md bg-red-600 px-4 py-3 text-sm font-semibold uppercase tracking-wide text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
   }
 >
   {compact ? "Ver" : "Ver detalles"}
@@ -288,10 +297,10 @@ export default function RecommendationCard({
                     : `Guardar en mi lista: ${title}`
                 }
                 title="Guardar para ver luego"
-                className={`flex flex-1 flex-col items-center gap-1 rounded-xl border px-1 py-2 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
+                className={`flex flex-1 flex-col items-center gap-1 rounded-md border px-1 py-2 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
                   saved
                     ? "border-yellow-500/70 bg-yellow-400/10"
-                    : "border-zinc-700 hover:border-zinc-500 hover:bg-zinc-800"
+                    : "border-dashed border-zinc-700 hover:border-zinc-500 hover:bg-zinc-800"
                 }`}
               >
                 <SaveIcon filled={saved} />
@@ -310,7 +319,7 @@ export default function RecommendationCard({
                 onClick={onSeen}
                 aria-label={`Ya la vi: ${title}`}
                 title="No volveré a recomendártela"
-                className="flex flex-1 flex-col items-center gap-1 rounded-xl border border-zinc-700/70 bg-zinc-800/40 px-1 py-2 transition-colors hover:border-zinc-500 hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                className="flex flex-1 flex-col items-center gap-1 rounded-md border border-dashed border-zinc-700/70 bg-zinc-800/40 px-1 py-2 transition-colors hover:border-zinc-500 hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
               >
                 <SeenIcon />
                 <span className="text-[10.5px] font-semibold text-zinc-300">
@@ -324,7 +333,7 @@ export default function RecommendationCard({
                 onClick={onReject}
                 aria-label={`No me apetece: ${title}`}
                 title="Buscaré algo distinto"
-                className="flex flex-1 flex-col items-center gap-1 rounded-xl border border-zinc-700/70 bg-zinc-800/40 px-1 py-2 transition-colors hover:border-zinc-500 hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                className="flex flex-1 flex-col items-center gap-1 rounded-md border border-dashed border-zinc-700/70 bg-zinc-800/40 px-1 py-2 transition-colors hover:border-zinc-500 hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
               >
                 <RejectIcon />
                 <span className="text-[10.5px] font-semibold text-zinc-300">
