@@ -560,3 +560,24 @@ DiaryTab}.tsx`, `components/summary/{MiResumenScreen,FavoriteCard}
 InstallButton.tsx`, `components/list/MyListButton.tsx`,
 `components/calendar/CalendarView.tsx`, `app/not-found.tsx`,
 `app/entrar/{page,LoginForm}.tsx`, `app/buscar/page.tsx`.
+
+**Ampliación — botones de respuesta del cuestionario**: las opciones
+del cuestionario (`data/conversation/nodes.ts`) también llevaban
+emoji delante de cada texto ("🙋 Solo", "😂 Reírme", "🚀 Ciencia
+ficción"...). En vez de tocar `nodes.ts` (son datos, y los reutiliza
+el motor de puntuación), se añadió `components/conversation/
+AnswerIcon.tsx`: un mapa emoji → icono y una función
+`splitAnswerLabel(label)` que separa el emoji inicial del resto del
+texto solo para pintarlo. Si un emoji no está en el mapa, se
+devuelve el texto completo sin icono (no rompe nada, solo se queda
+sin icono) — así una opción nueva en `nodes.ts` no obliga a tocar
+este archivo a la vez. `components/conversation/AnswerButton.tsx`
+usa esa función en vez de la comprobación manual que tenía antes
+para "🎬 Película" / "📺 Serie".
+
+**Dónde**: `components/icons/Icons.tsx` (17 iconos nuevos: `PersonIcon`,
+`HeartIcon`, `CheersIcon`, `FamilyIcon`, `LaughIcon`, `TensionIcon`,
+`BrainIcon`, `RocketIcon`, `SurpriseIcon`, `DiceIcon`, `GhostIcon`,
+`SwirlIcon`, `BanIcon`, `ThumbsUpIcon`, `SparkleIcon`, `LeafIcon`,
+`GemIcon`), `components/conversation/AnswerIcon.tsx` (nuevo),
+`components/conversation/AnswerButton.tsx`.

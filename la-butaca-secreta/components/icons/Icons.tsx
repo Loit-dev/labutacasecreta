@@ -247,3 +247,170 @@ export function MailIcon({ size = 16, className }: IconProps) {
     </svg>
   );
 }
+
+// Iconos para las respuestas del cuestionario (components/conversation/
+// AnswerButton.tsx): un icono por cada emoji que llevaban las opciones
+// en data/conversation/nodes.ts.
+
+export function PersonIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
+      <circle cx="12" cy="7.5" r="3.5" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M5 20c0-3.6 3.1-6.3 7-6.3s7 2.7 7 6.3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function HeartIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
+      <path d="M12 20.3S3.5 15 3.5 9.1C3.5 6 5.9 3.8 8.6 3.8c1.5 0 2.8.7 3.4 1.9.6-1.2 1.9-1.9 3.4-1.9 2.7 0 5.1 2.2 5.1 5.3 0 5.9-8.5 11.2-8.5 11.2z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function CheersIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
+      <path d="M5 3.5l1.4 11.4a2 2 0 002 1.8h.2a2 2 0 002-1.8L12 3.5H5z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+      <path d="M13.5 6l1 9.2a1.8 1.8 0 001.8 1.6 1.8 1.8 0 001.8-1.6l1-9.2h-5.6z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" transform="rotate(16 16.8 11.1)" />
+      <path d="M8 20.5h2.5M16.6 20.5h2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <path d="M9.3 16.7v3.8M17.6 18.7v1.8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function FamilyIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
+      <circle cx="7.5" cy="6.5" r="2.3" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="16.5" cy="6.5" r="2.3" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="12" cy="13" r="2" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M3 20c0-3 2-5.3 4.5-5.3S12 17 12 20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M12.5 20c.3-2.4 2-4.2 4-4.2s3.7 1.8 4 4.2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function LaughIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
+      <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M8 10.5h.01M16 10.5h.01" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+      <path d="M7.5 13.5c.9 2 2.6 3.2 4.5 3.2s3.6-1.2 4.5-3.2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function TensionIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
+      <path d="M3 13h3.5l2-5 3 10 2.3-7.5L15 13h6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function BrainIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
+      <path d="M9.5 4.2a2.6 2.6 0 00-2.6 2.6v.3A3 3 0 005 10v.6a2.8 2.8 0 00-1 2.2 2.8 2.8 0 001.7 2.6 2.7 2.7 0 002.6 3.2h1.2V4.2H9.5z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+      <path d="M14.5 4.2a2.6 2.6 0 012.6 2.6v.3A3 3 0 0119 10v.6a2.8 2.8 0 011 2.2 2.8 2.8 0 01-1.7 2.6 2.7 2.7 0 01-2.6 3.2h-1.2V4.2h1z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function RocketIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
+      <path d="M12 2.8c2.6 1.9 4.2 5 4.2 8.6 0 2-.5 3.7-1.3 5.1H9.1c-.8-1.4-1.3-3.1-1.3-5.1 0-3.6 1.6-6.7 4.2-8.6z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <circle cx="12" cy="10.5" r="1.6" stroke="currentColor" strokeWidth="1.4" />
+      <path d="M9.1 16.5L7 19.2M14.9 16.5L17 19.2M10 19.5h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function SurpriseIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
+      <path d="M12 3v3.2M12 17.8V21M3 12h3.2M17.8 12H21M5.6 5.6l2.3 2.3M16.1 16.1l2.3 2.3M18.4 5.6l-2.3 2.3M7.9 16.1l-2.3 2.3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.6" />
+    </svg>
+  );
+}
+
+export function DiceIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
+      <rect x="3.5" y="3.5" width="17" height="17" rx="3" stroke="currentColor" strokeWidth="1.6" />
+      <circle cx="8.2" cy="8.2" r="1.1" fill="currentColor" />
+      <circle cx="15.8" cy="8.2" r="1.1" fill="currentColor" />
+      <circle cx="12" cy="12" r="1.1" fill="currentColor" />
+      <circle cx="8.2" cy="15.8" r="1.1" fill="currentColor" />
+      <circle cx="15.8" cy="15.8" r="1.1" fill="currentColor" />
+    </svg>
+  );
+}
+
+export function GhostIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
+      <path d="M5 20V11a7 7 0 0114 0v9l-2.3-1.8L14.5 20l-2.5-1.8L9.5 20l-2.2-1.8L5 20z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M9 11h.01M15 11h.01" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function SwirlIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
+      <path d="M12 21a9 9 0 10-9-9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <path d="M12 17a5 5 0 10-5-5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <path d="M12 13a1 1 0 10-1-1" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function BanIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
+      <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M6.3 17.7L17.7 6.3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function ThumbsUpIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
+      <path d="M7.5 10.5v9H5.8a1.3 1.3 0 01-1.3-1.3v-6.4a1.3 1.3 0 011.3-1.3H7.5z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M7.5 10.5l3.8-6.8a1.8 1.8 0 013.2 1.6l-1.1 3.4h4.3a1.8 1.8 0 011.7 2.4l-2 6.6a1.8 1.8 0 01-1.7 1.3H7.5" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function SparkleIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
+      <path d="M12 3.5l1.7 5.3 5.3 1.7-5.3 1.7-1.7 5.3-1.7-5.3-5.3-1.7 5.3-1.7z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M18.5 16.5l.7 2.1 2.1.7-2.1.7-.7 2.1-.7-2.1-2.1-.7 2.1-.7z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function LeafIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
+      <path d="M5 19c7-1 13-6.2 14-14-8 0-13.5 5-14 14z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M5 19c2-3.2 4.8-6 8.3-8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function GemIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
+      <path d="M5 9l4.5-5.5h5L19 9l-7 11.5L5 9z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M5 9h14M9.5 3.5L7.5 9l4.5 11.5L16.5 9l-2-5.5" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
+    </svg>
+  );
+}
