@@ -15,9 +15,15 @@ import { PLATFORMS, type PlatformKey } from "@/lib/platforms";
 type Props = {
   // Plataformas que el usuario ha marcado
   platforms: PlatformKey[];
+  // Datos del mes actual ya traídos en el servidor (ver app/page.tsx),
+  // para que el calendario aparezca listo desde el primer render y no
+  // dependa de una petición desde el navegador que pueda tardar o
+  // fallar. Si falta o no es el mes de hoy, se pide como siempre.
+  initialMonth?: string;
+  initialData?: MonthData;
 };
 
-type MonthData = {
+export type MonthData = {
   days: Record<string, CalendarEntry[]>;
   logos: Partial<Record<PlatformKey, string>>;
 };
@@ -177,13 +183,25 @@ function EntryItem({
   );
 }
 
-export default function CalendarView({ platforms: mine }: Props) {
+export default function CalendarView({
+  platforms: mine,
+  initialMonth,
+  initialData,
+}: Props) {
   const today = todayKey();
 
   const [month, setMonth] = useState(today.substring(0, 7));
   const [selected, setSelected] = useState<string | null>(today);
-  const [data, setData] = useState<Record<string, MonthData>>({});
+  const [data, setData] = useState<Record<string, MonthData>>(() =>
+    initialMonth && initialData ? { [initialMonth]: initialData } : {}
+  );
   const [failed, setFailed] = useState<string | null>(null);
+  // Primera carga de un mes sin caché: la ruta compara contra TVmaze y
+  // puede tardar bastantes segundos. Lo avisamos para que no parezca
+  // colgado, y si se pasa de verdad lo damos por fallido con reintento.
+  const [slow, setSlow] = useState(false);
+  // Cambia para forzar que el efecto vuelva a pedir el mes (botón «Reintentar»)
+  const [retryToken, setRetryToken] = useState(0);
   // Pestaña de plataforma elegida en el detalle del día ("todas" = sin filtrar)
   const [platformTab, setPlatformTab] = useState<PlatformKey | "todas">(
     "todas"
@@ -192,7 +210,24 @@ export default function CalendarView({ platforms: mine }: Props) {
   useEffect(() => {
     if (data[month]) return;
 
+    setSlow(false);
+    setFailed(null);
+
     const controller = new AbortController();
+
+    // Distingue un abort "de verdad" (nuestro timeout) de uno de limpieza
+    // (cambio de mes o desmontaje), que no debe marcarse como fallo.
+    let timedOut = false;
+
+    const slowTimer = setTimeout(() => setSlow(true), 6000);
+
+    // La ruta tiene hasta 60s de margen en el servidor (maxDuration), pero
+    // nadie se queda mirando un spinner tanto tiempo: pasado este umbral
+    // lo damos por fallido en la interfaz y dejamos reintentar a mano.
+    const timeoutTimer = setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+    }, 25000);
 
     fetch(`/api/calendar?month=${month}`, {
       signal: controller.signal,
@@ -207,13 +242,23 @@ export default function CalendarView({ platforms: mine }: Props) {
         setFailed(null);
       })
       .catch((error: unknown) => {
-        if ((error as Error).name !== "AbortError") {
+        const isAbort = (error as Error).name === "AbortError";
+
+        if (!isAbort || timedOut) {
           setFailed(month);
         }
+      })
+      .finally(() => {
+        clearTimeout(slowTimer);
+        clearTimeout(timeoutTimer);
       });
 
-    return () => controller.abort();
-  }, [month, data]);
+    return () => {
+      clearTimeout(slowTimer);
+      clearTimeout(timeoutTimer);
+      controller.abort();
+    };
+  }, [month, data, retryToken]);
 
   const current = data[month];
 
@@ -310,21 +355,37 @@ export default function CalendarView({ platforms: mine }: Props) {
         </div>
 
         {failed === month && !current && (
-          <p
+          <div
             role="alert"
-            className="rounded-2xl bg-black/40 px-4 py-6 text-center text-sm text-zinc-300"
+            className="flex flex-col items-center gap-3 rounded-2xl bg-black/40 px-4 py-6 text-center text-sm text-zinc-300"
           >
-            No he podido cargar los estrenos de este mes. Inténtalo
-            de nuevo en un rato.
-          </p>
+            <p>
+              No he podido cargar los estrenos de este mes. Puede
+              que esté tardando más de la cuenta.
+            </p>
+
+            <button
+              onClick={() => {
+                setFailed(null);
+                setSlow(false);
+                setRetryToken((n) => n + 1);
+              }}
+              className="rounded-full border border-zinc-600 bg-zinc-800 px-4 py-1.5 text-xs font-semibold text-white hover:bg-zinc-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            >
+              Reintentar
+            </button>
+          </div>
         )}
 
         {!current && failed !== month && (
           <p
             role="status"
+            aria-live="polite"
             className="rounded-2xl bg-black/40 px-4 py-6 text-center text-sm text-zinc-300"
           >
-            Buscando estrenos…
+            {slow
+              ? "Esto está tardando más de lo normal, pero sigo buscando…"
+              : "Buscando estrenos…"}
           </p>
         )}
 

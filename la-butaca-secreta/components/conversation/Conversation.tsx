@@ -10,7 +10,9 @@ import {
 import GroupQuiz from "@/components/group/GroupQuiz";
 import AccountTabLink from "@/components/layout/AccountTabLink";
 import PosterWall from "@/components/layout/PosterWall";
-import CalendarView from "@/components/calendar/CalendarView";
+import CalendarView, {
+  type MonthData,
+} from "@/components/calendar/CalendarView";
 import SearchBox from "@/components/search/SearchBox";
 import { track } from "@/lib/analytics";
 import {
@@ -31,7 +33,14 @@ const TABS = [
   ["search", "🔎", "Buscar"],
 ] as const;
 
-export default function Conversation() {
+type Props = {
+  // Calendario de hoy, ya traído en el servidor (ver app/page.tsx) para
+  // que la pestaña Calendario no dependa de una petición desde el
+  // navegador al abrirla por primera vez.
+  initialCalendar?: { month: string; data: MonthData };
+};
+
+export default function Conversation({ initialCalendar }: Props) {
   const [mode, setMode] = useState<Mode | null>(null);
 
   // Pestañas: el Recomendador no se desmonta al ir al Calendario, así
@@ -238,7 +247,11 @@ export default function Conversation() {
             className="px-5 py-5 md:px-8"
           >
             {calendarOpened && (
-              <CalendarView platforms={platforms} />
+              <CalendarView
+                platforms={platforms}
+                initialMonth={initialCalendar?.month}
+                initialData={initialCalendar?.data}
+              />
             )}
           </div>
 

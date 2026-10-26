@@ -10,26 +10,16 @@ import {
   ConversationNode,
   UserProfile,
 } from "@/lib/conversation/types";
-import { confidentDefaults, recordCompletion } from "@/lib/memory";
+import { recordCompletion } from "@/lib/memory";
 
-// Quien ha elegido "Solo" no necesita que le preguntemos con quién va.
-// Si además ya sabemos (con bastante seguridad, por visitas anteriores)
-// qué género o ánimo suele pedir, nos ahorramos también esas preguntas:
-// así el cuestionario es más corto cuanto más se usa.
+// Quien ha elegido "Solo" no necesita que le preguntemos con quién va:
+// ya lo ha dicho en la pantalla anterior. El resto de preguntas (género,
+// ánimo...) se preguntan siempre: lo que apetece ver cambia de un día
+// para otro, así que no nos las saltamos por lo que se pidió otras veces.
 function createEngine() {
   const engine = new ConversationEngine();
 
   engine.preset("company", "alone");
-
-  const remembered = confidentDefaults();
-
-  if (remembered.preferredGenre) {
-    engine.preset("preferredGenre", remembered.preferredGenre);
-  }
-
-  if (remembered.mood) {
-    engine.preset("mood", remembered.mood);
-  }
 
   return engine;
 }

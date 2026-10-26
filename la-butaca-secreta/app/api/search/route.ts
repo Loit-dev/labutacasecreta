@@ -4,11 +4,45 @@ import { clientIp, isRateLimited } from "@/lib/rateLimit";
 import { type SearchHit } from "@/lib/search";
 import { searchMulti } from "@/lib/tmdb/api";
 import { IMAGE_URL } from "@/lib/tmdb/mapper";
+import type { TMDBMovie } from "@/lib/tmdb/types";
 
 export const dynamic = "force-dynamic";
 
 // Resultados de sobra para un desplegable, sin abrumar
 const RESULTS_LIMIT = 8;
+
+function normalize(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, ""); // quita acentos
+}
+
+/**
+ * TMDb ordena /search/multi por popularidad, no por lo bien que
+ * encaja el título con lo escrito: con consultas cortas o muy
+ * populares cuela algún resultado sin relación real (p.ej. "Dune"
+ * devolviendo "Anatomía de una caída"). Si hay resultados cuyo
+ * título sí contiene lo escrito, nos quedamos solo con esos y se
+ * acabó el ruido; si no hay ninguno (typos, títulos traducidos...)
+ * dejamos el orden de TMDb tal cual, que seguirá siendo útil.
+ */
+function relevant(items: TMDBMovie[], query: string): TMDBMovie[] {
+  const needle = normalize(query);
+
+  const matches = items.filter((item) => {
+    const candidates = [
+      item.title,
+      item.name,
+      item.original_title,
+      item.original_name,
+    ].filter((value): value is string => Boolean(value));
+
+    return candidates.some((value) => normalize(value).includes(needle));
+  });
+
+  return matches.length > 0 ? matches : items;
+}
 
 /**
  * Buscador del cuadro "¿Qué película o serie buscas?": apoya el
@@ -33,8 +67,11 @@ export async function GET(request: NextRequest) {
   try {
     const data = await searchMulti(query);
 
-    const hits: SearchHit[] = (data.results ?? [])
-      .filter((item) => item.media_type === "movie" || item.media_type === "tv")
+    const byType = (data.results ?? []).filter(
+      (item) => item.media_type === "movie" || item.media_type === "tv"
+    );
+
+    const hits: SearchHit[] = relevant(byType, query)
       .slice(0, RESULTS_LIMIT)
       .map((item) => ({
         id: item.id,
