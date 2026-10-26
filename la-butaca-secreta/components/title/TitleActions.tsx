@@ -6,6 +6,7 @@ import RatingPrompt from "@/components/recommendations/RatingPrompt";
 import { useAuth } from "@/hooks/useAuth";
 import { useWatchlist } from "@/hooks/useWatchlist";
 import { track } from "@/lib/analytics";
+import { dateInputToISO } from "@/lib/dateInput";
 import { recordAvoid, recordBoost } from "@/lib/genreAffinity";
 import type { Rating } from "@/lib/rating";
 import { readRating, setRating } from "@/lib/rating";
@@ -68,7 +69,7 @@ export default function TitleActions({ type, title }: Props) {
     setShowRating(true);
   };
 
-  const confirmRating = (value: Rating | undefined) => {
+  const confirmRating = (value: Rating | undefined, seenAt?: string) => {
     setShowRating(false);
 
     addSeen(type, title.id);
@@ -96,6 +97,7 @@ export default function TitleActions({ type, title }: Props) {
         rating: value,
         genres: title.genres,
         posterUrl: title.poster,
+        seenAt: seenAt ? dateInputToISO(seenAt) : undefined,
       });
     }
   };
