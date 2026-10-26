@@ -3,12 +3,12 @@
 import { useEffect, useState } from "react";
 
 import { useAuth } from "@/hooks/useAuth";
+import { useRejected } from "@/hooks/useRejected";
 import { useWatchlist } from "@/hooks/useWatchlist";
 import { DiscardIcon, FireIcon, PinIcon } from "@/components/icons/Icons";
 import { emojiIcon } from "@/components/conversation/AnswerIcon";
 import { track } from "@/lib/analytics";
 import { genreEmoji } from "@/lib/genreEmoji";
-import { countRejected } from "@/lib/rejected";
 import { posterSource } from "@/lib/share";
 import type { SearchHit } from "@/lib/search";
 import { fetchFavorite, saveFavorite } from "@/lib/supabase/favorite";
@@ -21,6 +21,7 @@ import {
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import type { Recommendation } from "@/lib/tmdb/mapper";
 
+import DiscardedDialog from "./DiscardedDialog";
 import FavoriteCard from "./FavoriteCard";
 import FavoritePickerDialog from "./FavoritePickerDialog";
 import ShareSummaryDialog from "./ShareSummaryDialog";
@@ -145,11 +146,9 @@ export default function MiResumenScreen() {
 
   const watchlist = useWatchlist();
 
-  const [rejectedCount, setRejectedCount] = useState(0);
+  const rejected = useRejected();
 
-  useEffect(() => {
-    setRejectedCount(countRejected());
-  }, []);
+  const [showDiscarded, setShowDiscarded] = useState(false);
 
   async function loadSummary(
     userId: string,
@@ -442,15 +441,23 @@ export default function MiResumenScreen() {
           </p>
         </div>
 
-        <div className={`${CARD} p-3 text-center sm:p-4`}>
+        <button
+          type="button"
+          onClick={() => setShowDiscarded(true)}
+          className={`${CARD} p-3 text-center transition-colors hover:border-white/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:p-4`}
+        >
           <p className="flex items-center justify-center gap-1 whitespace-nowrap text-[10px] font-bold tracking-wide text-zinc-400 sm:text-[11px]">
             DESCARTADAS <DiscardIcon size={11} />
           </p>
           <p className="mt-1 text-2xl font-black text-zinc-300 sm:text-3xl">
-            {rejectedCount}
+            {rejected.count}
           </p>
-        </div>
+        </button>
       </div>
+
+      {showDiscarded && (
+        <DiscardedDialog onClose={() => setShowDiscarded(false)} />
+      )}
 
       <div className="grid grid-cols-3 gap-2 sm:gap-4">
         {titles.lastWatched ? (
@@ -615,7 +622,7 @@ export default function MiResumenScreen() {
             streakDays: stats.streakDays,
             averageRating: stats.averageRating,
             pendingCount: watchlist.count,
-            rejectedCount,
+            rejectedCount: rejected.count,
             competitiveLine: state.line,
           }}
         />

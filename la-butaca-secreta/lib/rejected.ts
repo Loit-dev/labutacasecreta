@@ -1,62 +1,144 @@
 /**
  * Títulos que el usuario ha marcado como "No me apetece".
  *
- * Igual que lib/viewed.ts: solo en su navegador (localStorage),
- * separados por tipo. Antes "No me apetece" solo afectaba a la
- * sesión (ocultar la tarjeta + bajar el género en lib/genreAffinity),
- * y se olvidaba al cerrar la pestaña; ahora también se cuenta, para
- * poder mostrarlo en Mi Resumen.
+ * Igual que lib/watchlist.ts: solo en su navegador (localStorage), con
+ * los datos mínimos para poder enseñarlos (título, año, nota y
+ * póster) y quitarlos uno a uno desde Mi Resumen → Descartadas.
+ *
+ * Antes solo se guardaba el id (lbs:rejected:<type>), sin datos para
+ * mostrar nada: ese formato antiguo se descarta sin más al leerlo (el
+ * contador vuelve a 0 la primera vez que se usa esta versión), porque
+ * es solo una preferencia local, no hay nada que migrar.
  */
 
-const MAX_REJECTED = 500;
+export type RejectedType = "movie" | "tv";
 
-function storageKey(type: string) {
-  return `lbs:rejected:${type}`;
+export type RejectedItem = {
+  id: number;
+  type: RejectedType;
+  title: string;
+  year?: number;
+  rating?: number;
+  poster?: string;
+  rejectedAt: number;
+};
+
+export const REJECTED_KEY = "lbs:rejected:v2";
+
+export const REJECTED_EVENT = "lbs:rejected-changed";
+
+export const MAX_REJECTED = 500;
+
+const EMPTY = "[]";
+
+function validPoster(poster: unknown): poster is string {
+  return (
+    typeof poster === "string" &&
+    (poster.startsWith("https://image.tmdb.org/") ||
+      poster.startsWith("/")) &&
+    poster.length < 300
+  );
 }
 
-export function readRejected(type: string): number[] {
+/** Lee la lista guardada (en texto) descartando lo que no sea válido. */
+export function parseRejected(raw: string | null): RejectedItem[] {
   try {
-    const raw = window.localStorage.getItem(storageKey(type));
-
     const parsed: unknown = raw ? JSON.parse(raw) : [];
 
-    return Array.isArray(parsed)
-      ? parsed
-          .filter((id): id is number => Number.isInteger(id) && id > 0)
-          .slice(-MAX_REJECTED)
-      : [];
+    if (!Array.isArray(parsed)) return [];
+
+    const items: RejectedItem[] = [];
+
+    for (const entry of parsed) {
+      if (!entry || typeof entry !== "object") continue;
+
+      const e = entry as Record<string, unknown>;
+
+      if (
+        !Number.isInteger(e.id) ||
+        (e.id as number) <= 0 ||
+        (e.type !== "movie" && e.type !== "tv") ||
+        typeof e.title !== "string" ||
+        !e.title.trim()
+      ) {
+        continue;
+      }
+
+      items.push({
+        id: e.id as number,
+        type: e.type,
+        title: e.title.slice(0, 200),
+        year:
+          Number.isInteger(e.year) && (e.year as number) > 0
+            ? (e.year as number)
+            : undefined,
+        rating:
+          typeof e.rating === "number" && Number.isFinite(e.rating)
+            ? e.rating
+            : undefined,
+        poster: validPoster(e.poster) ? e.poster : undefined,
+        rejectedAt:
+          typeof e.rejectedAt === "number" ? e.rejectedAt : 0,
+      });
+    }
+
+    return items.slice(-MAX_REJECTED);
   } catch {
-    // Sin localStorage (modo privado, bloqueado...): funcionamos igual
     return [];
   }
 }
 
-export function addRejected(type: string, id: number) {
+export function readRejectedRaw(): string {
   try {
-    const rejected = readRejected(type).filter(
-      (rejectedId) => rejectedId !== id
-    );
+    return window.localStorage.getItem(REJECTED_KEY) ?? EMPTY;
+  } catch {
+    return EMPTY;
+  }
+}
 
-    rejected.push(id);
+/** Más reciente primero. */
+export function readRejectedList(): RejectedItem[] {
+  return parseRejected(readRejectedRaw()).slice().reverse();
+}
 
+function write(items: RejectedItem[]) {
+  try {
     window.localStorage.setItem(
-      storageKey(type),
-      JSON.stringify(rejected.slice(-MAX_REJECTED))
+      REJECTED_KEY,
+      JSON.stringify(items.slice(-MAX_REJECTED))
     );
   } catch {
     // Si no se puede guardar, solo se pierde el contador
   }
-}
 
-export function clearRejected(type: string) {
   try {
-    window.localStorage.removeItem(storageKey(type));
+    window.dispatchEvent(new Event(REJECTED_EVENT));
   } catch {
-    // Nada que borrar
+    // (entornos sin eventos)
   }
 }
 
-/** Nº de "no me apetece" guardados, sumando películas y series. */
+export function addRejected(item: Omit<RejectedItem, "rejectedAt">) {
+  const rest = parseRejected(readRejectedRaw()).filter(
+    (rejected) => !(rejected.id === item.id && rejected.type === item.type)
+  );
+
+  write([...rest, { ...item, rejectedAt: Date.now() }]);
+}
+
+export function removeRejected(id: number, type: RejectedType) {
+  write(
+    parseRejected(readRejectedRaw()).filter(
+      (rejected) => !(rejected.id === id && rejected.type === type)
+    )
+  );
+}
+
+export function clearRejected() {
+  write([]);
+}
+
+/** Nº de "no me apetece" guardados. */
 export function countRejected(): number {
-  return readRejected("movie").length + readRejected("tv").length;
+  return parseRejected(readRejectedRaw()).length;
 }

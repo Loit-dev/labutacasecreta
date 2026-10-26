@@ -440,7 +440,14 @@ export function useRecommendations(
       ].slice(-100);
 
       recordAvoid(type, item.genreIds);
-      addRejected(type, item.id);
+      addRejected({
+        id: item.id,
+        type,
+        title: item.title,
+        year: item.year || undefined,
+        rating: item.rating || undefined,
+        poster: item.poster,
+      });
 
       hide([item.id]);
     },
