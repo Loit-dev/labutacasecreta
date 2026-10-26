@@ -241,10 +241,7 @@ export default function ShareDialog({
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-3">
-          <h2
-            id="share-title"
-            className="text-lg font-bold text-white"
-          >
+          <h2 id="share-title" className="marquee-font text-2xl text-white">
             Comparte tus sugerencias
           </h2>
 
@@ -293,7 +290,7 @@ export default function ShareDialog({
           {canShare && (
             <button
               onClick={share}
-              className="flex-1 rounded-xl bg-red-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              className="marquee-font flex-1 rounded-xl bg-red-600 px-4 py-3 text-base text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
               Compartir…
             </button>
@@ -302,7 +299,7 @@ export default function ShareDialog({
           <button
             onClick={download}
             disabled={state.status !== "ready"}
-            className={`flex-1 rounded-xl px-4 py-3 text-sm font-semibold text-white transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:cursor-not-allowed disabled:opacity-50 ${
+            className={`marquee-font flex-1 rounded-xl px-4 py-3 text-base text-white transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:cursor-not-allowed disabled:opacity-50 ${
               canShare
                 ? "border border-zinc-600 hover:bg-zinc-800"
                 : "bg-red-600 hover:bg-red-500"
@@ -341,7 +338,7 @@ export default function ShareDialog({
 
             <button
               onClick={copyLink}
-              className="rounded-xl border border-zinc-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              className="marquee-font rounded-xl border border-zinc-600 px-4 py-2.5 text-sm text-white transition-colors hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
               Copiar enlace
             </button>

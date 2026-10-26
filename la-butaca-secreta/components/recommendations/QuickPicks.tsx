@@ -549,7 +549,7 @@ export default function QuickPicks() {
 
         <Link
           href="/"
-          className="inline-block rounded-full bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          className="marquee-font inline-block rounded-full bg-red-600 px-4 py-2 text-base text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
           Ir al cuestionario
         </Link>
@@ -569,7 +569,7 @@ export default function QuickPicks() {
 
         <Link
           href="/"
-          className="inline-block rounded-full bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          className="marquee-font inline-block rounded-full bg-red-600 px-4 py-2 text-base text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
           Ir al cuestionario
         </Link>
@@ -586,7 +586,7 @@ export default function QuickPicks() {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h1 className="text-xl font-bold text-white md:text-2xl">
+        <h1 className="marquee-font text-2xl text-white md:text-3xl">
           <span aria-hidden="true">⚡</span> Butaca Exprés
         </h1>
 
@@ -647,7 +647,7 @@ export default function QuickPicks() {
       <div className="flex flex-wrap items-center justify-center gap-2">
         <button
           onClick={openShare}
-          className="rounded-full bg-red-600 px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-black/60 transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white md:rounded-xl md:px-5 md:py-3 md:text-sm"
+          className="marquee-font rounded-full bg-red-600 px-4 py-2 text-sm text-white shadow-lg shadow-black/60 transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white md:rounded-xl md:px-5 md:py-3 md:text-base"
         >
           <span aria-hidden="true">📤</span> Compartir mis
           sugerencias
@@ -657,7 +657,7 @@ export default function QuickPicks() {
       <div className="text-center">
         <Link
           href="/"
-          className="text-xs text-zinc-400 underline underline-offset-2 hover:text-zinc-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          className="marquee-font text-sm text-zinc-400 underline underline-offset-2 hover:text-zinc-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
           ¿Prefieres contestar el cuestionario completo?
         </Link>

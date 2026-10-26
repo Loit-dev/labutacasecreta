@@ -412,3 +412,36 @@ de botones "ticket") y "Enviarme el enlace mágico" pasan a
 `components/account/PendingTab.tsx`, `components/conversation/
 TabIcons.tsx`, `components/summary/MiResumenScreen.tsx`,
 `app/entrar/page.tsx`, `app/entrar/LoginForm.tsx`.
+
+---
+
+**Fecha**: 26 oct 2026.
+
+**Qué pasó**: se pidió aplicar el formato "entrada de cine" a toda la
+web (no solo a Inicio, tarjetas, calendario, pestañas y Mi cuenta) y,
+si hacía falta, a las imágenes que se generan para compartir/Instagram.
+
+**Decisión**: barrido de cohesión por el resto de pantallas: tarjetas
+de opción del cuestionario (`AnswerButton.tsx`, borde discontinuo
+dorado como ModeSelect), cabeceras y botón "Empezar" del modo
+Acompañado (`Panel.tsx`, `GroupQuiz.tsx`), el diálogo "¿Qué te
+pareció?" (`RatingPrompt.tsx`), el diálogo de compartir
+(`ShareDialog.tsx`), la ficha de detalles (`DetailsModal.tsx`:
+cabeceras de sección, badge, botones de acción), "Butaca Exprés" y sus
+botones (`QuickPicks.tsx`), la página de enlace compartido
+(`app/r/[code]/page.tsx`, `SharedRecommendations.tsx`), la página 404
+(`app/not-found.tsx`) y las páginas de Privacidad/Aviso legal
+(`components/layout/LegalPage.tsx`: titular y enlace "Volver", el
+cuerpo del texto legal se queda en Geist por legibilidad). Todo pasa a
+`.marquee-font` en titulares/botones/etiquetas cortas, igual que el
+resto de la web; el texto de lectura (sinopsis, reparto, cuerpo legal)
+no cambia.
+
+**Dónde**: `app/not-found.tsx`, `app/r/[code]/page.tsx`,
+`components/conversation/AnswerButton.tsx`, `components/group/
+GroupQuiz.tsx`, `components/group/Panel.tsx`, `components/layout/
+LegalPage.tsx`, `components/recommendations/DetailsModal.tsx`,
+`components/recommendations/QuickPicks.tsx`,
+`components/recommendations/RatingPrompt.tsx`,
+`components/recommendations/ShareDialog.tsx`,
+`components/recommendations/SharedRecommendations.tsx`.

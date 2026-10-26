@@ -108,7 +108,7 @@ export default function DetailsModal({
               </div>
 
               <div className="min-w-0 flex-1 space-y-2">
-                <div className="text-xs font-semibold uppercase tracking-wider text-yellow-400">
+                <div className="marquee-font text-sm text-yellow-400">
                   <span aria-hidden="true">{badge}</span>{" "}
                   {badgeTitle}
                 </div>
@@ -167,7 +167,7 @@ export default function DetailsModal({
 
             {castMembers.length > 0 && (
               <div>
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                <h3 className="marquee-font text-sm text-zinc-400">
                   Reparto
                 </h3>
 
@@ -219,7 +219,7 @@ export default function DetailsModal({
 
             {/* Plataformas */}
             <div>
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+              <h3 className="marquee-font text-sm text-zinc-400">
                 Disponible en
               </h3>
 
@@ -263,7 +263,7 @@ export default function DetailsModal({
                       ? `Guardada, quitar de mi lista: ${movie.title}`
                       : `Guardar en mi lista: ${movie.title}`
                   }
-                  className={`rounded-xl border px-4 py-2.5 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
+                  className={`marquee-font rounded-xl border px-4 py-2.5 text-base transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
                     saved
                       ? "border-yellow-500/70 bg-yellow-400/10 text-yellow-300 hover:bg-yellow-400/20"
                       : "border-zinc-600 text-white hover:bg-zinc-800"
@@ -283,7 +283,7 @@ export default function DetailsModal({
 
                     setShowTrailer(true);
                   }}
-                  className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                  className="marquee-font rounded-xl bg-red-600 px-4 py-2.5 text-base text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                 >
                   <span aria-hidden="true">▶</span> Ver tráiler
                 </button>
@@ -292,7 +292,7 @@ export default function DetailsModal({
                   href={trailerSearch}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                  className="marquee-font rounded-xl bg-red-600 px-4 py-2.5 text-base text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                 >
                   <span aria-hidden="true">🔎</span> Buscar tráiler
                   <span className="sr-only">

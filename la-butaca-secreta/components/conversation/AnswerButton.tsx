@@ -25,10 +25,11 @@ export default function AnswerButton({
         min-h-[72px]
         overflow-hidden
 
-        rounded-2xl
+        rounded-md
 
         border
-        border-zinc-700/80
+        border-dashed
+        border-amber-200/25
 
         bg-gradient-to-br
         from-zinc-900
@@ -46,8 +47,8 @@ export default function AnswerButton({
         duration-300
 
         hover:-translate-y-0.5
-        hover:border-red-500/60
-        hover:shadow-[0_0_20px_rgba(239,68,68,0.15)]
+        hover:border-amber-300/50
+        hover:shadow-[0_0_20px_rgba(250,204,21,0.12)]
 
         focus-visible:outline-2
         focus-visible:outline-offset-2
@@ -120,19 +121,7 @@ export default function AnswerButton({
             </span>
           )}
 
-          <span
-            className="
-              text-base
-              font-semibold
-              leading-snug
-              tracking-tight
-              text-white
-            "
-            style={{
-              fontFamily:
-                "var(--font-manrope)",
-            }}
-          >
+          <span className="marquee-font text-lg leading-snug text-white">
             {label
               .replace("🎬 ", "")
               .replace("📺 ", "")}
