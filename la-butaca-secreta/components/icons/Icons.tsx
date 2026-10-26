@@ -414,3 +414,91 @@ export function GemIcon({ size = 16, className }: IconProps) {
     </svg>
   );
 }
+
+// Iconos de géneros (lib/genreEmoji.ts), para "Tus géneros" en Mi
+// Resumen y cualquier otro sitio que use ese mismo mapa.
+
+export function CompassIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
+      <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M14.8 9.2l-1.6 4.4-4.4 1.6 1.6-4.4z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function PaletteIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
+      <path d="M12 3.5a8.5 8 0 100 16c1 0 1.8-.8 1.8-1.8 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-1 .8-1.8 1.8-1.8H17a3.5 3.5 0 003.5-3.5C20.5 6.4 16.7 3.5 12 3.5z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+      <circle cx="8" cy="10.5" r="1" fill="currentColor" />
+      <circle cx="11.5" cy="7.8" r="1" fill="currentColor" />
+      <circle cx="15.3" cy="9" r="1" fill="currentColor" />
+    </svg>
+  );
+}
+
+export function CrimeIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
+      <path d="M5 12a7 7 0 1114 0 7 7 0 01-14 0z" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M9 9l6 6M15 9l-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function CameraIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
+      <rect x="2.5" y="7" width="14" height="10.5" rx="2" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M16.5 10l5-2.5v9l-5-2.5" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function WizardHatIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
+      <path d="M12.3 3l5 13.5H5.2z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+      <path d="M3.5 16.5h15.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <circle cx="13.2" cy="8.5" r="0.9" fill="currentColor" />
+    </svg>
+  );
+}
+
+export function ScrollIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
+      <path d="M6.5 4.5h10a2 2 0 012 2v9a2.5 2.5 0 01-2.5 2.5h-9A2.5 2.5 0 014.5 15.5v-9a2 2 0 012-2z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+      <path d="M8 9.5h8M8 13h5.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function MusicNoteIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
+      <path d="M9.5 16.5V5l9-1.8v10.3" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <circle cx="7" cy="17" r="2.5" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="16" cy="14.8" r="2.5" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
+  );
+}
+
+export function SwordsIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
+      <path d="M4 20L15 9M12 4l6 2-2 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M20 20L9 9M12 4L6 6l2 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function CowboyHatIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
+      <path d="M2.5 15.5c1-2.3 4.5-3.3 9.5-3.3s8.5 1 9.5 3.3c.4.9-.3 1.8-1.3 1.6-2.4-.5-5.3-1-8.2-1s-5.8.5-8.2 1c-1 .2-1.7-.7-1.3-1.6z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+      <path d="M8.5 12.2c-.6-1.6-.4-3.6.7-5.2C10.3 5.2 11.5 4.3 12 4.3s1.7.9 2.8 2.7c1.1 1.6 1.3 3.6.7 5.2" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+    </svg>
+  );
+}

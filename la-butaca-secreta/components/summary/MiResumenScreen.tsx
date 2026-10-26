@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useWatchlist } from "@/hooks/useWatchlist";
 import { DiscardIcon, FireIcon, PinIcon } from "@/components/icons/Icons";
+import { emojiIcon } from "@/components/conversation/AnswerIcon";
 import { track } from "@/lib/analytics";
 import { genreEmoji } from "@/lib/genreEmoji";
 import { countRejected } from "@/lib/rejected";
@@ -509,6 +510,7 @@ export default function MiResumenScreen() {
 
           {stats.topGenres.map((genre, index) => {
             const rank = GENRE_RANKS[index];
+            const GenreIcon = emojiIcon(genreEmoji(genre.name));
 
             return (
               <div
@@ -522,8 +524,12 @@ export default function MiResumenScreen() {
                     {rank.label}
                   </span>
 
-                  <span className="truncate text-sm font-bold text-white">
-                    <span aria-hidden="true">{genreEmoji(genre.name)}</span>{" "}
+                  <span className="flex min-w-0 items-center gap-1.5 truncate text-sm font-bold text-white">
+                    {GenreIcon && (
+                      <span className="shrink-0 text-amber-300" aria-hidden="true">
+                        <GenreIcon size={14} />
+                      </span>
+                    )}
                     {genre.name}
                   </span>
                 </div>

@@ -581,3 +581,34 @@ para "🎬 Película" / "📺 Serie".
 `SwirlIcon`, `BanIcon`, `ThumbsUpIcon`, `SparkleIcon`, `LeafIcon`,
 `GemIcon`), `components/conversation/AnswerIcon.tsx` (nuevo),
 `components/conversation/AnswerButton.tsx`.
+
+**Segunda ampliación — eco del chat, título de pregunta y géneros de
+Mi Resumen**: quedaban tres sitios donde el mismo emoji de datos se
+colaba sin pasar por un botón: el mensaje que repite en el chat la
+opción que acabas de elegir (mismo `label` con emoji), el título de
+la pregunta de restricciones ("🚫 Antes de terminar...", el único
+título de `nodes.ts` que lleva emoji) y los nombres de género en
+"Tus géneros" de Mi Resumen (`lib/genreEmoji.ts`, que da un emoji
+por género de TMDb). `components/conversation/AnswerIcon.tsx` se
+convirtió en el mapa emoji → icono único para toda la web (fusiona
+las opciones del cuestionario y los géneros, que comparten varios
+emoji) y expone `emojiIcon(emoji)` además de `splitAnswerLabel`.
+`ChatHistory.tsx` usa `splitAnswerLabel` en cada mensaje (de bot o de
+usuario) para sustituir el emoji inicial por su icono si lo
+reconoce, sin tocar los mensajes de personalidad que no llevan emoji
+delante. `MiResumenScreen.tsx` usa `emojiIcon(genreEmoji(nombre))`
+para la lista de géneros. 10 iconos nuevos de género (`CompassIcon`,
+`PaletteIcon`, `CrimeIcon`, `CameraIcon`, `WizardHatIcon`,
+`ScrollIcon`, `MusicNoteIcon`, `SwordsIcon`, `CowboyHatIcon`, y
+`SearchIcon` reutilizado para "Misterio").
+
+**Sigue sin tocarse, a propósito**: el texto de personalidad del bot
+(`lib/conversation/personality.ts`) lleva emoji sueltos en mitad de
+frases completas (no al principio de un texto corto), y
+`GroupQuiz.tsx`/`RpsDuel.tsx` siguen fuera del barrido por el motivo
+ya explicado arriba (emoji expresivos en un minijuego).
+
+**Dónde**: `components/icons/Icons.tsx` (10 iconos de género),
+`components/conversation/AnswerIcon.tsx` (ahora exporta también
+`emojiIcon`), `components/conversation/ChatHistory.tsx`,
+`components/summary/MiResumenScreen.tsx`.
