@@ -1,5 +1,6 @@
 import Image from "next/image";
 
+import { AccountIcon } from "@/components/conversation/TabIcons";
 import { ConversationMessage } from "@/lib/conversation/types";
 
 type Props = {
@@ -78,11 +79,10 @@ export default function ChatHistory({
                     border
                     border-zinc-700
                     bg-zinc-900
-                    text-xl
                     shadow-lg
                   "
                 >
-                  <span aria-hidden="true">👤</span>
+                  <AccountIcon />
                 </div>
               )}
             </div>

@@ -6,6 +6,7 @@ import Link from "next/link";
 import type { Session } from "@supabase/supabase-js";
 
 import RatingPrompt from "@/components/recommendations/RatingPrompt";
+import { ClapperIcon } from "@/components/icons/Icons";
 import { dateInputToISO, isoToDateInput } from "@/lib/dateInput";
 import type { Rating } from "@/lib/rating";
 import {
@@ -257,8 +258,8 @@ export default function DiaryTab({ session }: { session: Session }) {
                         className="object-cover"
                       />
                     ) : (
-                      <div className="flex h-full items-center justify-center text-base">
-                        🎬
+                      <div className="flex h-full items-center justify-center text-zinc-500">
+                        <ClapperIcon size={18} />
                       </div>
                     )}
                   </Link>

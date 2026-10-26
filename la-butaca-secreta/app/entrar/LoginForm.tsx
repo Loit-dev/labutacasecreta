@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 
+import { MailIcon } from "@/components/icons/Icons";
 import { supabase } from "@/lib/supabase/client";
 import { track } from "@/lib/analytics";
 
@@ -65,8 +66,8 @@ export default function LoginForm() {
   if (status === "sent") {
     return (
       <div className="rounded-2xl border border-zinc-700/80 bg-gradient-to-br from-zinc-900 via-black to-zinc-950 px-5 py-6 text-center shadow-[0_8px_20px_rgba(0,0,0,0.45)]">
-        <p className="text-lg font-semibold text-white">
-          <span aria-hidden="true">📬</span> Revisa tu correo
+        <p className="flex items-center justify-center gap-1.5 text-lg font-semibold text-white">
+          <MailIcon size={18} /> Revisa tu correo
         </p>
         <p className="mt-2 text-sm text-zinc-400">
           Te hemos mandado un enlace a <strong className="text-white">{email}</strong>.

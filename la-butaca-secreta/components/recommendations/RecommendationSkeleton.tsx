@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+import { ClapperIcon } from "@/components/icons/Icons";
+
 const MESSAGES = [
   "Revisando el catálogo con lupa…",
   "Descartando lo que ya has visto veinte veces…",
@@ -40,9 +42,10 @@ export default function RecommendationSkeleton({
       <p
         role="status"
         aria-live="polite"
-        className="text-center text-zinc-300"
+        className="flex items-center justify-center gap-1.5 text-center text-zinc-300"
       >
-        🎬 {compact
+        <ClapperIcon size={15} />
+        {compact
           ? "Buscando más recomendaciones…"
           : MESSAGES[index]}
       </p>

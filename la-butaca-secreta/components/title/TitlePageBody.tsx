@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import TitleActions from "./TitleActions";
 
+import { BoltIcon, MasksIcon, StarFilledIcon } from "@/components/icons/Icons";
 import { genreSlugForLabel, platformKeyForName } from "@/lib/catalog";
 import type { Recommendation } from "@/lib/tmdb/mapper";
 
@@ -62,9 +63,10 @@ export default function TitlePageBody({ type, title }: Props) {
 
           <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm text-zinc-300">
             {title.rating > 0 && (
-              <span>
-                <span aria-hidden="true">⭐</span>
-                <span className="sr-only">Nota </span> {title.rating}
+              <span className="inline-flex items-center gap-1">
+                <StarFilledIcon size={13} className="text-amber-300" />
+                <span className="sr-only">Nota </span>
+                {title.rating}
               </span>
             )}
 
@@ -128,9 +130,9 @@ export default function TitlePageBody({ type, title }: Props) {
                     ) : (
                       <span
                         aria-hidden="true"
-                        className="flex h-full w-full items-center justify-center text-xl text-zinc-500"
+                        className="flex h-full w-full items-center justify-center text-zinc-500"
                       >
-                        🎭
+                        <MasksIcon size={26} />
                       </span>
                     )}
                   </div>
@@ -214,7 +216,7 @@ export default function TitlePageBody({ type, title }: Props) {
           href="/hoy"
           className="rounded-full bg-red-600 px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-black/60 transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
-          <span aria-hidden="true">⚡</span> Prueba Butaca Exprés
+          <BoltIcon size={14} className="inline -translate-y-px" /> Prueba Butaca Exprés
         </Link>
 
         <Link

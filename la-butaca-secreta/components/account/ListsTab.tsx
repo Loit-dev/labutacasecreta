@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import type { Session } from "@supabase/supabase-js";
 
+import { ClapperIcon } from "@/components/icons/Icons";
 import { createList, fetchLists, type ListRow } from "@/lib/supabase/lists";
 
 import ListDetailDialog from "./ListDetailDialog";
@@ -13,8 +14,8 @@ function ListCollage({ list }: { list: ListRow }) {
 
   if (posters.length === 0) {
     return (
-      <div className="flex h-16 w-24 shrink-0 items-center justify-center rounded-xl bg-zinc-800 text-xl">
-        🎬
+      <div className="flex h-16 w-24 shrink-0 items-center justify-center rounded-xl bg-zinc-800 text-zinc-500">
+        <ClapperIcon size={22} />
       </div>
     );
   }

@@ -1,3 +1,5 @@
+import { ClapperIcon, TvIcon } from "@/components/icons/Icons";
+
 type Props = {
   label: string;
   onClick: () => void;
@@ -104,20 +106,14 @@ export default function AnswerButton({
           "
         >
           {isMovie && (
-            <span
-              className="shrink-0 text-2xl"
-              aria-hidden="true"
-            >
-              🎬
+            <span className="shrink-0 text-amber-300">
+              <ClapperIcon size={26} />
             </span>
           )}
 
           {isSeries && (
-            <span
-              className="shrink-0 text-2xl"
-              aria-hidden="true"
-            >
-              📺
+            <span className="shrink-0 text-amber-300">
+              <TvIcon size={26} />
             </span>
           )}
 

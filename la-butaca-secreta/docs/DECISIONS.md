@@ -503,3 +503,60 @@ SummaryTitleCard.tsx`, `components/summary/MiResumenScreen.tsx`,
 `components/account/EditSeenDateDialog.tsx` (nuevo),
 `components/account/DiaryTab.tsx`, `lib/supabase/watched.ts`
 (`updateWatchedSeenAt`), `lib/dateInput.ts` (`isoToDateInput`).
+
+---
+
+## 2026-10 · Barrido de emojis → iconos SVG (estilo "entrada de cine")
+
+**Decisión**: sustituir los emojis "funcionales" (🎬📺🔥⭐🏆👁📌🙅✅
+🔖💡🎭⚡📤🔄🥇🥈🥉📲🔎📬) por los mismos iconos SVG de trazo que ya se
+usaban en pestañas/botones (`components/conversation/TabIcons.tsx`),
+para que toda la interfaz visible comparta un único lenguaje visual
+en vez de mezclar emoji de colores con iconos de línea dorada.
+
+**Qué se deja igual (a propósito)**:
+- Símbolos tipográficos que ya encajaban con la estética (no son
+  emoji de color): `← → ✓ ✕ ★ ✔ ⚠`. Se quedan tal cual en todos los
+  sitios donde aparecen (diálogos, calendario, valoración por
+  estrellas con `★`, flechas de carrusel...).
+- Emoji expresivos/de reacción y los gestos de piedra-papel-tijera en
+  `components/group/GroupQuiz.tsx` y `components/group/RpsDuel.tsx`
+  (😕😌🤔🙈😂🎉✊✋✌, y también 🗳️/🟢 dentro de esa misma pantalla, para
+  no romper la coherencia de ese bloque de microcopy): forzarlos a un
+  icono de línea monocromo dorado les quitaría la gracia en un
+  contexto de juego/grupo, que es precisamente donde más aportan.
+- `components/recommendations/badges.ts`, `lib/summaryImage.ts`,
+  `lib/shareImage.ts` y el resto de generadores de imagen por
+  `<canvas>`/`next/og`: siguen usando los emoji como datos de texto
+  porque dibujan los glifos directamente (`ctx.fillText`) y no pueden
+  renderizar un componente React. Las pantallas (no las imágenes
+  generadas) pasan por un wrapper nuevo, `components/recommendations/
+  BadgeIcon.tsx`, que traduce esos mismos emoji-dato a un icono SVG
+  solo en el renderizado en pantalla.
+- Datos de `lib/` que no se pintan directamente tal cual (géneros,
+  personalidad del cuestionario, nodos de conversación, scoring...)
+  se dejan sin tocar por el mismo motivo: son datos, no la pantalla.
+
+**Cómo**: nuevo `components/icons/Icons.tsx` con componentes
+`{ size?, className? }` que usan `currentColor`/`stroke="currentColor"`
+(a diferencia de los iconos ya existentes en `TabIcons.tsx`, que
+llevan el dorado fijo) para poder heredar el color de texto de cada
+contexto (botones con fondo rojo, texto blanco, ámbar...).
+
+**Dónde** (iconos nuevos: `ClapperIcon`, `TvIcon`, `FireIcon`,
+`StarFilledIcon`, `TrophyIcon`, `EyeIcon`, `PinIcon`, `DiscardIcon`,
+`CheckBadgeIcon`, `BookmarkIcon`, `BulbIcon`, `MasksIcon`, `BoltIcon`,
+`ShareIcon`, `RefreshIcon`, `MedalIcon`, `SearchIcon`, `PhoneIcon`,
+`MailIcon`): `components/recommendations/BadgeIcon.tsx` (nuevo) y, en
+el resto de archivos, sustitución del emoji por su icono equivalente
+en `components/recommendations/{RecommendationCard,DetailsModal,
+RecommendationSkeleton,Recommendations,SharedRecommendations,
+QuickPicks}.tsx`, `components/conversation/{AnswerButton,
+PlatformPicker,ChatHistory}.tsx`, `components/account/{ListsTab,
+DiaryTab}.tsx`, `components/summary/{MiResumenScreen,FavoriteCard}
+.tsx`, `components/title/{TitleActions,TitlePageBody}.tsx`,
+`components/actor/ActorPageBody.tsx`, `components/catalog/
+{CatalogPageBody,CatalogGrid}.tsx`, `components/layout/
+InstallButton.tsx`, `components/list/MyListButton.tsx`,
+`components/calendar/CalendarView.tsx`, `app/not-found.tsx`,
+`app/entrar/{page,LoginForm}.tsx`, `app/buscar/page.tsx`.

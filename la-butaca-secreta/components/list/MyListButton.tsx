@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 
+import { BookmarkIcon } from "@/components/icons/Icons";
 import { useWatchlist } from "@/hooks/useWatchlist";
 import { track } from "@/lib/analytics";
 
@@ -26,9 +27,9 @@ export default function MyListButton() {
           track("list_open", { count });
           setOpen(true);
         }}
-        className="fixed right-3 top-3 z-40 rounded-full border border-white/20 bg-black/70 px-4 py-2 text-sm font-semibold text-white shadow-lg backdrop-blur-sm md:backdrop-blur hover:bg-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+        className="fixed right-3 top-3 z-40 inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/70 px-4 py-2 text-sm font-semibold text-white shadow-lg backdrop-blur-sm md:backdrop-blur hover:bg-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
       >
-        <span aria-hidden="true">🔖</span> Mi lista ({count})
+        <BookmarkIcon size={14} /> Mi lista ({count})
       </button>
 
       {open && <MyListDialog onClose={close} />}

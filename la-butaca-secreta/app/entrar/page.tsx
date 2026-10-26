@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import PosterWall from "@/components/layout/PosterWall";
+import { ClapperIcon } from "@/components/icons/Icons";
 import { SITE_NAME } from "@/lib/site";
 
 import LoginForm from "./LoginForm";
@@ -61,8 +62,8 @@ export default function LoginPage() {
           </Link>
 
           <div className="mb-6 text-center">
-            <div className="text-4xl" aria-hidden="true">
-              🎬
+            <div className="flex justify-center text-zinc-300" aria-hidden="true">
+              <ClapperIcon size={40} />
             </div>
 
             <h1 className="marquee-font mt-2 text-2xl text-white">

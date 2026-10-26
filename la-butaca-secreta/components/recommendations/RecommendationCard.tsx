@@ -1,5 +1,8 @@
 import Image from "next/image";
 
+import BadgeIcon from "./BadgeIcon";
+import { BulbIcon } from "@/components/icons/Icons";
+
 // Iconos propios en vez de emoji para la nota y las acciones (ver
 // DECISIONS.md, "Tarjeta de recomendación enriquecida").
 function StarIcon() {
@@ -237,7 +240,10 @@ export default function RecommendationCard({
                 : "marquee-font text-sm text-yellow-400"
             }
           >
-            <span aria-hidden="true">{badge}</span> {badgeTitle}
+            <span className="inline-flex -translate-y-px items-center">
+              <BadgeIcon badge={badge} size={compact ? 12 : 14} className="text-yellow-400" />
+            </span>{" "}
+            {badgeTitle}
           </div>
 
           <h2
@@ -280,7 +286,7 @@ export default function RecommendationCard({
 
         {reason && (
           <p className="line-clamp-2 text-justify text-[13px] italic leading-relaxed text-yellow-200/80 md:line-clamp-none md:text-xs">
-            <span aria-hidden="true">💡</span> {reason}
+            <BulbIcon size={13} className="inline -translate-y-px" /> {reason}
           </p>
         )}
 

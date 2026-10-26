@@ -15,6 +15,7 @@ import { useWatchlist } from "@/hooks/useWatchlist";
 import { track } from "@/lib/analytics";
 import { ContentType, UserProfile } from "@/lib/conversation/types";
 import { dateInputToISO } from "@/lib/dateInput";
+import { BoltIcon, ShareIcon } from "@/components/icons/Icons";
 import {
   readAvoidGenres,
   readBoostGenres,
@@ -589,7 +590,7 @@ export default function QuickPicks() {
     <div className="space-y-6">
       <div className="text-center">
         <h1 className="marquee-font text-2xl text-white md:text-3xl">
-          <span aria-hidden="true">⚡</span> Butaca Exprés
+          <BoltIcon size={20} className="inline -translate-y-0.5 text-amber-300" /> Butaca Exprés
         </h1>
 
         <p className="mt-1 text-xs text-zinc-400 md:text-sm">
@@ -651,7 +652,7 @@ export default function QuickPicks() {
           onClick={openShare}
           className="marquee-font rounded-full bg-red-600 px-4 py-2 text-sm text-white shadow-lg shadow-black/60 transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white md:rounded-xl md:px-5 md:py-3 md:text-base"
         >
-          <span aria-hidden="true">📤</span> Compartir mis
+          <ShareIcon size={14} className="inline -translate-y-px" /> Compartir mis
           sugerencias
         </button>
       </div>

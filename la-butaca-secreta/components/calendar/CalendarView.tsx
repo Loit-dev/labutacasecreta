@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 
+import { StarFilledIcon } from "@/components/icons/Icons";
 import {
   buildMonthGrid,
   parseMonth,
@@ -143,10 +144,16 @@ function EntryItem({
           </span>
         </a>
 
-        <p className="mt-0.5 text-xs text-zinc-400">
+        <p className="mt-0.5 flex items-center gap-1 text-xs text-zinc-400">
           {entry.type === "tv" ? "Serie" : "Película"}
           {entry.note && ` · ${entry.note}`}
-          {entry.rating > 0 && ` · ⭐ ${entry.rating}`}
+          {entry.rating > 0 && (
+            <>
+              {" · "}
+              <StarFilledIcon size={11} className="text-amber-300" />{" "}
+              {entry.rating}
+            </>
+          )}
         </p>
 
         <div className="mt-1 flex flex-wrap items-center gap-1">

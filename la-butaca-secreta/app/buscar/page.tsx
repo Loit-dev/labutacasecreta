@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import PosterWall from "@/components/layout/PosterWall";
 import SearchBox from "@/components/search/SearchBox";
+import { SearchIcon } from "@/components/icons/Icons";
 import { SITE_NAME } from "@/lib/site";
 
 const title = "Buscar una película o serie";
@@ -60,8 +61,8 @@ export default function BuscarPage() {
             ← Volver
           </Link>
 
-          <h1 className="text-xl font-bold text-white md:text-2xl">
-            <span aria-hidden="true">🔎</span> Buscar una película o
+          <h1 className="flex items-center gap-1.5 text-xl font-bold text-white md:text-2xl">
+            <SearchIcon size={18} /> Buscar una película o
             serie
           </h1>
 
