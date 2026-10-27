@@ -12,6 +12,7 @@ import { fetchFriendStatus, sendFriendRequest, type FriendStatus } from "@/lib/s
 import { reportUser } from "@/lib/supabase/reports";
 import type { ProfileRow } from "@/lib/supabase/profiles";
 import { useRejected } from "@/hooks/useRejected";
+import { LockIcon } from "@/components/icons/Icons";
 
 import ShareProfileDialog from "./ShareProfileDialog";
 import RecommendDialog from "./RecommendDialog";
@@ -196,7 +197,9 @@ export default function ProfilePublicScreen({ viewerId, profile }: Props) {
               />
             ) : (
               <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-3 text-center">
-                <p className="text-xl font-extrabold text-zinc-600">🔒</p>
+                <p className="flex items-center justify-center text-zinc-500">
+                  <LockIcon size={20} />
+                </p>
                 <p className="mt-0.5 text-[10px] text-zinc-500">
                   Descartadas (privado)
                 </p>
