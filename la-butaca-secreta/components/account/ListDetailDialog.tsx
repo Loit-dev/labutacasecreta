@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { createPortal } from "react-dom";
@@ -13,12 +13,21 @@ import {
   renameList,
   type ListRow,
 } from "@/lib/supabase/lists";
+import {
+  fetchCollaborators,
+  removeListInvite,
+  setListPublic,
+  type ListInviteRow,
+} from "@/lib/supabase/listInvites";
+import type { ProfileRow } from "@/lib/supabase/profiles";
 import type { SearchHit } from "@/lib/search";
 
 import TitlePickerDialog from "./TitlePickerDialog";
+import ListaInvitarDialog from "./ListaInvitarDialog";
 
 type Props = {
   list: ListRow;
+  userId: string;
   onClose: () => void;
   onChange: (list: ListRow) => void;
   onDeleted: () => void;
@@ -27,6 +36,7 @@ type Props = {
 /** Ver, renombrar, añadir/quitar títulos y borrar una lista. */
 export default function ListDetailDialog({
   list,
+  userId,
   onClose,
   onChange,
   onDeleted,
@@ -37,6 +47,31 @@ export default function ListDetailDialog({
   const [name, setName] = useState(list.name);
   const [picking, setPicking] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [isPublic, setIsPublic] = useState(list.isPublic);
+  const [collaborators, setCollaborators] = useState<
+    (ListInviteRow & { profile: ProfileRow | null })[]
+  >([]);
+  const [invitando, setInvitando] = useState(false);
+
+  useEffect(() => {
+    fetchCollaborators(list.id).then(setCollaborators);
+  }, [list.id]);
+
+  async function togglePublic() {
+    const next = !isPublic;
+    const ok = await setListPublic(list.id, next);
+    if (ok) {
+      setIsPublic(next);
+      onChange({ ...list, isPublic: next });
+    }
+  }
+
+  async function handleRemoveCollaborator(inviteId: string) {
+    const ok = await removeListInvite(inviteId);
+    if (ok) {
+      setCollaborators((prev) => prev.filter((c) => c.id !== inviteId));
+    }
+  }
 
   const saveName = async () => {
     const trimmed = name.trim();
@@ -162,6 +197,73 @@ export default function ListDetailDialog({
           </button>
         </div>
 
+        <div className="flex items-center gap-3 rounded-2xl border border-amber-300/30 bg-amber-300/[0.06] p-3">
+          <div className="flex-1">
+            <p className="text-xs font-extrabold text-white">Lista pública</p>
+            <p className="text-[11px] text-zinc-400">
+              Quien te siga podrá verla en tu perfil
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={togglePublic}
+            role="switch"
+            aria-checked={isPublic}
+            aria-label="Lista pública"
+            className={`flex h-6 w-[42px] items-center rounded-full p-0.5 transition-colors ${
+              isPublic ? "justify-end bg-amber-300" : "justify-start bg-white/15"
+            }`}
+          >
+            <span className="h-[18px] w-[18px] rounded-full bg-zinc-900" />
+          </button>
+        </div>
+
+        <div className="flex items-center gap-3 rounded-2xl border border-white/14 bg-white/[0.03] p-3">
+          <div className="flex -space-x-2.5">
+            {collaborators.slice(0, 3).map((c) => (
+              <div
+                key={c.id}
+                className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-zinc-900 bg-gradient-to-br from-emerald-400 to-sky-500 text-[10px] font-extrabold text-black"
+              >
+                {(c.profile?.username ?? "??").slice(0, 2).toUpperCase()}
+              </div>
+            ))}
+          </div>
+          <div className="flex-1 text-xs">
+            <p className="font-extrabold text-white">Lista compartida</p>
+            <p className="text-[11px] text-zinc-400">
+              {collaborators.length === 0
+                ? "Sin colaboradores todavía"
+                : collaborators
+                    .map((c) => c.profile?.username ?? "alguien")
+                    .join(", ") + " pueden editarla"}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setInvitando(true)}
+            aria-label="Añadir colaborador"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-dashed border-white/35 text-zinc-300"
+          >
+            +
+          </button>
+        </div>
+
+        {collaborators.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {collaborators.map((c) => (
+              <button
+                key={c.id}
+                onClick={() => handleRemoveCollaborator(c.id)}
+                className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] text-zinc-300"
+                title="Echar de la lista"
+              >
+                @{c.profile?.username ?? "??"} ✕
+              </button>
+            ))}
+          </div>
+        )}
+
         <button
           type="button"
           onClick={() => setPicking(true)}
@@ -238,6 +340,19 @@ export default function ListDetailDialog({
           }
           onPick={pickTitle}
           onClose={() => setPicking(false)}
+        />
+      )}
+
+      {invitando && (
+        <ListaInvitarDialog
+          listId={list.id}
+          listName={list.name}
+          invitedBy={userId}
+          alreadyInvitedIds={collaborators.map((c) => c.invitedUserId)}
+          onClose={() => setInvitando(false)}
+          onInvited={() => {
+            fetchCollaborators(list.id).then(setCollaborators);
+          }}
         />
       )}
     </div>,
