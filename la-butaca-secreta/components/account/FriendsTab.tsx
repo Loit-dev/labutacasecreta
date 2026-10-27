@@ -6,7 +6,7 @@ import Link from "next/link";
 import type { Session } from "@supabase/supabase-js";
 
 import { useProfile } from "@/hooks/useProfile";
-import { fetchFeed, groupFeedItems, type FeedItem } from "@/lib/supabase/feed";
+import { fetchFeed, groupFeedItems, type FeedGroup, type FeedItem } from "@/lib/supabase/feed";
 import { fetchFollowingIds, fetchFollowerIds } from "@/lib/supabase/follows";
 import { fetchFriends } from "@/lib/supabase/friends";
 import { fetchProfilesByUserIds, type ProfileRow } from "@/lib/supabase/profiles";
@@ -14,6 +14,7 @@ import { fetchNotifications, countBadge } from "@/lib/supabase/notifications";
 
 import UsernameSetup from "./UsernameSetup";
 import BuscarAmigosDialog from "./BuscarAmigosDialog";
+import FeedGroupDialog from "./FeedGroupDialog";
 import NotificacionesDialog from "./NotificacionesDialog";
 import ShareProfileDialog from "./ShareProfileDialog";
 
@@ -60,6 +61,7 @@ function FriendsContent({
   const [showBuscar, setShowBuscar] = useState(false);
   const [showNotificaciones, setShowNotificaciones] = useState(false);
   const [showCompartir, setShowCompartir] = useState(false);
+  const [activeGroup, setActiveGroup] = useState<{ group: FeedGroup; name: string } | null>(null);
 
   async function load() {
     const [feedResult, followingIds, followerIds, friends, notifications] =
@@ -223,7 +225,25 @@ function FriendsContent({
                     <p className="line-clamp-2 text-[12.5px] leading-snug text-white">
                       <span className="font-bold">{name}</span> {verb}
                       {extra > 0 && (
-                        <span className="text-zinc-400"> y {extra}+</span>
+                        <span
+                          role="button"
+                          tabIndex={0}
+                          onClick={(event) => {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            setActiveGroup({ group, name });
+                          }}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter" || event.key === " ") {
+                              event.preventDefault();
+                              event.stopPropagation();
+                              setActiveGroup({ group, name });
+                            }
+                          }}
+                          className="ml-1 cursor-pointer font-bold text-amber-300 underline underline-offset-2"
+                        >
+                          y {extra}+
+                        </span>
                       )}
                     </p>
                     <p className="mt-0.5 text-[10.5px] text-zinc-500">
@@ -315,6 +335,13 @@ function FriendsContent({
       )}
       {showCompartir && (
         <ShareProfileDialog userId={userId} username={username} onClose={() => setShowCompartir(false)} />
+      )}
+      {activeGroup && (
+        <FeedGroupDialog
+          name={activeGroup.name}
+          group={activeGroup.group}
+          onClose={() => setActiveGroup(null)}
+        />
       )}
     </div>
   );

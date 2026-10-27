@@ -22,6 +22,14 @@ type Props = {
   profile: ProfileRow;
 };
 
+// Mismos colores oro/plata/bronce que el ranking de géneros de "Mi
+// resumen" (GENRE_RANKS en MiResumenScreen.tsx), adaptados a cuadro.
+const GENRE_RANK_STYLES = [
+  { border: "border-yellow-500/40", text: "text-yellow-300" },
+  { border: "border-zinc-300/30", text: "text-zinc-200" },
+  { border: "border-orange-500/40", text: "text-orange-300" },
+];
+
 export default function ProfilePublicScreen({ viewerId, profile }: Props) {
   const isMe = viewerId === profile.userId;
 
@@ -156,40 +164,70 @@ export default function ProfilePublicScreen({ viewerId, profile }: Props) {
             <StatBox
               value={stats.totalWatched}
               label="Totales"
+              valueClassName="text-white"
               onClick={stats.totalWatched > 0 ? () => setOpenGrid("total") : undefined}
             />
-            <StatBox value={stats.monthCount} label="Este mes" />
-            <StatBox value={stats.streakDays} label="Racha" />
+            <StatBox
+              value={stats.monthCount}
+              label="Este mes"
+              valueClassName={stats.monthBadge ? "text-amber-300" : "text-white"}
+            />
+            <StatBox value={stats.streakDays} label="Racha" valueClassName="text-orange-300" />
           </div>
 
           <div className="mt-2 grid grid-cols-3 gap-2">
             <StatBox
               value={stats.averageRating ? `★ ${stats.averageRating}` : "—"}
               label="Nota media"
+              valueClassName="text-amber-300"
             />
             <StatBox
               value={pending.length}
               label="Pendientes"
+              valueClassName="text-white"
               onClick={pending.length > 0 ? () => setOpenGrid("pending") : undefined}
             />
-            <StatBox
-              value={isMe ? rejected.count : "—"}
-              label="Descartadas"
-              onClick={isMe && rejected.count > 0 ? () => setOpenGrid("discarded") : undefined}
-              hint={!isMe ? "Privado" : undefined}
-            />
+            {isMe ? (
+              <StatBox
+                value={rejected.count}
+                label="Descartadas"
+                valueClassName="text-zinc-300"
+                onClick={rejected.count > 0 ? () => setOpenGrid("discarded") : undefined}
+              />
+            ) : (
+              <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-3 text-center">
+                <p className="text-xl font-extrabold text-zinc-600">🔒</p>
+                <p className="mt-0.5 text-[10px] text-zinc-500">
+                  Descartadas (privado)
+                </p>
+              </div>
+            )}
           </div>
 
           {stats.topGenres.length > 0 && (
-            <div className="mt-2 grid grid-cols-3 gap-2">
-              {stats.topGenres.map((genre) => (
-                <StatBox
-                  key={genre.name}
-                  value={genre.name}
-                  label={`${genre.count} ${genre.count === 1 ? "vista" : "vistas"}`}
-                  small
-                />
-              ))}
+            <div className="mt-2 flex flex-col gap-1">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-zinc-500">
+                Tus géneros
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                {stats.topGenres.map((genre, index) => {
+                  const rank = GENRE_RANK_STYLES[index];
+
+                  return (
+                    <div
+                      key={genre.name}
+                      className={`rounded-2xl border bg-black/30 p-3 text-center ${rank.border}`}
+                    >
+                      <p className={`truncate text-sm font-extrabold ${rank.text}`}>
+                        {genre.name}
+                      </p>
+                      <p className="mt-0.5 text-[10px] text-zinc-500">
+                        {genre.count} {genre.count === 1 ? "vista" : "vistas"}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>
@@ -310,20 +348,20 @@ function StatBox({
   label,
   small,
   onClick,
-  hint,
+  valueClassName = "text-amber-300",
 }: {
   value: string | number;
   label: string;
   small?: boolean;
   onClick?: () => void;
-  hint?: string;
+  valueClassName?: string;
 }) {
   const content = (
     <>
-      <p className={`font-extrabold text-amber-300 ${small ? "text-sm" : "text-xl"}`}>
+      <p className={`font-extrabold ${valueClassName} ${small ? "text-sm" : "text-xl"}`}>
         {value}
       </p>
-      <p className="mt-0.5 text-[10px] text-zinc-500">{hint ?? label}</p>
+      <p className="mt-0.5 text-[10px] text-zinc-500">{label}</p>
     </>
   );
 
