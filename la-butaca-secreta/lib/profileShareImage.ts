@@ -135,7 +135,7 @@ export function drawProfileShareImage(
 
   const explainLines = wrapLines(
     (text) => ctx.measureText(text).width,
-    "Escanea este código con la cámara de tu móvil para ver mi perfil y empezar a seguirme, sin cuenta hace falta tenerla ya.",
+    "Escanéalo con la cámara de tu móvil y date de alta en un momento para empezar a seguirme.",
     W - 200,
     3
   );
