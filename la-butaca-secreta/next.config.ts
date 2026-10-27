@@ -41,6 +41,11 @@ const csp = [
 
 const nextConfig: NextConfig = {
   images: {
+    // Los pósters de fondo de PosterWall (móvil) se muestran a 280px de
+    // ancho, pero el valor por defecto salta de 256 a 384: sin un
+    // tamaño intermedio, Next.js sirve de más (~22 KiB de margen,
+    // visto en Lighthouse). Con 288 ya hay un tamaño ajustado a eso.
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 288, 384],
     remotePatterns: [
       {
         protocol: "https",
