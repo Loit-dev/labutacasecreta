@@ -151,15 +151,13 @@ export default function ShareProfileDialog({ userId, username, onClose }: Props)
   }
 
   async function handleCopyLink() {
-    if (state.status !== "ready") return;
+    // El mismo enlace que lleva el QR y el texto de WhatsApp (con el
+    // código de invitación), para que copiar no dé un enlace distinto
+    // al de la imagen y también resuelva el seguir automáticamente.
+    if (!inviteUrl) return;
 
-    // El enlace está incrustado en la imagen (vía QR); para copiarlo
-    // como texto, lo reconstruimos igual que arriba.
     try {
-      const origin =
-        typeof window !== "undefined" ? window.location.origin : "";
-
-      await navigator.clipboard.writeText(`${origin}/u/${username}`);
+      await navigator.clipboard.writeText(inviteUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -270,9 +268,7 @@ export default function ShareProfileDialog({ userId, username, onClose }: Props)
 
         <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-black/25 px-3 py-2.5">
           <span className="min-w-0 flex-1 truncate text-left text-xs text-zinc-300">
-            {typeof window !== "undefined"
-              ? `${window.location.host}/u/${username}`
-              : `/u/${username}`}
+            {inviteUrl ? inviteUrl.replace(/^https?:\/\//, "") : "Preparando enlace…"}
           </span>
           <button
             onClick={handleCopyLink}
