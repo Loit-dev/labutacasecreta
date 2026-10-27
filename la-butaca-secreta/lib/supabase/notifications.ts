@@ -95,11 +95,16 @@ export async function fetchNotifications(
         message: (r.message as string | null) ?? null,
         from: byId.get(r.from_user_id as string) ?? null,
       })),
-      ...(followerRes.data ?? []).map((r) => ({
-        kind: "new_follower" as const,
-        createdAt: r.created_at as string,
-        from: byId.get(r.follower_id as string) ?? null,
-      })),
+      // Si quien te siguió no llegó a crear su @usuario, follows
+      // existe pero no hay profiles — no hay nada que mostrar
+      // ("Alguien te sigue ahora" no aporta nada), así que se omite.
+      ...(followerRes.data ?? [])
+        .filter((r) => byId.has(r.follower_id as string))
+        .map((r) => ({
+          kind: "new_follower" as const,
+          createdAt: r.created_at as string,
+          from: byId.get(r.follower_id as string) ?? null,
+        })),
     ];
 
     return items.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));

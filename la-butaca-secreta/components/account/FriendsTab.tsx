@@ -74,11 +74,6 @@ function FriendsContent({
       ]);
 
     setFeed(feedResult);
-    setCounts({
-      following: followingIds.length,
-      followers: followerIds.length,
-      friends: friends.length,
-    });
     setBadge(countBadge(notifications));
 
     const [followingProfiles, followerProfiles] = await Promise.all([
@@ -86,6 +81,18 @@ function FriendsContent({
       fetchProfilesByUserIds(followerIds),
     ]);
     setPeople({ following: followingProfiles, followers: followerProfiles, friends });
+
+    // El número de la pestaña tiene que ser el de la gente que
+    // realmente se puede mostrar debajo: si alguien te sigue pero
+    // nunca llegó a crear su @usuario, follows.follower_id existe
+    // pero no hay fila en profiles, y antes el contador salía de
+    // followerIds.length (3) mientras la lista salía de los perfiles
+    // resueltos (2) — contaban cosas distintas.
+    setCounts({
+      following: followingProfiles.length,
+      followers: followerProfiles.length,
+      friends: friends.length,
+    });
   }
 
   useEffect(() => {
