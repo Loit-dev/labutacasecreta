@@ -6,12 +6,14 @@ import Link from "next/link";
 import {
   AccountIcon,
   DiaryIcon,
+  FriendsIcon,
   ListsIcon,
   PendingIcon,
 } from "@/components/conversation/TabIcons";
 import MiResumenScreen from "@/components/summary/MiResumenScreen";
 
 import DiaryTab from "./DiaryTab";
+import FriendsTab from "./FriendsTab";
 import ListsTab from "./ListsTab";
 import PendingTab from "./PendingTab";
 import RequireAccount from "./RequireAccount";
@@ -21,6 +23,7 @@ const TABS = [
   ["diario", DiaryIcon, "Diario"],
   ["listas", ListsIcon, "Listas"],
   ["pendientes", PendingIcon, "Pendientes"],
+  ["amigos", FriendsIcon, "Amigos"],
 ] as const;
 
 type TabId = (typeof TABS)[number][0];
@@ -83,6 +86,12 @@ export default function AccountScreen() {
           )}
 
           {tab === "pendientes" && <PendingTab />}
+
+          {tab === "amigos" && (
+            <RequireAccount what="Amigos">
+              {(session) => <FriendsTab session={session} />}
+            </RequireAccount>
+          )}
         </div>
       </div>
     </div>

@@ -8,7 +8,12 @@ import { track } from "@/lib/analytics";
 
 type Status = "idle" | "sending" | "sent" | "error";
 
-export default function LoginForm() {
+type Props = {
+  /** A dónde volver tras verificar el enlace mágico (por defecto, la home). */
+  redirectTo?: string;
+};
+
+export default function LoginForm({ redirectTo }: Props = {}) {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [googleError, setGoogleError] = useState<string | null>(null);
@@ -52,7 +57,7 @@ export default function LoginForm() {
 
     const { error } = await supabase!.auth.signInWithOtp({
       email: clean,
-      options: { emailRedirectTo: window.location.origin },
+      options: { emailRedirectTo: redirectTo ?? window.location.origin },
     });
 
     if (error) {

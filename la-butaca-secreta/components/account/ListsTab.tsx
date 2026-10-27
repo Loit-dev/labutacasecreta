@@ -155,6 +155,7 @@ export default function ListsTab({ session }: { session: Session }) {
       {open && (
         <ListDetailDialog
           list={open}
+          userId={session.user.id}
           onClose={() => setOpen(null)}
           onChange={updateList}
           onDeleted={() => removeListFromState(open.id)}

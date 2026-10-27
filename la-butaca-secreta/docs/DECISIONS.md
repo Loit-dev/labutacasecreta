@@ -643,3 +643,83 @@ local, no datos de cuenta, así que no hay nada que migrar de verdad.
 a ser un botón), `hooks/useRecommendations.ts` y
 `components/recommendations/QuickPicks.tsx` (pasan el título/póster/
 año al descartar, no solo el id), `tests/rejected.test.ts` (nuevo).
+
+## 2026-10 · Amigos: seguir, amistad, listas compartidas, feed y recomendaciones
+
+Primera versión de la capa social, construida en la rama
+`amigos-sociales` a partir del diseño acordado en el documento del
+proyecto (`claude/disenio-amigos-sociales.md`). Resumen de las
+decisiones de producto, con el detalle técnico de cada una:
+
+- **Seguir** es instantáneo y asimétrico (sin aprobación). **Amistad**
+  es solicitud + aceptación mutua, y da acceso extra (p. ej. a listas
+  privadas compartidas directamente con amigos). Ambas conviven en
+  `supabase/social.sql`: `follows` (instantánea) y `friend_requests`
+  (una fila con `status = 'accepted'` ES la amistad, sin tabla
+  separada — mismo patrón en `list_invites` para colaboradores).
+- **Visibilidad**: diario, favorita y pendientes son legibles por
+  quien te sigue (nuevas políticas RLS `*_seguidores_leen` sobre
+  `watched`/`favorite`, y una tabla nueva `pending_sync`). Las listas
+  siguen siendo privadas por defecto; `lists.is_public` es el toggle
+  explícito. Una lista puede además tener colaboradores (edición),
+  algo independiente de si es pública.
+- **"Pendientes" pasa a tener un espejo en servidor**
+  (`pending_sync`), solo para que aparezca en el perfil público de
+  quien te sigue — la fuente principal sigue siendo `localStorage`
+  (`lib/watchlist.ts`); esta tabla es una copia de solo lectura hacia
+  fuera, escrita por la propia cuenta. Es la única pieza de esta fase
+  que amplía lo que antes era "solo de este dispositivo".
+- **Username público**: no existía ningún perfil hasta ahora (el login
+  es solo por email). Tabla `profiles` nueva, con validación de
+  formato + lista negra básica en `lib/supabase/profiles.ts`
+  (`validateUsername`). El buscador es siempre abierto (decisión
+  explícita), así que esta moderación mínima no es opcional para el
+  lanzamiento.
+- **Feed de actividad** (`lib/supabase/feed.ts`): combina `watched` +
+  `lists` (solo las públicas) de la gente que sigues, sin ninguna
+  regla de visibilidad propia — hereda tal cual lo que el resto de
+  políticas ya deja ver. Tiene estado vacío con llamada a "Buscar
+  amigos"/"Compartir mi perfil".
+- **Notificaciones**: cuatro tipos en una sola pantalla
+  (`NotificacionesDialog.tsx` + `lib/supabase/notifications.ts`) —
+  solicitud de amistad e invitación a lista (Aceptar/Rechazar),
+  recomendación (informativa + "Añadir a pendientes") y nuevo
+  seguidor (solo informativa). Sin email: la bolita del icono cuenta
+  solicitudes/invitaciones/recomendaciones pendientes más seguidores
+  nuevos desde la última vez que se abrió el panel
+  (`lib/notificationsSeen.ts`, marca local por dispositivo).
+- **Arranque en frío**: "Compartir mi perfil" genera un código de
+  invitación (`invite_codes`) en vez de enlazar directo al perfil.
+  `/invitar/[codigo]` lo resuelve: con sesión, al instante; sin
+  sesión, el enlace mágico del login vuelve a esa misma URL
+  (`emailRedirectTo`) y se resuelve justo después de verificarlo.
+  QR real con `qrcode.react` + enlace de WhatsApp, en
+  `ShareProfileDialog.tsx`.
+- **Listas compartidas**: toggle público + colaboradores, dentro del
+  `ListDetailDialog.tsx` que ya existía (no una pantalla nueva).
+  Cualquier colaborador puede invitar a más gente; solo el creador
+  puede echar a alguien. Duplicados resueltos por una restricción
+  `unique` ya existente en `list_items`.
+- **Riesgo señalado y no resuelto en esta fase**: el feed y el
+  buscador son los puntos de mayor coste si la app crece (consultas
+  `in (...)` sobre `watched`/`lists` sin paginación por cursor, solo
+  `limit`). Vigilar si hace falta paginar de verdad más adelante.
+
+**Dónde**: `supabase/social.sql` (todo el esquema nuevo + RLS);
+`lib/supabase/{profiles,follows,friends,listInvites,recommendations,
+reports,pendingSync,inviteCodes,feed,notifications}.ts`;
+`lib/notificationsSeen.ts`; `hooks/useProfile.ts`;
+`components/account/{UsernameSetup,FriendsTab,BuscarAmigosDialog,
+NotificacionesDialog,ShareProfileDialog,RecommendDialog,
+ProfilePublicScreen,ListaInvitarDialog}.tsx`;
+`components/account/{AccountScreen,ListsTab,ListDetailDialog}.tsx`
+(enganchados); `app/u/[username]/`; `app/invitar/[codigo]/`;
+`app/entrar/LoginForm.tsx` (acepta `redirectTo`).
+
+**Pendiente, deliberadamente fuera de esta fase**: no se ha fusionado
+a producción (se decide aparte); no hay "ver todos" para las listas
+completas de Siguiendo/Seguidores/Amigos; no hay reportar listas
+(solo perfiles) aunque la función ya existe en `lib/supabase/
+reports.ts`; no hay tests automáticos para la capa nueva (se verificó
+con `npm run typecheck` y `npm test`, que sigue en verde, pero son
+los tests existentes, no nuevos para esta feature).

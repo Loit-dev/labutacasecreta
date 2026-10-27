@@ -89,3 +89,14 @@ export function PendingIcon() {
     </svg>
   );
 }
+
+export function FriendsIcon() {
+  return (
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="9" cy="8" r="3.2" stroke="#facc15" strokeWidth="1.6" />
+      <path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="#facc15" strokeWidth="1.6" strokeLinecap="round" />
+      <circle cx="17" cy="9" r="2.4" stroke="#facc15" strokeWidth="1.6" />
+      <path d="M15.5 13.2c2.4.4 4 2.3 4 5" stroke="#facc15" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}

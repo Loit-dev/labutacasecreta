@@ -16,6 +16,7 @@ export type ListRow = {
   name: string;
   createdAt: string;
   items: ListItemRow[];
+  isPublic: boolean;
 };
 
 function mapItem(row: {
@@ -44,7 +45,7 @@ export async function fetchLists(userId: string): Promise<ListRow[]> {
     const { data, error } = await supabase
       .from("lists")
       .select(
-        "id, name, created_at, list_items(id, tmdb_id, media_type, title, poster_url, added_at)"
+        "id, name, created_at, is_public, list_items(id, tmdb_id, media_type, title, poster_url, added_at)"
       )
       .eq("user_id", userId)
       .order("created_at", { ascending: false });
@@ -55,6 +56,7 @@ export async function fetchLists(userId: string): Promise<ListRow[]> {
       id: row.id,
       name: row.name,
       createdAt: row.created_at,
+      isPublic: Boolean((row as { is_public?: boolean }).is_public),
       items: (row.list_items ?? []).map(mapItem),
     }));
   } catch (error) {
@@ -79,7 +81,13 @@ export async function createList(
 
     if (error || !data) return null;
 
-    return { id: data.id, name: data.name, createdAt: data.created_at, items: [] };
+    return {
+      id: data.id,
+      name: data.name,
+      createdAt: data.created_at,
+      isPublic: false,
+      items: [],
+    };
   } catch (error) {
     console.error("No se pudo crear la lista:", error);
 
