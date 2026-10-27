@@ -361,20 +361,10 @@ export default function MiResumenScreen() {
         <Bars last14={stats.last14} />
       </div>
 
+      {/* Fila 1: Totales / Este mes / Racha */}
       <div
         className={`grid gap-2 sm:gap-3 ${
-          (() => {
-            const cols =
-              2 +
-              (stats.streakDays >= 1 ? 1 : 0) +
-              ((stats.averageRating ?? 0) > 0 ? 1 : 0);
-
-            return cols === 4
-              ? "grid-cols-2 sm:grid-cols-4"
-              : cols === 3
-                ? "grid-cols-3"
-                : "grid-cols-2";
-          })()
+          stats.streakDays >= 1 ? "grid-cols-3" : "grid-cols-2"
         }`}
       >
         <div className={`${CARD} p-3 text-center sm:p-4`}>
@@ -418,7 +408,14 @@ export default function MiResumenScreen() {
             </p>
           </div>
         )}
+      </div>
 
+      {/* Fila 2: Nota media / Pendientes / Descartadas */}
+      <div
+        className={`grid gap-2 sm:gap-3 ${
+          (stats.averageRating ?? 0) > 0 ? "grid-cols-3" : "grid-cols-2"
+        }`}
+      >
         {(stats.averageRating ?? 0) > 0 && (
           <div className={`${CARD} p-3 text-center sm:p-4`}>
             <p className="whitespace-nowrap text-[10px] font-bold tracking-wide text-zinc-400 sm:text-[11px]">
@@ -429,9 +426,7 @@ export default function MiResumenScreen() {
             </p>
           </div>
         )}
-      </div>
 
-      <div className="grid grid-cols-2 gap-2 sm:gap-3">
         <div className={`${CARD} p-3 text-center sm:p-4`}>
           <p className="flex items-center justify-center gap-1 whitespace-nowrap text-[10px] font-bold tracking-wide text-zinc-400 sm:text-[11px]">
             PENDIENTES <PinIcon size={11} />
