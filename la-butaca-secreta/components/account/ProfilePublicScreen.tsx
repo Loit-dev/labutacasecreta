@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 
 import { buildSummary } from "@/lib/summary";
 import { fetchWatchedHistory, type WatchedRow } from "@/lib/supabase/summary";
@@ -45,6 +44,7 @@ export default function ProfilePublicScreen({ viewerId, profile }: Props) {
   const [showReport, setShowReport] = useState(false);
   const [reportSent, setReportSent] = useState(false);
   const [openGrid, setOpenGrid] = useState<"total" | "pending" | "discarded" | null>(null);
+  const [openList, setOpenList] = useState<ListRow | null>(null);
 
   // "Descartadas" solo existe en local (lib/rejected.ts): no hay forma
   // de leer las de otra persona, así que ese cuadro solo tiene datos
@@ -299,18 +299,36 @@ export default function ProfilePublicScreen({ viewerId, profile }: Props) {
         ) : (
           <div className="flex flex-col gap-2">
             {lists.map((list) => (
-              <Link
+              <button
                 key={list.id}
-                href="/mi-cuenta"
-                className="flex items-center gap-2.5 rounded-2xl border border-white/10 bg-white/[0.03] p-3"
+                type="button"
+                onClick={() => setOpenList(list)}
+                className="flex items-center gap-2.5 rounded-2xl border border-white/10 bg-white/[0.03] p-3 text-left transition-colors hover:border-white/30"
               >
                 <span className="flex-1 text-sm font-bold text-white">{list.name}</span>
                 <span className="text-xs text-zinc-500">{list.items.length} títulos</span>
-              </Link>
-            ))}
+              </button>))}
           </div>
         )}
       </div>
+
+      {openList && (
+        <TitleGridDialog
+          title={openList.name}
+          subtitle={`${openList.items.length} título${openList.items.length === 1 ? "" : "s"}`}
+          items={openList.items.map(
+            (item): TitleGridItem => ({
+              key: item.id,
+              id: item.tmdbId,
+              type: item.mediaType,
+              title: item.title,
+              poster: item.posterUrl,
+            })
+          )}
+          emptyText="Esta lista todavía no tiene títulos."
+          onClose={() => setOpenList(null)}
+        />
+      )}
 
       {!isMe && (
         <div className="text-center">
