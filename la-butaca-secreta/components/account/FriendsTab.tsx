@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { Session } from "@supabase/supabase-js";
 
 import { useProfile } from "@/hooks/useProfile";
-import { fetchFeed, type FeedItem } from "@/lib/supabase/feed";
+import { fetchFeed, groupFeedItems, type FeedItem } from "@/lib/supabase/feed";
 import { fetchFollowingIds, fetchFollowerIds } from "@/lib/supabase/follows";
 import { fetchFriends } from "@/lib/supabase/friends";
 import { fetchProfilesByUserIds, type ProfileRow } from "@/lib/supabase/profiles";
@@ -47,7 +47,13 @@ function FriendsContent({
     items: FeedItem[];
     profiles: Map<string, ProfileRow>;
   } | null>(null);
-  const [following, setFollowing] = useState<ProfileRow[]>([]);
+  type PeopleTab = "following" | "followers" | "friends";
+  const [people, setPeople] = useState<Record<PeopleTab, ProfileRow[]>>({
+    following: [],
+    followers: [],
+    friends: [],
+  });
+  const [activeTab, setActiveTab] = useState<PeopleTab>("following");
   const [counts, setCounts] = useState({ following: 0, followers: 0, friends: 0 });
   const [badge, setBadge] = useState(0);
 
@@ -73,8 +79,11 @@ function FriendsContent({
     });
     setBadge(countBadge(notifications));
 
-    const followingProfiles = await fetchProfilesByUserIds(followingIds.slice(0, 6));
-    setFollowing(followingProfiles);
+    const [followingProfiles, followerProfiles] = await Promise.all([
+      fetchProfilesByUserIds(followingIds),
+      fetchProfilesByUserIds(followerIds),
+    ]);
+    setPeople({ following: followingProfiles, followers: followerProfiles, friends });
   }
 
   useEffect(() => {
@@ -166,9 +175,40 @@ function FriendsContent({
 
         {feed && feed.items.length > 0 && (
           <div className="flex flex-col gap-2">
-            {feed.items.map((item, index) => {
-              const p = feed.profiles.get(item.userId);
+            {groupFeedItems(feed.items).map((group, index) => {
+              const first = group.items[0];
+              const extra = group.items.length - 1;
+              const p = feed.profiles.get(group.userId);
               const name = p?.displayName ?? p?.username ?? "Alguien";
+
+              let verb: ReactNode;
+              let posterUrl: string | null | undefined;
+
+              if (first.kind === "watched") {
+                verb = (
+                  <>
+                    vio <span className="font-bold">{first.title}</span>
+                    {first.rating ? ` ★ ${first.rating}` : ""}
+                  </>
+                );
+                posterUrl = first.posterUrl;
+              } else if (first.kind === "list_item_added") {
+                verb = (
+                  <>
+                    añadió <span className="font-bold">{first.title}</span> a la
+                    lista <span className="font-bold">{first.listName}</span>
+                  </>
+                );
+                posterUrl = first.posterUrl;
+              } else {
+                verb = (
+                  <>
+                    creó la lista{" "}
+                    <span className="font-bold">{first.listName}</span>
+                  </>
+                );
+                posterUrl = undefined;
+              }
 
               return (
                 <Link
@@ -181,26 +221,18 @@ function FriendsContent({
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="line-clamp-2 text-[12.5px] leading-snug text-white">
-                      <span className="font-bold">{name}</span>{" "}
-                      {item.kind === "watched" ? (
-                        <>
-                          vio <span className="font-bold">{item.title}</span>
-                          {item.rating ? ` ★ ${item.rating}` : ""}
-                        </>
-                      ) : (
-                        <>
-                          creó la lista{" "}
-                          <span className="font-bold">{item.listName}</span>
-                        </>
+                      <span className="font-bold">{name}</span> {verb}
+                      {extra > 0 && (
+                        <span className="text-zinc-400"> y {extra}+</span>
                       )}
                     </p>
                     <p className="mt-0.5 text-[10.5px] text-zinc-500">
-                      {new Date(item.createdAt).toLocaleDateString("es-ES")}
+                      {new Date(first.createdAt).toLocaleDateString("es-ES")}
                     </p>
                   </div>
-                  {item.kind === "watched" && item.posterUrl && (
+                  {posterUrl && (
                     <div className="relative h-12 w-[34px] shrink-0 overflow-hidden rounded bg-zinc-800">
-                      <Image src={item.posterUrl} alt="" fill className="object-cover" />
+                      <Image src={posterUrl} alt="" fill className="object-cover" />
                     </div>
                   )}
                 </Link>
@@ -212,19 +244,50 @@ function FriendsContent({
 
       <div>
         <div className="flex gap-2">
-          <span className="rounded-full bg-amber-300/15 px-3 py-1.5 text-xs font-extrabold text-amber-300">
+          <button
+            type="button"
+            onClick={() => setActiveTab("following")}
+            className={`rounded-full px-3 py-1.5 text-xs font-extrabold ${
+              activeTab === "following"
+                ? "bg-amber-300/15 text-amber-300"
+                : "text-zinc-400"
+            }`}
+          >
             Siguiendo · {counts.following}
-          </span>
-          <span className="rounded-full px-3 py-1.5 text-xs font-bold text-zinc-400">
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("followers")}
+            className={`rounded-full px-3 py-1.5 text-xs font-extrabold ${
+              activeTab === "followers"
+                ? "bg-amber-300/15 text-amber-300"
+                : "text-zinc-400"
+            }`}
+          >
             Seguidores · {counts.followers}
-          </span>
-          <span className="rounded-full px-3 py-1.5 text-xs font-bold text-zinc-400">
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("friends")}
+            className={`rounded-full px-3 py-1.5 text-xs font-extrabold ${
+              activeTab === "friends"
+                ? "bg-amber-300/15 text-amber-300"
+                : "text-zinc-400"
+            }`}
+          >
             Amigos · {counts.friends}
-          </span>
+          </button>
         </div>
 
         <div className="mt-2.5 flex flex-col gap-1">
-          {following.map((p) => (
+          {people[activeTab].length === 0 && (
+            <p className="px-0.5 py-2 text-xs text-zinc-500">
+              {activeTab === "following" && "Aún no sigues a nadie."}
+              {activeTab === "followers" && "Todavía nadie te sigue."}
+              {activeTab === "friends" && "Todavía no tienes amigos."}
+            </p>
+          )}
+          {people[activeTab].map((p) => (
             <Link
               key={p.userId}
               href={`/u/${p.username}`}
