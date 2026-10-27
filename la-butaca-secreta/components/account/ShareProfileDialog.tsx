@@ -1,23 +1,33 @@
 "use client";
 
 import { createPortal } from "react-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 
 import { useDialog } from "@/hooks/useDialog";
+import { createFollowInviteCode } from "@/lib/supabase/inviteCodes";
 
 type Props = {
+  userId: string;
   username: string;
   onClose: () => void;
 };
 
-export default function ShareProfileDialog({ username, onClose }: Props) {
+export default function ShareProfileDialog({ userId, username, onClose }: Props) {
   const dialogRef = useDialog<HTMLDivElement>(onClose);
   const [copied, setCopied] = useState(false);
+  const [code, setCode] = useState<string | null>(null);
 
+  useEffect(() => {
+    createFollowInviteCode(userId).then(setCode);
+  }, [userId]);
+
+  // Mientras se crea el código, se muestra ya el perfil (para quien ya
+  // tiene cuenta); en cuanto hay código, se usa ese enlace, que además
+  // resuelve el "seguir" automáticamente si quien lo abre aún no tiene cuenta.
   const url =
     typeof window !== "undefined"
-      ? `${window.location.origin}/u/${username}`
+      ? `${window.location.origin}${code ? `/invitar/${code}` : `/u/${username}`}`
       : `/u/${username}`;
 
   async function handleCopy() {

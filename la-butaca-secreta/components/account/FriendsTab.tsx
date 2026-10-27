@@ -251,7 +251,7 @@ function FriendsContent({
         <NotificacionesDialog userId={userId} onClose={closeNotificaciones} />
       )}
       {showCompartir && (
-        <ShareProfileDialog username={username} onClose={() => setShowCompartir(false)} />
+        <ShareProfileDialog userId={userId} username={username} onClose={() => setShowCompartir(false)} />
       )}
     </div>
   );

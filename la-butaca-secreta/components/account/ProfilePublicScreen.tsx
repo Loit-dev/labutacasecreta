@@ -200,7 +200,7 @@ export default function ProfilePublicScreen({ viewerId, profile }: Props) {
       )}
 
       {showShare && (
-        <ShareProfileDialog username={profile.username} onClose={() => setShowShare(false)} />
+        <ShareProfileDialog userId={viewerId} username={profile.username} onClose={() => setShowShare(false)} />
       )}
       {showRecommend && (
         <RecommendDialog
