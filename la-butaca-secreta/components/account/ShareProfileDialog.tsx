@@ -245,25 +245,33 @@ export default function ShareProfileDialog({ userId, username, onClose }: Props)
 
         {canShare && (
           <p className="text-center text-[11px] text-zinc-500">
-            "Compartir…" abre el menú del móvil: ahí puedes mandarla a
-            Instagram (como story), WhatsApp o donde quieras.
+            "Compartir…" abre el menú del móvil con la imagen adjunta:
+            ahí puedes mandarla a Instagram (como story), WhatsApp o
+            donde quieras.
           </p>
         )}
 
         {inviteUrl && (
-          <a
-            href={`https://wa.me/?text=${encodeURIComponent(
-              `Sígueme en ${SITE_NAME}: ${inviteUrl}`
-            )}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() =>
-              track("share_done", { method: "whatsapp_link", screen: "profile" })
-            }
-            className="flex items-center justify-center gap-2 rounded-xl bg-[#25D366] px-4 py-3 text-sm font-bold text-black transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-          >
-            Enviar por WhatsApp con el enlace
-          </a>
+          <>
+            <a
+              href={`https://wa.me/?text=${encodeURIComponent(
+                `Sígueme en ${SITE_NAME}: ${inviteUrl}`
+              )}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() =>
+                track("share_done", { method: "whatsapp_link", screen: "profile" })
+              }
+              className="flex items-center justify-center gap-2 rounded-xl bg-[#25D366] px-4 py-3 text-sm font-bold text-black transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            >
+              Enviar enlace por WhatsApp (sin imagen)
+            </a>
+            <p className="text-center text-[11px] text-zinc-500">
+              WhatsApp no deja adjuntar imágenes desde un enlace directo:
+              esto manda solo el texto con el enlace. Para mandar también
+              la imagen del QR, usa "Compartir…" y elige WhatsApp ahí.
+            </p>
+          </>
         )}
 
         <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-black/25 px-3 py-2.5">
