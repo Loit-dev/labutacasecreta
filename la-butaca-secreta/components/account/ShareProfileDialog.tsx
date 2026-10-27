@@ -40,6 +40,10 @@ export default function ShareProfileDialog({ userId, username, onClose }: Props)
   const [copied, setCopied] = useState(false);
   const [state, setState] = useState<State>({ status: "loading" });
   const [message, setMessage] = useState("");
+  // El enlace de invitación (con o sin código), para poder incluirlo
+  // como texto —no solo dentro del QR— al compartir por WhatsApp o
+  // por el selector nativo.
+  const [inviteUrl, setInviteUrl] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -56,6 +60,8 @@ export default function ShareProfileDialog({ userId, username, onClose }: Props)
         typeof window !== "undefined" ? window.location.origin : "";
       const url = `${origin}${code ? `/invitar/${code}` : `/u/${username}`}`;
       const displayUrl = url.replace(/^https?:\/\//, "");
+
+      setInviteUrl(url);
 
       try {
         const qrDataUrl = await QRCode.toDataURL(url, {
@@ -110,7 +116,9 @@ export default function ShareProfileDialog({ userId, username, onClose }: Props)
       await navigator.share({
         files: [file],
         title: `${SITE_NAME} · @${username}`,
-        text: `Sígueme en ${SITE_NAME}`,
+        text: inviteUrl
+          ? `Sígueme en ${SITE_NAME}: ${inviteUrl}`
+          : `Sígueme en ${SITE_NAME}`,
       });
 
       track("share_done", { method: "native", screen: "profile" });
@@ -242,6 +250,22 @@ export default function ShareProfileDialog({ userId, username, onClose }: Props)
             "Compartir…" abre el menú del móvil: ahí puedes mandarla a
             Instagram (como story), WhatsApp o donde quieras.
           </p>
+        )}
+
+        {inviteUrl && (
+          <a
+            href={`https://wa.me/?text=${encodeURIComponent(
+              `Sígueme en ${SITE_NAME}: ${inviteUrl}`
+            )}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() =>
+              track("share_done", { method: "whatsapp_link", screen: "profile" })
+            }
+            className="flex items-center justify-center gap-2 rounded-xl bg-[#25D366] px-4 py-3 text-sm font-bold text-black transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          >
+            Enviar por WhatsApp con el enlace
+          </a>
         )}
 
         <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-black/25 px-3 py-2.5">
