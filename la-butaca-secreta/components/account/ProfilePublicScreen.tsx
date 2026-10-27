@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
+import { useProfile } from "@/hooks/useProfile";
 import { buildSummary } from "@/lib/summary";
 import { fetchWatchedHistory, type WatchedRow } from "@/lib/supabase/summary";
 import { fetchPendingSyncFor, type PendingSyncItem } from "@/lib/supabase/pendingSync";
@@ -32,6 +34,13 @@ const GENRE_RANK_STYLES = [
 
 export default function ProfilePublicScreen({ viewerId, profile }: Props) {
   const isMe = viewerId === profile.userId;
+  const router = useRouter();
+
+  // Para seguir o pedir amistad hace falta haber creado el @usuario:
+  // follows/friend_requests solo exigen estar logueado (auth.uid()),
+  // así que sin esto alguien podía seguir sin perfil y quedar como
+  // seguidor "fantasma" (sin nombre, sin foto, ver DECISIONS.md).
+  const { profile: viewerProfile, loading: viewerProfileLoading } = useProfile(viewerId);
 
   const [history, setHistory] = useState<WatchedRow[]>([]);
   const [stats, setStats] = useState<ReturnType<typeof buildSummary> | null>(null);
@@ -81,7 +90,18 @@ export default function ProfilePublicScreen({ viewerId, profile }: Props) {
     };
   }, [viewerId, profile.userId, isMe]);
 
+  function goCreateUsername() {
+    router.push("/mi-cuenta?tab=amigos");
+  }
+
   async function handleFollow() {
+    if (viewerProfileLoading) return;
+
+    if (!viewerProfile) {
+      goCreateUsername();
+      return;
+    }
+
     const ok = following
       ? await unfollow(viewerId, profile.userId)
       : await follow(viewerId, profile.userId);
@@ -90,6 +110,13 @@ export default function ProfilePublicScreen({ viewerId, profile }: Props) {
   }
 
   async function handleFriendRequest() {
+    if (viewerProfileLoading) return;
+
+    if (!viewerProfile) {
+      goCreateUsername();
+      return;
+    }
+
     const ok = await sendFriendRequest(viewerId, profile.userId);
     if (ok) setFriendStatus("pending_sent");
   }

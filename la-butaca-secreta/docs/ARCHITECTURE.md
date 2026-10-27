@@ -14,8 +14,10 @@ esquema de datos, `DATABASE.md`; para las rutas internas, `API.md`.
   disponibilidad por plataforma; **TVmaze** como segunda fuente para
   estrenos de episodios de series (calendario).
 - **Supabase** (PostgreSQL + Auth + Row Level Security) para la parte
-  opcional de cuenta: login por enlace mágico, diario, favorita y
-  listas (ver `DATABASE.md`).
+  opcional de cuenta: login por enlace mágico, diario, favorita,
+  listas y la capa social opcional de Amigos — @usuario, seguir,
+  amistad, listas públicas/compartidas y recomendaciones (ver
+  `DATABASE.md`).
 - **Sin IA generativa ni LLM**: el motor de preguntas es lógica
   adaptativa propia (`CONVERSATION_ENGINE.md`), y el motor de
   recomendación es un sistema de puntuación sobre los resultados de
@@ -70,8 +72,10 @@ e2e/ y tests/   Playwright (end-to-end) y tests unitarios (node --test).
 | `/pelicula/[id]`, `/serie/[id]`     | Ficha de un título                                       |
 | `/actor/[id]`                       | Ficha de una persona (reparto)                            |
 | `/pelis/[genero]/[plataforma]`, `/series/[genero]/[plataforma]` | Listados SEO por género y plataforma |
-| `/mi-cuenta`                        | Perfil, Diario, Listas y Pendientes en pestañas (ver abajo) |
+| `/mi-cuenta`                        | Perfil, Diario, Listas, Pendientes y Amigos en pestañas (ver abajo) |
 | `/mi-resumen`                       | Versión anterior de "Mi cuenta", solo el perfil; ya no enlazada desde el footer pero sigue activa |
+| `/u/[username]`                      | Perfil público de otra cuenta (resumen compacto + listas públicas) |
+| `/invitar/[codigo]`                 | Resuelve un código de "Compartir mi perfil" o invitación a lista |
 | `/entrar`                           | Login por enlace mágico (Supabase)                       |
 | `/r/[code]`                         | Recomendación compartida (enlace de "Compartir")          |
 | `/privacidad`, `/aviso-legal`       | Páginas legales                                          |
@@ -79,25 +83,34 @@ e2e/ y tests/   Playwright (end-to-end) y tests unitarios (node --test).
 `/mi-cuenta` (`components/account/AccountScreen.tsx`) reutiliza
 `MiResumenScreen` para la pestaña Perfil, y añade Diario
 (`DiaryTab`), Listas (`ListsTab` + `ListDetailDialog` +
-`TitlePickerDialog`) y Pendientes (`PendingTab`, que reutiliza
-`useWatchlist`, el mismo hook que "Mi lista"). `RequireAccount`
-centraliza los tres estados de guarda (login no configurado /
-cargando / sin sesión) para las pestañas que necesitan cuenta.
+`TitlePickerDialog`), Pendientes (`PendingTab`, que reutiliza
+`useWatchlist`, el mismo hook que "Mi lista") y Amigos (`FriendsTab`:
+seguir/seguidores/amigos, feed de novedades, buscador, notificaciones
+y "Compartir mi perfil"). `RequireAccount` centraliza los tres
+estados de guarda (login no configurado / cargando / sin sesión)
+para las pestañas que necesitan cuenta. La pestaña se puede enlazar
+directamente con `?tab=<id>` (p. ej. `/mi-cuenta?tab=amigos`, usado
+para mandar a crear el @usuario al intentar seguir a alguien sin
+tenerlo todavía).
 
 ## Dónde vive cada dato
 
 | Dato                                   | Dónde                          | Por cuenta o por dispositivo |
 | ---------------------------------------- | -------------------------------- | ------------------------------ |
 | Diario, favorita, listas                 | Supabase (`watched`, `favorite`, `lists`/`list_items`) | Por cuenta, sincronizado |
-| "Mi lista" / pendientes                  | `localStorage` (`lib/watchlist.ts`) | Por dispositivo |
+| "Mi lista" / pendientes                  | `localStorage` (`lib/watchlist.ts`), con un espejo de solo lectura en Supabase (`pending_sync`) para que lo vea quien te sigue | Por dispositivo, espejo por cuenta |
 | Títulos ya vistos (para no repetirlos)   | `localStorage` (`lib/viewed.ts`) | Por dispositivo |
 | Títulos ya mostrados en esta sesión      | `localStorage` (`lib/shown.ts`) | Por dispositivo |
 | Afinidad de géneros (qué gusta/no gusta) | `localStorage` (`lib/genreAffinity.ts`) | Por dispositivo |
-| Títulos descartados ("No me apetece")    | `localStorage` (`lib/rejected.ts`) | Por dispositivo |
+| Títulos descartados ("No me apetece")    | `localStorage` (`lib/rejected.ts`) — deliberadamente sin espejo en servidor, para que sea siempre privado | Por dispositivo |
+| @usuario, seguidores, amistades, recomendaciones | Supabase (`profiles`, `follows`, `friend_requests`, `recommendations`, `reports`, `invite_codes`) | Por cuenta, sincronizado |
 
 Nota: por eso "Mi Resumen"/"Mi cuenta" puede mostrar a la vez datos
 de cuenta (diario) y datos de dispositivo (pendientes, descartadas)
-— son dos almacenes distintos, no todo pasa por Supabase.
+— son dos almacenes distintos, no todo pasa por Supabase. El perfil
+público de otra cuenta solo puede mostrar lo que ya es legible por
+RLS (diario, favorita, el espejo de pendientes y listas públicas);
+nunca los descartados, que no tienen ese espejo.
 
 ## CI/CD
 

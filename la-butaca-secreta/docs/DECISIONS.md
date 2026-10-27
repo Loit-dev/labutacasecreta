@@ -716,10 +716,67 @@ ProfilePublicScreen,ListaInvitarDialog}.tsx`;
 (enganchados); `app/u/[username]/`; `app/invitar/[codigo]/`;
 `app/entrar/LoginForm.tsx` (acepta `redirectTo`).
 
-**Pendiente, deliberadamente fuera de esta fase**: no se ha fusionado
-a producción (se decide aparte); no hay "ver todos" para las listas
-completas de Siguiendo/Seguidores/Amigos; no hay reportar listas
-(solo perfiles) aunque la función ya existe en `lib/supabase/
-reports.ts`; no hay tests automáticos para la capa nueva (se verificó
-con `npm run typecheck` y `npm test`, que sigue en verde, pero son
-los tests existentes, no nuevos para esta feature).
+**Pendiente, deliberadamente fuera de esta fase**: no hay reportar
+listas (solo perfiles) aunque la función ya existe en
+`lib/supabase/reports.ts`; no hay tests automáticos para la capa
+nueva (se verificó con `npm run typecheck` y `npm test`, que sigue en
+verde, pero son los tests existentes, no nuevos para esta feature).
+Fusionado a producción y con los ajustes siguientes en la entrada de
+abajo.
+
+## 2026-10 · Amigos: ajustes tras el primer uso real
+
+Varios ajustes a la capa social de arriba, pedidos tras probarla con
+datos reales:
+
+- **Siguiendo/Seguidores/Amigos** en la pestaña Amigos ahora son tres
+  listas de verdad: antes el botón cambiaba de texto pero la lista de
+  debajo siempre era "Siguiendo". El feed de Novedades agrupa además
+  ráfagas consecutivas de la misma persona ("vio Aida y 4+"), con un
+  diálogo nuevo (`FeedGroupDialog.tsx`) para ver el detalle completo
+  de lo agrupado en vez de solo el primer elemento.
+- **Perfil público compacto**: `ProfilePublicScreen.tsx` añade un
+  resumen 2×3 (Totales/Este mes/Racha, Nota media/Pendientes/
+  Descartadas) con los mismos colores que "Mi Resumen"
+  (`MiResumenScreen.tsx`, que de paso pasa también a 2×3 en vez de
+  una fila ancha + una de 2, por consistencia). Totales, Pendientes y
+  las listas públicas abren un diálogo de solo lectura con los
+  pósters (`TitleGridDialog.tsx`); Descartadas sigue siendo privado
+  en el perfil de otra persona (icono de candado, `LockIcon` en
+  `components/icons/Icons.tsx`) — decisión explícita: no se crea
+  ningún espejo en servidor para "No me apetece".
+- **Seguidor "fantasma"**: `follows.follower_id` referencia
+  `auth.users`, no `profiles`, así que alguien puede seguir sin haber
+  terminado de crear su @usuario. Eso dejaba un seguidor sin perfil
+  resoluble: el contador de la pestaña Amigos salía de
+  `followerIds.length` (la fila cruda) mientras la lista de debajo
+  salía de los perfiles resueltos — contaban cosas distintas. Ahora
+  el contador usa el mismo array de perfiles que se muestra, y la
+  notificación de nuevo seguidor se omite si no hay perfil que
+  resolver (antes decía "Alguien te sigue ahora" sin más).
+- **Seguir/pedir amistad exige @usuario**: mismo problema de origen
+  que el punto anterior, resuelto en el otro sentido — antes de que
+  ocurra. `ProfilePublicScreen.tsx` comprueba el perfil del propio
+  visitante (`useProfile`) antes de dejarle seguir o pedir amistad;
+  si no tiene @usuario, en vez de crear la fila lo manda a
+  `/mi-cuenta?tab=amigos` (nuevo soporte de `?tab=` en
+  `AccountScreen.tsx`, leído en un efecto para no desajustar el
+  render de servidor/cliente), donde `FriendsTab` ya mostraba
+  `UsernameSetup` cuando falta el perfil.
+- **Documentación actualizada** a la vez que el código: `/privacidad`
+  gana una sección "Si usas la función de «Amigos»" (qué se vuelve
+  público, qué guarda cada acción); `/aviso-legal` menciona que el
+  @usuario es público; `docs/DATABASE.md` documenta por fin las
+  tablas de `supabase/social.sql` (antes solo estaban en este
+  archivo) y corrige la afirmación de que "nadie puede leer filas de
+  otra cuenta" (ya no es cierto desde que existen las políticas de
+  seguidores/público); `docs/ARCHITECTURE.md` añade las rutas
+  `/u/[username]` e `/invitar/[codigo]` y la pestaña Amigos a la
+  tabla de rutas y a "dónde vive cada dato".
+
+**Dónde**: `components/account/{FriendsTab,ProfilePublicScreen,
+AccountScreen,FeedGroupDialog,TitleGridDialog}.tsx`;
+`components/summary/MiResumenScreen.tsx`; `components/icons/
+Icons.tsx` (`LockIcon`); `lib/supabase/{feed,notifications}.ts`;
+`app/privacidad/page.tsx`; `app/aviso-legal/page.tsx`;
+`docs/{DATABASE,ARCHITECTURE}.md`.

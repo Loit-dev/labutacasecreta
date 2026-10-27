@@ -103,6 +103,16 @@ export default function LegalNoticePage() {
           acceder a ellos o borrarlos se explica en la{" "}
           <a href="/privacidad">política de privacidad</a>.
         </p>
+
+        <p>
+          Para usar la función de «Amigos» (seguir, listas
+          públicas, recomendaciones) hace falta además elegir
+          un @usuario. Es público: cualquier persona con
+          cuenta puede buscarlo y ver tu perfil. No lo uses
+          para hacerte pasar por otra persona o entidad real;
+          nos reservamos el derecho a retirarlo si incumple
+          esto o si recibe varios reportes justificados.
+        </p>
       </section>
 
       <section>

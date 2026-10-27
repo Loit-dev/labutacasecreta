@@ -126,14 +126,15 @@ export default function PrivacyPage() {
         </ul>
 
         <p>
-          Esos datos están protegidos de forma que solo tu
-          cuenta puede leerlos o modificarlos; nadie más tiene
-          acceso a ellos, nosotros incluidos, salvo para dar
-          soporte técnico si nos escribes con un problema.
-          Puedes editar o borrar cualquier entrada de tu
-          diario o tus listas desde «Mi cuenta» en cualquier
-          momento. Si quieres borrar tu cuenta entera y todo lo
-          asociado a ella, escríbenos
+          Por defecto esos datos solo los puede leer o
+          modificar tu cuenta; nadie más tiene acceso a ellos,
+          nosotros incluidos, salvo para dar soporte técnico si
+          nos escribes con un problema. Si usas la función de
+          «Amigos», hay excepciones a esto — se explican en el
+          siguiente apartado. Puedes editar o borrar cualquier
+          entrada de tu diario o tus listas desde «Mi cuenta»
+          en cualquier momento. Si quieres borrar tu cuenta
+          entera y todo lo asociado a ella, escríbenos
           {CONTACT_EMAIL ? (
             <>
               {" "}a{" "}
@@ -145,6 +146,77 @@ export default function PrivacyPage() {
             " a través del contacto que figure en el sitio"
           )}{" "}
           y lo hacemos sin demora.
+        </p>
+      </section>
+
+      <section>
+        <h2>Si usas la función de «Amigos»</h2>
+
+        <p>
+          Seguir a alguien, pedir amistad, compartir listas y
+          recomendar títulos son todo opcionales, dentro de
+          «Mi cuenta» → «Amigos». Si los usas, esto es lo que
+          cambia respecto al apartado anterior:
+        </p>
+
+        <ul>
+          <li>
+            Para usarla necesitas elegir un{" "}
+            <strong>@usuario</strong>. Es público: cualquier
+            persona con cuenta puede encontrarlo con el
+            buscador y ver tu perfil (@usuario, nombre que
+            muestres, tus estadísticas y tus listas públicas).
+            No es tu correo ni se deriva de él.
+          </li>
+          <li>
+            <strong>Seguir</strong> es instantáneo, sin que la
+            otra persona lo apruebe. Si alguien te sigue,
+            puede ver tu diario, tu película o serie favorita
+            y tus pendientes — lo mismo que verías tú en «Mi
+            Resumen», salvo tus títulos descartados, que nunca
+            salen de tu dispositivo. Dejar de seguir o quitar
+            un seguidor retira ese acceso al instante.
+          </li>
+          <li>
+            Tus <strong>listas</strong> siguen siendo privadas
+            por defecto. Si marcas una como pública, su
+            nombre y sus títulos los puede ver cualquiera con
+            cuenta, no solo quien te sigue. También puedes
+            invitar a colaboradores concretos a editar una
+            lista, pública o no.
+          </li>
+          <li>
+            <strong>Pedir amistad</strong> necesita que la otra
+            persona la acepte. No cambia lo que se ve por sí
+            sola: hoy solo se usa para marcaros como amigos en
+            el perfil.
+          </li>
+          <li>
+            Si alguien te <strong>recomienda</strong> un
+            título, guardamos quién lo envía, el título y el
+            mensaje que escriba, visible solo entre los dos.
+          </li>
+          <li>
+            <strong>Reportar</strong> un perfil o una lista
+            guarda el motivo que escribas junto con quién lo
+            reportó; lo revisamos manualmente, no hay
+            moderación automática.
+          </li>
+          <li>
+            «Compartir mi perfil» e «invitar a una lista»
+            generan un código de un solo uso para que quien lo
+            abra te siga o se una, incluso si aún no tiene
+            cuenta (lo resuelve justo después de entrar). El
+            código no sirve para nada más y no identifica a
+            quien lo use hasta que lo usa.
+          </li>
+        </ul>
+
+        <p>
+          Todo esto se controla desde «Mi cuenta» → «Amigos»:
+          puedes dejar de seguir, deshacer una amistad, hacer
+          una lista privada de nuevo o quitar a un colaborador
+          cuando quieras.
         </p>
       </section>
 
@@ -219,9 +291,12 @@ export default function PrivacyPage() {
           <li>
             <strong>Supabase</strong> aloja la base de datos y
             el inicio de sesión de quienes crean una cuenta
-            (correo electrónico, diario, favorita y listas,
-            descritos arriba). Solo se usa si decides crear
-            una cuenta.
+            (correo electrónico, diario, favorita y listas, y
+            si usas «Amigos», tu @usuario, a quién sigues o te
+            sigue, tus amistades, tus listas públicas y las
+            recomendaciones que envíes o recibas, todo
+            descrito arriba). Solo se usa si decides crear una
+            cuenta.
           </li>
           <li>
             <strong>TMDb</strong> proporciona los datos de
@@ -253,10 +328,11 @@ export default function PrivacyPage() {
           Si no tienes cuenta, no guardamos datos personales
           asociados a ti y no hay información que acceder,
           rectificar o suprimir en nuestro lado. Si tienes
-          cuenta, puedes acceder, corregir o borrar tu diario
-          y tus listas tú mismo desde «Mi cuenta», y pedirnos
-          por correo que borremos la cuenta entera cuando
-          quieras. Si tienes cualquier otra duda sobre esta
+          cuenta, puedes acceder, corregir o borrar tu diario,
+          tus listas y tu actividad de «Amigos» (seguidores,
+          amistades, listas públicas) tú mismo desde «Mi
+          cuenta», y pedirnos por correo que borremos la
+          cuenta entera cuando quieras. Si tienes cualquier otra duda sobre esta
           política o sobre tus derechos de protección de
           datos, puedes escribirnos
           {CONTACT_EMAIL ? (

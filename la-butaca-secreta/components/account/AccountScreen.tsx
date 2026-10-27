@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
 import {
@@ -31,6 +31,18 @@ type TabId = (typeof TABS)[number][0];
 /** "Mi cuenta": perfil (Mi Resumen), diario, listas y pendientes, en pestañas. */
 export default function AccountScreen() {
   const [tab, setTab] = useState<TabId>("perfil");
+
+  // Permite enlazar directamente a una pestaña (p. ej. desde el
+  // perfil público: "Seguir" sin @usuario te manda aquí, a Amigos,
+  // para crearlo). Se lee en un efecto en vez de en el estado inicial
+  // para no desajustar el render de servidor y cliente.
+  useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get("tab");
+
+    if (requested && TABS.some(([id]) => id === requested)) {
+      setTab(requested as TabId);
+    }
+  }, []);
 
   return (
     <div>
