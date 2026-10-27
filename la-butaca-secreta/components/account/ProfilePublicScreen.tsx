@@ -1,21 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 
 import { buildSummary } from "@/lib/summary";
-import { fetchWatchedHistory } from "@/lib/supabase/summary";
-import { fetchFavorite } from "@/lib/supabase/favorite";
+import { fetchWatchedHistory, type WatchedRow } from "@/lib/supabase/summary";
 import { fetchPendingSyncFor, type PendingSyncItem } from "@/lib/supabase/pendingSync";
 import { fetchLists, type ListRow } from "@/lib/supabase/lists";
 import { follow, isFollowing, unfollow } from "@/lib/supabase/follows";
 import { fetchFriendStatus, sendFriendRequest, type FriendStatus } from "@/lib/supabase/friends";
 import { reportUser } from "@/lib/supabase/reports";
 import type { ProfileRow } from "@/lib/supabase/profiles";
+import { useRejected } from "@/hooks/useRejected";
 
 import ShareProfileDialog from "./ShareProfileDialog";
 import RecommendDialog from "./RecommendDialog";
+import TitleGridDialog, { type TitleGridItem } from "./TitleGridDialog";
 
 type Props = {
   viewerId: string;
@@ -25,8 +25,8 @@ type Props = {
 export default function ProfilePublicScreen({ viewerId, profile }: Props) {
   const isMe = viewerId === profile.userId;
 
+  const [history, setHistory] = useState<WatchedRow[]>([]);
   const [stats, setStats] = useState<ReturnType<typeof buildSummary> | null>(null);
-  const [favoriteTitle, setFavoriteTitle] = useState<string | null>(null);
   const [pending, setPending] = useState<PendingSyncItem[]>([]);
   const [lists, setLists] = useState<ListRow[]>([]);
   const [following, setFollowing] = useState(false);
@@ -35,15 +35,20 @@ export default function ProfilePublicScreen({ viewerId, profile }: Props) {
   const [showRecommend, setShowRecommend] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [reportSent, setReportSent] = useState(false);
+  const [openGrid, setOpenGrid] = useState<"total" | "pending" | "discarded" | null>(null);
+
+  // "Descartadas" solo existe en local (lib/rejected.ts): no hay forma
+  // de leer las de otra persona, así que ese cuadro solo tiene datos
+  // reales cuando es tu propio perfil.
+  const rejected = useRejected();
 
   useEffect(() => {
     let cancelled = false;
 
     (async () => {
-      const [history, favorite, pendingItems, listRows, follows, friend] =
+      const [historyRows, pendingItems, listRows, follows, friend] =
         await Promise.all([
           fetchWatchedHistory(profile.userId),
-          fetchFavorite(profile.userId),
           fetchPendingSyncFor(profile.userId),
           fetchLists(profile.userId),
           isMe ? Promise.resolve(false) : isFollowing(viewerId, profile.userId),
@@ -54,8 +59,8 @@ export default function ProfilePublicScreen({ viewerId, profile }: Props) {
 
       if (cancelled) return;
 
-      setStats(buildSummary(history));
-      setFavoriteTitle(favorite?.title ?? null);
+      setHistory(historyRows);
+      setStats(buildSummary(historyRows));
       setPending(pendingItems);
       setLists(listRows);
       setFollowing(follows);
@@ -146,16 +151,102 @@ export default function ProfilePublicScreen({ viewerId, profile }: Props) {
           <p className="mb-2 text-xs font-bold uppercase tracking-wide text-zinc-500">
             Resumen
           </p>
+
           <div className="grid grid-cols-3 gap-2">
-            <StatBox value={stats.totalWatched} label="vistas" />
-            <StatBox value={favoriteTitle ? "★" : "—"} label="favorita" />
-            <StatBox value={stats.topGenre?.name ?? "—"} label="género top" small />
+            <StatBox
+              value={stats.totalWatched}
+              label="Totales"
+              onClick={stats.totalWatched > 0 ? () => setOpenGrid("total") : undefined}
+            />
+            <StatBox value={stats.monthCount} label="Este mes" />
+            <StatBox value={stats.streakDays} label="Racha" />
           </div>
+
+          <div className="mt-2 grid grid-cols-3 gap-2">
+            <StatBox
+              value={stats.averageRating ? `★ ${stats.averageRating}` : "—"}
+              label="Nota media"
+            />
+            <StatBox
+              value={pending.length}
+              label="Pendientes"
+              onClick={pending.length > 0 ? () => setOpenGrid("pending") : undefined}
+            />
+            <StatBox
+              value={isMe ? rejected.count : "—"}
+              label="Descartadas"
+              onClick={isMe && rejected.count > 0 ? () => setOpenGrid("discarded") : undefined}
+              hint={!isMe ? "Privado" : undefined}
+            />
+          </div>
+
+          {stats.topGenres.length > 0 && (
+            <div className="mt-2 grid grid-cols-3 gap-2">
+              {stats.topGenres.map((genre) => (
+                <StatBox
+                  key={genre.name}
+                  value={genre.name}
+                  label={`${genre.count} ${genre.count === 1 ? "vista" : "vistas"}`}
+                  small
+                />
+              ))}
+            </div>
+          )}
         </div>
       )}
 
-      {pending.length > 0 && (
-        <PosterRow label="Pendientes" items={pending.map((p) => ({ key: `${p.tmdbId}-${p.mediaType}`, poster: p.posterUrl }))} />
+      {openGrid === "total" && (
+        <TitleGridDialog
+          title="Totales"
+          subtitle={`${history.length} título${history.length === 1 ? "" : "s"} vistos`}
+          items={history.map(
+            (row): TitleGridItem => ({
+              key: `${row.mediaType}-${row.tmdbId}`,
+              id: row.tmdbId,
+              type: row.mediaType,
+              title: row.title,
+              poster: row.posterUrl,
+            })
+          )}
+          emptyText="Todavía no ha marcado ningún título como visto."
+          onClose={() => setOpenGrid(null)}
+        />
+      )}
+
+      {openGrid === "pending" && (
+        <TitleGridDialog
+          title="Pendientes"
+          subtitle={`${pending.length} título${pending.length === 1 ? "" : "s"} guardados`}
+          items={pending.map(
+            (p): TitleGridItem => ({
+              key: `${p.mediaType}-${p.tmdbId}`,
+              id: p.tmdbId,
+              type: p.mediaType,
+              title: p.title,
+              poster: p.posterUrl,
+            })
+          )}
+          emptyText="Sin pendientes guardados."
+          onClose={() => setOpenGrid(null)}
+        />
+      )}
+
+      {openGrid === "discarded" && isMe && (
+        <TitleGridDialog
+          title="Descartadas"
+          subtitle={`${rejected.count} título${rejected.count === 1 ? "" : "s"} descartados`}
+          items={rejected.items.map(
+            (item): TitleGridItem => ({
+              key: `${item.type}-${item.id}`,
+              id: item.id,
+              type: item.type,
+              title: item.title,
+              poster: item.poster,
+            })
+          )}
+          emptyText="No has descartado ningún título."
+          onClose={() => setOpenGrid(null)}
+        />
       )}
 
       <div>
@@ -218,38 +309,39 @@ function StatBox({
   value,
   label,
   small,
+  onClick,
+  hint,
 }: {
   value: string | number;
   label: string;
   small?: boolean;
+  onClick?: () => void;
+  hint?: string;
 }) {
-  return (
-    <div className="rounded-2xl border border-white/20 bg-white/[0.03] p-3 text-center">
+  const content = (
+    <>
       <p className={`font-extrabold text-amber-300 ${small ? "text-sm" : "text-xl"}`}>
         {value}
       </p>
-      <p className="mt-0.5 text-[10px] text-zinc-500">{label}</p>
-    </div>
+      <p className="mt-0.5 text-[10px] text-zinc-500">{hint ?? label}</p>
+    </>
   );
-}
 
-function PosterRow({
-  label,
-  items,
-}: {
-  label: string;
-  items: { key: string; poster: string | null }[];
-}) {
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className="rounded-2xl border border-white/20 bg-white/[0.03] p-3 text-center transition-colors active:bg-white/10"
+      >
+        {content}
+      </button>
+    );
+  }
+
   return (
-    <div>
-      <p className="mb-2 text-xs font-bold uppercase tracking-wide text-zinc-500">{label}</p>
-      <div className="flex gap-2 overflow-x-auto">
-        {items.map((item) => (
-          <div key={item.key} className="relative h-24 w-16 shrink-0 overflow-hidden rounded-lg bg-zinc-800">
-            {item.poster && <Image src={item.poster} alt="" fill className="object-cover" />}
-          </div>
-        ))}
-      </div>
+    <div className="rounded-2xl border border-white/20 bg-white/[0.03] p-3 text-center">
+      {content}
     </div>
   );
 }
