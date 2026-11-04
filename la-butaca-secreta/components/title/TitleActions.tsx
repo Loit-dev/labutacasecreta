@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import RatingPrompt from "@/components/recommendations/RatingPrompt";
+import ShareWatchedDialog from "@/components/title/ShareWatchedDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useWatchlist } from "@/hooks/useWatchlist";
 import { track } from "@/lib/analytics";
@@ -31,6 +32,7 @@ export default function TitleActions({ type, title }: Props) {
   const { session } = useAuth();
 
   const [showRating, setShowRating] = useState(false);
+  const [showShareWatched, setShowShareWatched] = useState(false);
 
   const [seen, setSeen] = useState(() =>
     readSeen(type).includes(title.id)
@@ -101,6 +103,8 @@ export default function TitleActions({ type, title }: Props) {
         seenAt: seenAt ? dateInputToISO(seenAt) : undefined,
       });
     }
+
+    setShowShareWatched(true);
   };
 
   return (
@@ -133,6 +137,17 @@ export default function TitleActions({ type, title }: Props) {
 
       {showRating && (
         <RatingPrompt title={title.title} onConfirm={confirmRating} />
+      )}
+
+      {showShareWatched && (
+        <ShareWatchedDialog
+          type={type}
+          tmdbId={title.id}
+          title={title.title}
+          rating={rating}
+          posterUrl={title.poster}
+          onClose={() => setShowShareWatched(false)}
+        />
       )}
     </>
   );

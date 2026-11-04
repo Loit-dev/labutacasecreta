@@ -1,0 +1,339 @@
+/**
+ * Dibuja la imagen de "Ya la he visto" (póster + título + estrellas) en
+ * un canvas. Mismo formato 9:16 (1080×1920) y mismo fondo cinematográfico
+ * que el resto de imágenes para compartir (lib/shareImage.ts, de donde
+ * se reutiliza el fondo/viñeteado y la carga de imágenes), para que se
+ * reconozca de un vistazo que es de la web.
+ */
+
+import type { Rating } from "./rating";
+import {
+  BACKDROP_FILES,
+  SHARE_HEIGHT,
+  SHARE_WIDTH,
+  drawBackdrop,
+  loadImage,
+  wrapLines,
+  type DrawableImage,
+} from "./shareImage";
+
+export type WatchedShareOptions = {
+  siteName: string;
+  siteUrl: string;
+  title: string;
+  kind: "movie" | "tv";
+  rating?: Rating;
+  posterUrl?: string;
+  fontFamily?: string;
+  logo?: DrawableImage | null;
+  backdrops?: (DrawableImage | null)[];
+  poster?: DrawableImage | null;
+};
+
+function roundedRect(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number
+) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+// Mismo icono de estrella (Material Symbols) que el selector de
+// valoración (components/recommendations/RatingPrompt.tsx), para que
+// la imagen compartida se parezca a lo que se vio al puntuar.
+const STAR_PATH =
+  "M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z";
+
+function drawStars(
+  ctx: CanvasRenderingContext2D,
+  centerX: number,
+  y: number,
+  rating: number,
+  size: number
+) {
+  const count = 5;
+  const gap = 16;
+  const totalW = count * size + (count - 1) * gap;
+  const path = new Path2D(STAR_PATH);
+
+  let x = centerX - totalW / 2;
+
+  for (let i = 0; i < count; i++) {
+    const fill = Math.max(0, Math.min(1, rating - i));
+
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(size / 24, size / 24);
+    ctx.fillStyle = "#3f3f46";
+    ctx.fill(path);
+
+    if (fill > 0) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(0, 0, fill * 24, 24);
+      ctx.clip();
+      ctx.fillStyle = "#facc15";
+      ctx.fill(path);
+      ctx.restore();
+    }
+
+    ctx.restore();
+
+    x += size + gap;
+  }
+}
+
+export function drawWatchedShareImage(
+  ctx: CanvasRenderingContext2D,
+  options: WatchedShareOptions
+) {
+  const font =
+    options.fontFamily ||
+    "system-ui, -apple-system, Segoe UI, Roboto, sans-serif";
+
+  const W = SHARE_WIDTH;
+
+  drawBackdrop(ctx, options);
+
+  ctx.textBaseline = "alphabetic";
+  ctx.textAlign = "center";
+
+  // ---------- Logo ----------
+  const logo = options.logo;
+
+  if (logo && logo.width > 0 && logo.height > 0) {
+    const logoH = 170;
+    const logoW = (logo.width / logo.height) * logoH;
+
+    ctx.drawImage(logo, W / 2 - logoW / 2, 225, logoW, logoH);
+  } else {
+    ctx.fillStyle = "#ef4444";
+    ctx.font = `800 32px ${font}`;
+    ctx.fillText(options.siteName.toUpperCase(), W / 2, 330);
+  }
+
+  // ---------- Titular ----------
+  const headline = "¡Ya la he visto!";
+  let headlineSize = 72;
+
+  ctx.font = `800 ${headlineSize}px ${font}`;
+
+  while (
+    headlineSize > 40 &&
+    ctx.measureText(headline).width > W - 120
+  ) {
+    headlineSize -= 4;
+    ctx.font = `800 ${headlineSize}px ${font}`;
+  }
+
+  const headlineW = ctx.measureText(headline).width;
+
+  const headlineGradient = ctx.createLinearGradient(
+    W / 2 - headlineW / 2,
+    0,
+    W / 2 + headlineW / 2,
+    0
+  );
+
+  headlineGradient.addColorStop(0, "#ffffff");
+  headlineGradient.addColorStop(0.55, "#ffffff");
+  headlineGradient.addColorStop(1, "#fb923c");
+
+  ctx.save();
+  ctx.shadowColor = "rgba(0,0,0,0.6)";
+  ctx.shadowBlur = 24;
+  ctx.fillStyle = headlineGradient;
+  ctx.fillText(headline, W / 2, 468);
+  ctx.restore();
+
+  // ---------- Título de la película/serie (hasta 2 líneas) ----------
+  ctx.fillStyle = "#ffffff";
+  ctx.font = `700 46px ${font}`;
+
+  const titleLines = wrapLines(
+    (text) => ctx.measureText(text).width,
+    options.title,
+    W - 160,
+    2
+  );
+
+  const titleTop = 560;
+  const titleLineH = 56;
+
+  titleLines.forEach((line, i) => {
+    ctx.fillText(line, W / 2, titleTop + i * titleLineH);
+  });
+
+  const titleBottom = titleTop + (titleLines.length - 1) * titleLineH;
+
+  // ---------- Póster grande ----------
+  const posterTop = titleBottom + 60;
+  const posterH = 600;
+  const posterW = posterH * (2 / 3);
+  const posterX = W / 2 - posterW / 2;
+
+  ctx.save();
+  ctx.shadowColor = "rgba(251,146,60,0.4)";
+  ctx.shadowBlur = 60;
+  ctx.shadowOffsetY = 14;
+  roundedRect(ctx, posterX, posterTop, posterW, posterH, 28);
+  ctx.fillStyle = "#18181b";
+  ctx.fill();
+  ctx.restore();
+
+  ctx.save();
+  roundedRect(ctx, posterX, posterTop, posterW, posterH, 28);
+  ctx.clip();
+
+  const poster = options.poster;
+
+  if (poster && poster.width > 0 && poster.height > 0) {
+    const scale = Math.max(
+      posterW / poster.width,
+      posterH / poster.height
+    );
+
+    ctx.drawImage(
+      poster,
+      posterX + posterW / 2 - (poster.width * scale) / 2,
+      posterTop + posterH / 2 - (poster.height * scale) / 2,
+      poster.width * scale,
+      poster.height * scale
+    );
+  } else {
+    const fallback = ctx.createLinearGradient(
+      0,
+      posterTop,
+      0,
+      posterTop + posterH
+    );
+
+    fallback.addColorStop(0, "#27272a");
+    fallback.addColorStop(1, "#18181b");
+
+    ctx.fillStyle = fallback;
+    ctx.fillRect(posterX, posterTop, posterW, posterH);
+
+    ctx.fillStyle = "#a1a1aa";
+    ctx.font = `600 30px ${font}`;
+    ctx.fillText("Sin póster", W / 2, posterTop + posterH / 2);
+  }
+
+  ctx.restore();
+
+  roundedRect(
+    ctx,
+    posterX + 2,
+    posterTop + 2,
+    posterW - 4,
+    posterH - 4,
+    28
+  );
+  ctx.strokeStyle = "rgba(251,146,60,0.75)";
+  ctx.lineWidth = 4;
+  ctx.stroke();
+
+  // ---------- Estrellas (si hay valoración) ----------
+  const starsY = posterTop + posterH + 80;
+
+  if (options.rating) {
+    drawStars(ctx, W / 2, starsY, options.rating, 58);
+
+    ctx.fillStyle = "#e4e4e7";
+    ctx.font = `700 34px ${font}`;
+    ctx.fillText(
+      String(options.rating).replace(".", ","),
+      W / 2,
+      starsY + 64
+    );
+  } else {
+    ctx.fillStyle = "#a1a1aa";
+    ctx.font = `600 32px ${font}`;
+    ctx.fillText("Sin puntuar todavía", W / 2, starsY + 20);
+  }
+
+  // ---------- Pie ----------
+  const url = options.siteUrl.replace(/^https?:\/\//, "");
+
+  ctx.font = `800 40px ${font}`;
+
+  const pillW = ctx.measureText(url).width + 90;
+  const pillX = W / 2 - pillW / 2;
+  const footY = SHARE_HEIGHT - 400;
+
+  const pillGradient = ctx.createLinearGradient(pillX, 0, pillX + pillW, 0);
+
+  pillGradient.addColorStop(0, "#b91c1c");
+  pillGradient.addColorStop(1, "#ea580c");
+
+  ctx.save();
+  ctx.shadowColor = "rgba(239,68,68,0.5)";
+  ctx.shadowBlur = 30;
+  roundedRect(ctx, pillX, footY, pillW, 74, 37);
+  ctx.fillStyle = pillGradient;
+  ctx.fill();
+  ctx.restore();
+
+  ctx.fillStyle = "#ffffff";
+  ctx.fillText(url, W / 2, footY + 51);
+
+  ctx.fillStyle = "#d4d4d8";
+  ctx.font = `500 26px ${font}`;
+  ctx.fillText(
+    options.kind === "tv"
+      ? "¿Y tú? Descubre qué serie ver aquí."
+      : "¿Y tú? Descubre qué película ver aquí.",
+    W / 2,
+    footY + 112
+  );
+}
+
+/** Crea la imagen de "Ya la he visto" y la devuelve lista para compartir o descargar. */
+export async function createWatchedShareImage(
+  options: WatchedShareOptions
+): Promise<Blob> {
+  const [logo, backdrops, poster] = await Promise.all([
+    loadImage("/Logo.png"),
+    Promise.all(BACKDROP_FILES.map((file) => loadImage(file))),
+    loadImage(options.posterUrl),
+  ]);
+
+  try {
+    if (options.fontFamily) {
+      await document.fonts.load(`800 40px ${options.fontFamily}`);
+    }
+
+    await document.fonts.ready;
+  } catch {
+    // Sin la tipografía de la web se usa una del sistema
+  }
+
+  const canvas = document.createElement("canvas");
+
+  canvas.width = SHARE_WIDTH;
+  canvas.height = SHARE_HEIGHT;
+
+  const ctx = canvas.getContext("2d");
+
+  if (!ctx) {
+    throw new Error("Tu navegador no puede crear la imagen.");
+  }
+
+  drawWatchedShareImage(ctx, { ...options, logo, backdrops, poster });
+
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) resolve(blob);
+      else reject(new Error("No se pudo crear la imagen."));
+    }, "image/png");
+  });
+}

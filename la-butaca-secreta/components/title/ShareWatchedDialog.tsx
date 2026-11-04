@@ -1,0 +1,289 @@
+"use client";
+
+import { createPortal } from "react-dom";
+import { useEffect, useState } from "react";
+
+import { useDialog } from "@/hooks/useDialog";
+import { track } from "@/lib/analytics";
+import type { Rating } from "@/lib/rating";
+import { createWatchedShareImage } from "@/lib/watchedShareImage";
+import { SITE_NAME } from "@/lib/site";
+
+type Props = {
+  type: "movie" | "tv";
+  tmdbId: number;
+  title: string;
+  rating?: Rating;
+  posterUrl?: string;
+  onClose: () => void;
+};
+
+type State =
+  | { status: "loading" }
+  | { status: "error" }
+  | { status: "ready"; file: File; url: string };
+
+const FILE_NAME = "ya-la-he-visto-la-butaca-secreta.png";
+
+// Tipografía de la web (la expone next/font como variable CSS), igual
+// que en ShareDialog.tsx / ShareProfileDialog.tsx.
+function siteFont() {
+  try {
+    return getComputedStyle(document.documentElement)
+      .getPropertyValue("--font-manrope")
+      .trim();
+  } catch {
+    return "";
+  }
+}
+
+/**
+ * "Compartir que la he visto" (enlace, Instagram story, WhatsApp…),
+ * con el mismo patrón que ShareProfileDialog.tsx: imagen generada en
+ * canvas + selector nativo de compartir + botón directo de WhatsApp +
+ * enlace para copiar.
+ */
+export default function ShareWatchedDialog({
+  type,
+  tmdbId,
+  title,
+  rating,
+  posterUrl,
+  onClose,
+}: Props) {
+  const dialogRef = useDialog<HTMLDivElement>(onClose);
+  const [copied, setCopied] = useState(false);
+  const [state, setState] = useState<State>({ status: "loading" });
+  const [message, setMessage] = useState("");
+
+  // Este diálogo solo se monta tras una interacción del usuario (nunca
+  // durante el renderizado del servidor), así que leer `window` aquí
+  // directamente es seguro: no hace falta useState/useEffect para esto.
+  const link =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/${type === "tv" ? "serie" : "pelicula"}/${tmdbId}`
+      : "";
+
+  useEffect(() => {
+    let cancelled = false;
+    let objectUrl = "";
+
+    createWatchedShareImage({
+      siteName: SITE_NAME,
+      siteUrl: typeof window !== "undefined" ? window.location.origin : "",
+      fontFamily: siteFont(),
+      title,
+      kind: type,
+      rating,
+      posterUrl,
+    })
+      .then((blob) => {
+        if (cancelled) return;
+
+        objectUrl = URL.createObjectURL(blob);
+
+        setState({
+          status: "ready",
+          url: objectUrl,
+          file: new File([blob], FILE_NAME, { type: "image/png" }),
+        });
+      })
+      .catch(() => {
+        if (!cancelled) setState({ status: "error" });
+      });
+
+    return () => {
+      cancelled = true;
+
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [title, type, rating, posterUrl]);
+
+  const file = state.status === "ready" ? state.file : null;
+
+  const shareText = `He visto ${title}${
+    rating ? ` y le pongo ${String(rating).replace(".", ",")} ★` : ""
+  }. ¿Tú qué le pondrías?${link ? ` ${link}` : ""}`;
+
+  const canShare =
+    !!file &&
+    typeof navigator !== "undefined" &&
+    typeof navigator.canShare === "function" &&
+    navigator.canShare({ files: [file] });
+
+  async function share() {
+    if (!file) return;
+
+    try {
+      await navigator.share({
+        files: [file],
+        title: `${SITE_NAME} · ${title}`,
+        text: shareText,
+      });
+
+      track("share_done", { method: "native", screen: "watched", type });
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        return;
+      }
+
+      setMessage(
+        "No he podido abrir el menú de compartir. Descarga la imagen y envíala tú."
+      );
+    }
+  }
+
+  function download() {
+    if (state.status !== "ready") return;
+
+    const anchor = document.createElement("a");
+
+    anchor.href = state.url;
+    anchor.download = FILE_NAME;
+
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+
+    setMessage("Imagen descargada. Ya puedes enviarla o subirla como story.");
+
+    track("share_done", { method: "download", screen: "watched", type });
+  }
+
+  async function handleCopyLink() {
+    if (!link) return;
+
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+
+      track("share_link_copy", { screen: "watched", type });
+    } catch {
+      // Clipboard bloqueado: no pasa nada, puede copiarlo a mano.
+    }
+  }
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-3 backdrop-blur-sm sm:p-6"
+      onClick={onClose}
+    >
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="compartir-vista-title"
+        tabIndex={-1}
+        className="relative flex max-h-[96dvh] w-full max-w-md flex-col gap-4 overflow-y-auto overscroll-contain rounded-3xl border border-zinc-800 bg-zinc-900 p-4 shadow-2xl sm:p-5"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="flex items-start justify-between gap-3">
+          <h2 id="compartir-vista-title" className="text-lg font-bold text-white">
+            Compartir que la he visto
+          </h2>
+
+          <button
+            onClick={onClose}
+            aria-label="Cerrar"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-black/70 text-white hover:bg-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          >
+            <span aria-hidden="true">✕</span>
+          </button>
+        </div>
+
+        <div
+          className="flex min-h-48 items-center justify-center overflow-hidden rounded-2xl bg-black"
+          aria-live="polite"
+        >
+          {state.status === "loading" && (
+            <p className="px-4 text-center text-sm text-zinc-300">
+              Preparando tu imagen…
+            </p>
+          )}
+
+          {state.status === "error" && (
+            <p role="alert" className="px-4 text-center text-sm text-red-300">
+              No he podido crear la imagen. Inténtalo de nuevo en unos
+              segundos.
+            </p>
+          )}
+
+          {state.status === "ready" && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={state.url}
+              alt={`Imagen de que has visto ${title}`}
+              className="max-h-[55dvh] w-auto max-w-full"
+            />
+          )}
+        </div>
+
+        <div className="flex flex-col gap-2 sm:flex-row">
+          {canShare && (
+            <button
+              onClick={share}
+              className="flex-1 rounded-xl bg-red-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            >
+              Compartir…
+            </button>
+          )}
+
+          <button
+            onClick={download}
+            disabled={state.status !== "ready"}
+            className={`flex-1 rounded-xl px-4 py-3 text-sm font-semibold text-white transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:cursor-not-allowed disabled:opacity-50 ${
+              canShare
+                ? "border border-zinc-600 hover:bg-zinc-800"
+                : "bg-red-600 hover:bg-red-500"
+            }`}
+          >
+            Descargar imagen
+          </button>
+        </div>
+
+        {canShare && (
+          <p className="text-center text-[11px] text-zinc-500">
+            "Compartir…" abre el menú del móvil con la imagen adjunta: ahí
+            puedes mandarla a Instagram (como story), WhatsApp o donde
+            quieras.
+          </p>
+        )}
+
+        <a
+          href={`https://wa.me/?text=${encodeURIComponent(shareText)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() =>
+            track("share_done", { method: "whatsapp_link", screen: "watched", type })
+          }
+          className="flex items-center justify-center gap-2 rounded-xl bg-[#25D366] px-4 py-3 text-sm font-bold text-black transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+        >
+          Enviar enlace por WhatsApp (sin imagen)
+        </a>
+        <p className="text-center text-[11px] text-zinc-500">
+          WhatsApp no deja adjuntar imágenes desde un enlace directo: esto
+          manda solo el texto con el enlace. Para mandar también la
+          imagen, usa "Compartir…" y elige WhatsApp ahí.
+        </p>
+
+        <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-black/25 px-3 py-2.5">
+          <span className="min-w-0 flex-1 truncate text-left text-xs text-zinc-300">
+            {link ? link.replace(/^https?:\/\//, "") : "Preparando enlace…"}
+          </span>
+          <button
+            onClick={handleCopyLink}
+            className="shrink-0 rounded-full bg-white/10 px-2.5 py-1.5 text-xs font-bold text-white"
+          >
+            {copied ? "¡Copiado!" : "Copiar"}
+          </button>
+        </div>
+
+        <p role="status" className="min-h-4 text-center text-xs text-zinc-300">
+          {message}
+        </p>
+      </div>
+    </div>,
+    document.body
+  );
+}
