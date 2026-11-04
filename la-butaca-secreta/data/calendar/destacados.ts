@@ -23,51 +23,53 @@ export type Destacado = {
   note?: string;
 };
 
-const D = "2026-10-21";
+const D = "2026-11-04";
 
 export const DESTACADOS: Destacado[] = [
   // Disney+
-  { type: "movie", query: "Vaiana", year: 2026, date: D, platform: "disney", note: "Estreno destacado" },
-  { type: "tv", query: "Colgados en Filadelfia", date: D, platform: "disney", note: "Temporada 18" },
+  // (HBO Max no trajo ningún título nuevo este día, por eso no tiene
+  // bloque propio hoy)
+  { type: "tv", query: "VisionQuest", date: D, platform: "disney", match: false, note: "Temporada 1" },
+  { type: "tv", query: "Dragon Ball Super: Beerus", date: D, platform: "disney", match: false, note: "Temporada 1" },
   { type: "tv", query: "The Drop: Una saga de Snowfall", date: D, platform: "disney", note: "Temporada 1" },
-  { type: "tv", query: "La caza mortal", date: D, platform: "disney", note: "Temporada 1" },
-  { type: "tv", query: "Asesinato en el aire: ¿Quién derribó el vuelo MH17?", date: D, platform: "disney", note: "Temporada 1" },
+  { type: "tv", query: "Colgados en Filadelfia", date: D, platform: "disney", note: "Temporada 18" },
+  // ("Todas las de la ley" T2 ya está en decine21.ts este mismo día)
+  { type: "tv", query: "Amor, dulce amor", date: D, platform: "disney", match: false, note: "Temporada 1" },
+  { type: "tv", query: "Minnie Toons: Hotel para mascotas", date: D, platform: "disney", match: false, note: "Temporada 1" },
+  { type: "tv", query: "Prodigiosa: Las aventuras de Ladybug", date: D, platform: "disney", match: false, note: "Temporada 6" },
 
   // Netflix
-  { type: "tv", query: "La Revuelta", date: D, platform: "netflix", note: "Temporada 3" },
+  { type: "tv", query: "El amor es ciego", date: D, platform: "netflix", match: false, note: "Temporada 11" },
   { type: "tv", query: "Pasapalabra", date: D, platform: "netflix", note: "Temporada 1" },
   { type: "tv", query: "El hormiguero", date: D, platform: "netflix", note: "Temporada 1" },
-  { type: "tv", query: "Boruto: Naruto Next Generations", date: D, platform: "netflix", note: "Temporada 1" },
-  { type: "tv", query: "Allegedly with Ellison Barber", date: D, platform: "netflix", match: false, note: "Temporada 1" },
-  { type: "movie", query: "La noche de Halloween", date: D, platform: "netflix" },
-  { type: "tv", query: "El experimento de la cárcel de Stanford: Un nuevo enfoque", date: D, platform: "netflix", note: "Temporada 1" },
-  { type: "tv", query: "Las madres de los Pingüinos", date: D, platform: "netflix", note: "Temporada 2" },
-
-  // Max
-  { type: "tv", query: "Detrás de la máscara: Aileen Wuornos", date: D, platform: "max", match: false, note: "Temporada 1" },
-  { type: "tv", query: "Chillin Island", date: D, platform: "max", match: false, note: "Temporada 1" },
-  { type: "tv", query: "Superpiscinas", date: D, platform: "max", note: "Temporadas 2 y 3" },
-  { type: "movie", query: "La maldición de Lizzie Borden", date: D, platform: "max" },
+  // ("Desaparecida: Natalee Holloway" ya está en decine21.ts este mismo día)
+  { type: "movie", query: "Rockstar", date: D, platform: "netflix", match: false },
+  { type: "movie", query: "Sorda", year: 2025, date: D, platform: "netflix" },
+  // ("La razón de estar contigo: Una Navidad perfecta" ya está en decine21.ts este mismo día)
+  { type: "movie", query: "Los milagros del cielo", year: 2016, date: D, platform: "netflix" },
+  { type: "movie", query: "Manmarziyaan", date: D, platform: "netflix", match: false },
+  { type: "tv", query: "La Revuelta", date: D, platform: "netflix", note: "Temporada 3" },
 
   // Prime Video
-  { type: "movie", query: "Tiny Tim: Rey por un día", date: D, platform: "prime", match: false },
-  { type: "movie", query: "James Bond contra Goldfinger", date: D, platform: "prime" },
-  { type: "movie", query: "Víctima imperfecta", date: D, platform: "prime", match: false },
-  { type: "movie", query: "Wilding, el regreso de la naturaleza", date: D, platform: "prime", match: false },
-  { type: "movie", query: "Aprendiz de Asesino", date: D, platform: "prime", match: false },
-  { type: "movie", query: "Red Rock West", date: D, platform: "prime" },
-  { type: "movie", query: "La legión de los hombres sin alma", date: D, platform: "prime", match: false },
-  { type: "movie", query: "Gigantes africanos", date: D, platform: "prime", match: false },
+  { type: "movie", query: "Medianoche en París", year: 2011, date: D, platform: "prime" },
+  // ("Sticks: Cracks del golf" ya está en decine21.ts este mismo día)
+  { type: "movie", query: "A Roma con amor", year: 2012, date: D, platform: "prime" },
+  // ("El más grande" ya está en decine21.ts este mismo día)
+  { type: "movie", query: "Luger", date: D, platform: "prime", match: false },
+  // ("La mangosta" ya está en decine21.ts este mismo día)
+  { type: "tv", query: "Covert Affairs", date: D, platform: "prime", match: false, note: "Temporadas 1 y 2" },
+  { type: "movie", query: "Amor a lo bestia", year: 2024, date: D, platform: "prime" },
+  { type: "movie", query: "Lady Outlaw", date: D, platform: "prime", match: false },
 
   // Filmin
-  { type: "movie", query: "Let Our Mountains Live", date: D, platform: "filmin", match: false },
-  { type: "movie", query: "Rural", date: D, platform: "filmin", match: false },
-  { type: "movie", query: "Christiania", date: D, platform: "filmin", match: false },
-  { type: "movie", query: "Yanuni", date: D, platform: "filmin", match: false },
-  { type: "movie", query: "Power Station", date: D, platform: "filmin", match: false },
-  { type: "movie", query: "Elements Of(f) Balance", date: D, platform: "filmin", match: false },
-  { type: "movie", query: "Los sueños que compartimos", date: D, platform: "filmin", match: false },
-  { type: "movie", query: "Daughters of the Forest", date: D, platform: "filmin", match: false },
-  { type: "movie", query: "Social Landscapes", date: D, platform: "filmin", match: false },
-  { type: "movie", query: "Children of Rohingya", date: D, platform: "filmin", match: false },
+  { type: "movie", query: "Eric, oficial de la reina", date: D, platform: "filmin", match: false },
+  { type: "movie", query: "El visitante nocturno", date: D, platform: "filmin", match: false },
+  { type: "movie", query: "Bienvenido a Los Ángeles", date: D, platform: "filmin", match: false },
+  { type: "movie", query: "Cómo destruir al más famoso agente secreto del mundo", date: D, platform: "filmin", match: false },
+  { type: "movie", query: "Muchas gracias, Mr. Scrooge", date: D, platform: "filmin", match: false },
+  { type: "movie", query: "Scott en la Antártida", date: D, platform: "filmin", match: false },
+  { type: "movie", query: "Magic: El muñeco diabólico", date: D, platform: "filmin", match: false },
+  { type: "movie", query: "Cromwell, el rey de los bárbaros", date: D, platform: "filmin", match: false },
+  { type: "movie", query: "Los diez mandamientos", year: 1923, date: D, platform: "filmin", match: false },
+  { type: "movie", query: "I... como Ícaro", date: D, platform: "filmin", match: false },
 ];
