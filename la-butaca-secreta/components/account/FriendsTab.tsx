@@ -1,16 +1,18 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { Session } from "@supabase/supabase-js";
 
 import { useProfile } from "@/hooks/useProfile";
+import { computeCompatibility, type Compatibility } from "@/lib/compatibility";
 import { fetchFeed, groupFeedItems, type FeedGroup, type FeedItem } from "@/lib/supabase/feed";
 import { fetchFollowingIds, fetchFollowerIds } from "@/lib/supabase/follows";
 import { fetchFriends } from "@/lib/supabase/friends";
 import { fetchProfilesByUserIds, type ProfileRow } from "@/lib/supabase/profiles";
 import { fetchNotifications, countBadge } from "@/lib/supabase/notifications";
+import { fetchWatchedHistory, type WatchedRow } from "@/lib/supabase/summary";
 
 import UsernameSetup from "./UsernameSetup";
 import BuscarAmigosDialog from "./BuscarAmigosDialog";
@@ -67,23 +69,35 @@ function FriendsContent({
   const [counts, setCounts] = useState({ following: 0, followers: 0, friends: 0 });
   const [badge, setBadge] = useState(0);
 
+  // Mi propio historial, para comparar con el de cada persona y sacar
+  // el % de compatibilidad (lib/compatibility.ts) de la lista de
+  // abajo. Se calcula por persona y solo para las que se ven ahora
+  // mismo (visibleCount), no para toda la lista de golpe.
+  const [myHistory, setMyHistory] = useState<WatchedRow[]>([]);
+  const [compatByUser, setCompatByUser] = useState<Map<string, Compatibility>>(
+    new Map()
+  );
+  const fetchingCompat = useRef<Set<string>>(new Set());
+
   const [showBuscar, setShowBuscar] = useState(false);
   const [showNotificaciones, setShowNotificaciones] = useState(false);
   const [showCompartir, setShowCompartir] = useState(false);
   const [activeGroup, setActiveGroup] = useState<{ group: FeedGroup; name: string } | null>(null);
 
   async function load() {
-    const [feedResult, followingIds, followerIds, friends, notifications] =
+    const [feedResult, followingIds, followerIds, friends, notifications, myHistoryRows] =
       await Promise.all([
         fetchFeed(userId),
         fetchFollowingIds(userId),
         fetchFollowerIds(userId),
         fetchFriends(userId),
         fetchNotifications(userId),
+        fetchWatchedHistory(userId),
       ]);
 
     setFeed(feedResult);
     setBadge(countBadge(notifications));
+    setMyHistory(myHistoryRows);
 
     const [followingProfiles, followerProfiles] = await Promise.all([
       fetchProfilesByUserIds(followingIds),
@@ -118,6 +132,62 @@ function FriendsContent({
     setActiveTab(tab);
     setVisibleCount(PEOPLE_PAGE);
   }
+
+  // Calcula la compatibilidad solo con la gente que se ve ahora mismo
+  // (según la pestaña y el "Ver más" ya desplegado), no con toda la
+  // lista: evita pedir el historial de decenas de personas de golpe.
+  // Si yo todavía no tengo nada visto y valorado, no hace falta ni
+  // pedir el historial de nadie: siempre va a salir "not_enough".
+  useEffect(() => {
+    const visible = people[activeTab].slice(0, visibleCount);
+    const pending = visible.filter(
+      (p) => !compatByUser.has(p.userId) && !fetchingCompat.current.has(p.userId)
+    );
+
+    if (pending.length === 0) return;
+
+    pending.forEach((p) => fetchingCompat.current.add(p.userId));
+
+    if (myHistory.length === 0) {
+      setCompatByUser((prev) => {
+        const next = new Map(prev);
+        pending.forEach((p) => {
+          next.set(p.userId, {
+            status: "not_enough",
+            commonCount: 0,
+            commonRatedCount: 0,
+          });
+          fetchingCompat.current.delete(p.userId);
+        });
+        return next;
+      });
+      return;
+    }
+
+    let cancelled = false;
+
+    Promise.all(
+      pending.map(async (p) => {
+        const theirHistory = await fetchWatchedHistory(p.userId);
+        return [p.userId, computeCompatibility(myHistory, theirHistory)] as const;
+      })
+    ).then((results) => {
+      pending.forEach((p) => fetchingCompat.current.delete(p.userId));
+
+      if (cancelled) return;
+
+      setCompatByUser((prev) => {
+        const next = new Map(prev);
+        results.forEach(([id, compat]) => next.set(id, compat));
+        return next;
+      });
+    });
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, visibleCount, people, myHistory]);
 
   return (
     <div className="flex flex-col gap-5">
@@ -328,23 +398,54 @@ function FriendsContent({
               {activeTab === "friends" && "Todavía no tienes amigos."}
             </p>
           )}
-          {people[activeTab].slice(0, visibleCount).map((p) => (
-            <Link
-              key={p.userId}
-              href={`/u/${p.username}`}
-              className="flex items-center gap-3 rounded-xl px-0.5 py-2"
-            >
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-pink-400 to-amber-400 text-[11px] font-extrabold text-black">
-                {p.username.slice(0, 2).toUpperCase()}
-              </div>
-              <div className="min-w-0">
-                <p className="truncate text-sm font-bold text-white">
-                  {p.displayName ?? p.username}
-                </p>
-                <p className="truncate text-xs text-zinc-500">@{p.username}</p>
-              </div>
-            </Link>
-          ))}
+          {people[activeTab].slice(0, visibleCount).map((p) => {
+            const compat = compatByUser.get(p.userId);
+
+            return (
+              <Link
+                key={p.userId}
+                href={`/u/${p.username}`}
+                className="flex items-center gap-3 rounded-xl px-0.5 py-2"
+              >
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-pink-400 to-amber-400 text-[11px] font-extrabold text-black">
+                  {p.username.slice(0, 2).toUpperCase()}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-bold text-white">
+                    {p.displayName ?? p.username}
+                  </p>
+                  <p className="truncate text-xs text-zinc-500">@{p.username}</p>
+                </div>
+
+                {compat?.status === "ready" && (
+                  <span className="shrink-0 rounded-full bg-amber-300/15 px-2.5 py-1 text-xs font-extrabold text-amber-300">
+                    {compat.icon} {compat.percent}%
+                  </span>
+                )}
+                {compat?.status === "not_enough" && (
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    title="Pocas pelis en común valoradas por los dos"
+                    aria-label="Pocas pelis en común valoradas por los dos"
+                    onClick={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        event.stopPropagation();
+                      }
+                    }}
+                    className="flex h-6 w-6 shrink-0 cursor-help items-center justify-center rounded-full bg-white/10 text-xs font-extrabold text-zinc-400"
+                  >
+                    ?
+                  </span>
+                )}
+              </Link>
+            );
+          })}
 
           {people[activeTab].length > visibleCount && (
             <button

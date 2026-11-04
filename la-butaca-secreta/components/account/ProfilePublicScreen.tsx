@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { useProfile } from "@/hooks/useProfile";
+import { computeCompatibility, MIN_COMMON_RATED } from "@/lib/compatibility";
 import { buildSummary } from "@/lib/summary";
 import { fetchWatchedHistory, type WatchedRow } from "@/lib/supabase/summary";
 import { fetchPendingSyncFor, type PendingSyncItem } from "@/lib/supabase/pendingSync";
@@ -17,6 +18,7 @@ import { useRejected } from "@/hooks/useRejected";
 import { LockIcon } from "@/components/icons/Icons";
 
 import ShareProfileDialog from "./ShareProfileDialog";
+import ShareCompatibilityDialog from "./ShareCompatibilityDialog";
 import RecommendDialog from "./RecommendDialog";
 import TitleGridDialog, { type TitleGridItem } from "./TitleGridDialog";
 
@@ -44,12 +46,17 @@ export default function ProfilePublicScreen({ viewerId, profile }: Props) {
   const { profile: viewerProfile, loading: viewerProfileLoading } = useProfile(viewerId);
 
   const [history, setHistory] = useState<WatchedRow[]>([]);
+  // Mi propio historial, para comparar con el de arriba y calcular la
+  // compatibilidad (lib/compatibility.ts). Solo hace falta si no es
+  // mi propio perfil.
+  const [myHistory, setMyHistory] = useState<WatchedRow[]>([]);
   const [stats, setStats] = useState<ReturnType<typeof buildSummary> | null>(null);
   const [pending, setPending] = useState<PendingSyncItem[]>([]);
   const [lists, setLists] = useState<ListRow[]>([]);
   const [following, setFollowing] = useState(false);
   const [friendStatus, setFriendStatus] = useState<FriendStatus>("none");
   const [showShare, setShowShare] = useState(false);
+  const [showShareCompat, setShowShareCompat] = useState(false);
   const [showRecommend, setShowRecommend] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [reportSent, setReportSent] = useState(false);
@@ -66,9 +73,10 @@ export default function ProfilePublicScreen({ viewerId, profile }: Props) {
     let cancelled = false;
 
     (async () => {
-      const [historyRows, pendingItems, listRows, follows, friend, counts] =
+      const [historyRows, myHistoryRows, pendingItems, listRows, follows, friend, counts] =
         await Promise.all([
           fetchWatchedHistory(profile.userId),
+          isMe ? Promise.resolve([]) : fetchWatchedHistory(viewerId),
           fetchPendingSyncFor(profile.userId),
           fetchLists(profile.userId),
           isMe ? Promise.resolve(false) : isFollowing(viewerId, profile.userId),
@@ -81,6 +89,7 @@ export default function ProfilePublicScreen({ viewerId, profile }: Props) {
       if (cancelled) return;
 
       setHistory(historyRows);
+      setMyHistory(myHistoryRows);
       setStats(buildSummary(historyRows));
       setPending(pendingItems);
       setLists(listRows);
@@ -138,6 +147,11 @@ export default function ProfilePublicScreen({ viewerId, profile }: Props) {
   }
 
   const name = profile.displayName ?? profile.username;
+
+  // Solo tiene sentido frente a otra persona. Si no hay ni un título
+  // en común (commonCount === 0) no se enseña la tarjeta más abajo:
+  // no merece la pena decir solo "0 en común".
+  const compatibility = isMe ? null : computeCompatibility(myHistory, history);
 
   return (
     <div className="mx-auto flex max-w-md flex-col gap-6">
@@ -206,6 +220,87 @@ export default function ProfilePublicScreen({ viewerId, profile }: Props) {
           </div>
         )}
       </div>
+
+      {compatibility && compatibility.commonCount > 0 && (
+        <div
+          className="relative rounded-[22px] p-[2px]"
+          style={{
+            background:
+              "linear-gradient(135deg, rgba(251,146,60,0.55), rgba(252,211,77,0.15) 60%, rgba(255,255,255,0.08))",
+          }}
+        >
+          <div
+            className="flex flex-col gap-2.5 rounded-[20px] p-4"
+            style={{
+              background:
+                "radial-gradient(120% 140% at 15% 0%, rgba(251,146,60,0.16), transparent 55%), #121214",
+            }}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-extrabold uppercase tracking-wide text-zinc-400">
+                Compatibilidad
+              </span>
+              {compatibility.status === "ready" && (
+                <span className="text-[10px] font-bold text-zinc-500">
+                  {compatibility.commonRatedCount} valoradas por ambos
+                </span>
+              )}
+            </div>
+
+            {compatibility.status === "ready" ? (
+              <>
+                <div className="flex items-center gap-3.5">
+                  <div className="text-3xl leading-none">{compatibility.icon}</div>
+                  <div>
+                    <div
+                      className="bg-clip-text text-4xl font-black leading-none text-transparent"
+                      style={{
+                        backgroundImage:
+                          "linear-gradient(90deg, #ffffff 40%, #fb923c)",
+                      }}
+                    >
+                      {compatibility.percent}%
+                    </div>
+                    <div className="mt-0.5 text-sm font-extrabold text-amber-300">
+                      {compatibility.label}
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-xs leading-relaxed text-zinc-300">
+                  Habéis visto{" "}
+                  <strong className="text-white">{compatibility.commonCount}</strong>{" "}
+                  título{compatibility.commonCount === 1 ? "" : "s"} en común.
+                </p>
+
+                {viewerProfile && (
+                  <button
+                    onClick={() => setShowShareCompat(true)}
+                    aria-label="Compartir compatibilidad"
+                    className="absolute bottom-2.5 right-2.5 flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white/10 text-amber-300"
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+                      <rect x="3" y="3" width="7" height="7" rx="1.5" />
+                      <rect x="14" y="3" width="7" height="7" rx="1.5" />
+                      <rect x="3" y="14" width="7" height="7" rx="1.5" />
+                      <path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20v.01" />
+                    </svg>
+                  </button>
+                )}
+              </>
+            ) : (
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">❔</span>
+                <p className="text-xs text-zinc-400">
+                  Aún tenéis pocas pelis en común valoradas por los dos (
+                  {compatibility.commonRatedCount}/{MIN_COMMON_RATED}) para
+                  calcularlo.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {stats && (
         <div>
@@ -403,6 +498,17 @@ export default function ProfilePublicScreen({ viewerId, profile }: Props) {
 
       {showShare && (
         <ShareProfileDialog userId={viewerId} username={profile.username} onClose={() => setShowShare(false)} />
+      )}
+      {showShareCompat && compatibility?.status === "ready" && viewerProfile && (
+        <ShareCompatibilityDialog
+          myUsername={viewerProfile.username}
+          theirUsername={profile.username}
+          percent={compatibility.percent}
+          icon={compatibility.icon}
+          label={compatibility.label}
+          commonRatedCount={compatibility.commonRatedCount}
+          onClose={() => setShowShareCompat(false)}
+        />
       )}
       {showRecommend && (
         <RecommendDialog
