@@ -22,6 +22,10 @@ type Props = {
   session: Session;
 };
 
+// Cuántas personas se enseñan de entrada en Siguiendo/Seguidores/
+// Amigos antes de necesitar "Ver más" (puede haber muchísimas).
+const PEOPLE_PAGE = 5;
+
 export default function FriendsTab({ session }: Props) {
   const userId = session.user.id;
   const { profile, loading, reload } = useProfile(userId);
@@ -55,6 +59,11 @@ function FriendsContent({
     friends: [],
   });
   const [activeTab, setActiveTab] = useState<PeopleTab>("following");
+  // Para no soltar de golpe una lista de gente que puede ser larga:
+  // se corta a PEOPLE_PAGE y un chip "Ver más" la va ampliando. Se
+  // reinicia cada vez que se cambia de pestaña (Siguiendo/Seguidores/
+  // Amigos), para no arrastrar lo expandido de una a otra.
+  const [visibleCount, setVisibleCount] = useState(PEOPLE_PAGE);
   const [counts, setCounts] = useState({ following: 0, followers: 0, friends: 0 });
   const [badge, setBadge] = useState(0);
 
@@ -103,6 +112,11 @@ function FriendsContent({
   function closeNotificaciones() {
     setShowNotificaciones(false);
     setBadge(0);
+  }
+
+  function selectPeopleTab(tab: PeopleTab) {
+    setActiveTab(tab);
+    setVisibleCount(PEOPLE_PAGE);
   }
 
   return (
@@ -273,7 +287,7 @@ function FriendsContent({
         <div className="flex gap-2">
           <button
             type="button"
-            onClick={() => setActiveTab("following")}
+            onClick={() => selectPeopleTab("following")}
             className={`rounded-full px-3 py-1.5 text-xs font-extrabold ${
               activeTab === "following"
                 ? "bg-amber-300/15 text-amber-300"
@@ -284,7 +298,7 @@ function FriendsContent({
           </button>
           <button
             type="button"
-            onClick={() => setActiveTab("followers")}
+            onClick={() => selectPeopleTab("followers")}
             className={`rounded-full px-3 py-1.5 text-xs font-extrabold ${
               activeTab === "followers"
                 ? "bg-amber-300/15 text-amber-300"
@@ -295,7 +309,7 @@ function FriendsContent({
           </button>
           <button
             type="button"
-            onClick={() => setActiveTab("friends")}
+            onClick={() => selectPeopleTab("friends")}
             className={`rounded-full px-3 py-1.5 text-xs font-extrabold ${
               activeTab === "friends"
                 ? "bg-amber-300/15 text-amber-300"
@@ -314,7 +328,7 @@ function FriendsContent({
               {activeTab === "friends" && "Todavía no tienes amigos."}
             </p>
           )}
-          {people[activeTab].map((p) => (
+          {people[activeTab].slice(0, visibleCount).map((p) => (
             <Link
               key={p.userId}
               href={`/u/${p.username}`}
@@ -331,6 +345,16 @@ function FriendsContent({
               </div>
             </Link>
           ))}
+
+          {people[activeTab].length > visibleCount && (
+            <button
+              type="button"
+              onClick={() => setVisibleCount((count) => count + PEOPLE_PAGE)}
+              className="mt-1 self-center rounded-full border border-white/15 px-3.5 py-1.5 text-xs font-bold text-zinc-300 transition-colors hover:border-white/40 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            >
+              Ver más · {people[activeTab].length - visibleCount}
+            </button>
+          )}
         </div>
       </div>
 
