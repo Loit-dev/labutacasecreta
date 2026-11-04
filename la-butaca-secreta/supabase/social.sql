@@ -377,6 +377,35 @@ create policy "reports: crear"
   on public.reports for insert
   with check (auth.uid() = reporter_id);
 
+-- Recuento agregado de Siguiendo/Seguidores/Amigos de CUALQUIER
+-- cuenta, para el perfil público (ProfilePublicScreen.tsx). Mismo
+-- patrón que my_month_rank() en resumen.sql: nunca expone las filas
+-- en sí (quién sigue a quién), solo tres números — "follows: leer lo
+-- propio" y "friend_requests: leer lo propio" no dejarían a un
+-- desconocido leer esas filas directamente.
+create or replace function public.social_counts(p_user_id uuid)
+returns table (
+  following_count integer,
+  followers_count integer,
+  friends_count integer
+)
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select
+    (select count(*) from public.follows where follower_id = p_user_id)::integer,
+    (select count(*) from public.follows where followee_id = p_user_id)::integer,
+    (
+      select count(*) from public.friend_requests
+      where status = 'accepted'
+        and (requester_id = p_user_id or addressee_id = p_user_id)
+    )::integer;
+$$;
+
+grant execute on function public.social_counts(uuid) to authenticated;
+
 drop policy if exists "reports: leer lo propio" on public.reports;
 create policy "reports: leer lo propio"
   on public.reports for select

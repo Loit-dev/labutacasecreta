@@ -11,6 +11,7 @@ import { fetchLists, type ListRow } from "@/lib/supabase/lists";
 import { follow, isFollowing, unfollow } from "@/lib/supabase/follows";
 import { fetchFriendStatus, sendFriendRequest, type FriendStatus } from "@/lib/supabase/friends";
 import { reportUser } from "@/lib/supabase/reports";
+import { fetchSocialCounts, type SocialCounts } from "@/lib/supabase/socialCounts";
 import type { ProfileRow } from "@/lib/supabase/profiles";
 import { useRejected } from "@/hooks/useRejected";
 import { LockIcon } from "@/components/icons/Icons";
@@ -54,6 +55,7 @@ export default function ProfilePublicScreen({ viewerId, profile }: Props) {
   const [reportSent, setReportSent] = useState(false);
   const [openGrid, setOpenGrid] = useState<"total" | "pending" | "discarded" | null>(null);
   const [openList, setOpenList] = useState<ListRow | null>(null);
+  const [socialCounts, setSocialCounts] = useState<SocialCounts | null>(null);
 
   // "Descartadas" solo existe en local (lib/rejected.ts): no hay forma
   // de leer las de otra persona, así que ese cuadro solo tiene datos
@@ -64,7 +66,7 @@ export default function ProfilePublicScreen({ viewerId, profile }: Props) {
     let cancelled = false;
 
     (async () => {
-      const [historyRows, pendingItems, listRows, follows, friend] =
+      const [historyRows, pendingItems, listRows, follows, friend, counts] =
         await Promise.all([
           fetchWatchedHistory(profile.userId),
           fetchPendingSyncFor(profile.userId),
@@ -73,6 +75,7 @@ export default function ProfilePublicScreen({ viewerId, profile }: Props) {
           isMe
             ? Promise.resolve({ status: "none" as FriendStatus, requestId: null })
             : fetchFriendStatus(viewerId, profile.userId),
+          fetchSocialCounts(profile.userId),
         ]);
 
       if (cancelled) return;
@@ -83,6 +86,7 @@ export default function ProfilePublicScreen({ viewerId, profile }: Props) {
       setLists(listRows);
       setFollowing(follows);
       setFriendStatus(friend.status);
+      setSocialCounts(counts);
     })();
 
     return () => {
@@ -106,7 +110,14 @@ export default function ProfilePublicScreen({ viewerId, profile }: Props) {
       ? await unfollow(viewerId, profile.userId)
       : await follow(viewerId, profile.userId);
 
-    if (ok) setFollowing(!following);
+    if (ok) {
+      setFollowing(!following);
+      setSocialCounts((current) =>
+        current
+          ? { ...current, followers: current.followers + (following ? -1 : 1) }
+          : current
+      );
+    }
   }
 
   async function handleFriendRequest() {
@@ -179,6 +190,20 @@ export default function ProfilePublicScreen({ viewerId, profile }: Props) {
           >
             Compartir mi perfil
           </button>
+        )}
+
+        {socialCounts && (
+          <div className="mt-1 flex items-center gap-4 text-xs text-zinc-400">
+            <span>
+              <span className="font-extrabold text-white">{socialCounts.following}</span> Siguiendo
+            </span>
+            <span>
+              <span className="font-extrabold text-white">{socialCounts.followers}</span> Seguidores
+            </span>
+            <span>
+              <span className="font-extrabold text-white">{socialCounts.friends}</span> Amigos
+            </span>
+          </div>
         )}
       </div>
 
