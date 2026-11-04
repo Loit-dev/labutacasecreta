@@ -395,32 +395,27 @@ export default function ProfilePublicScreen({ viewerId, profile }: Props) {
                   </div>
                 )}
 
-                {sharedPerson?.role === "director" && (
-                  <p className="text-xs leading-relaxed text-zinc-300">
-                    Y a los dos os convence la mano de{" "}
-                    <strong className="text-white">{sharedPerson.name}</strong>.
-                  </p>
-                )}
-                {sharedPerson?.role === "actor" && (
-                  <p className="text-xs leading-relaxed text-zinc-300">
-                    Y a los dos os convence{" "}
-                    <strong className="text-white">{sharedPerson.name}</strong> en
-                    pantalla.
-                  </p>
-                )}
-                {/* Sin actor/director en común (lo normal con solo 3
-                    títulos): un gancho más genérico con el género que
-                    más se repite, para que la tarjeta nunca se quede
-                    sin ese toque de "esto es justo para vosotros". */}
-                {!sharedPerson && compatibility.topGenres.length > 0 && (
-                  <p className="text-xs leading-relaxed text-zinc-300">
-                    Y los dos sois fans de{" "}
-                    <strong className="text-white">
-                      {genreEmoji(compatibility.topGenres[0].name)}{" "}
-                      {compatibility.topGenres[0].name}
-                    </strong>
-                    .
-                  </p>
+                {/* El gancho: actor/director en común o, si no hay
+                    ninguno (lo normal con solo 3 títulos), el género
+                    que más se repite — nunca se queda sin este dato.
+                    Chip rojo, como el de la URL al pie de la imagen
+                    que se comparte, pero con letra más pequeña. */}
+                {(sharedPerson || compatibility.topGenres.length > 0) && (
+                  <div>
+                    <span
+                      className="inline-block rounded-full px-3 py-1.5 text-[11px] font-extrabold leading-snug text-white"
+                      style={{
+                        background: "linear-gradient(90deg, #b91c1c, #ea580c)",
+                      }}
+                    >
+                      {sharedPerson?.role === "director" &&
+                        `La mano de ${sharedPerson.name}`}
+                      {sharedPerson?.role === "actor" &&
+                        `Os convence ${sharedPerson.name} en pantalla`}
+                      {!sharedPerson &&
+                        `${genreEmoji(compatibility.topGenres[0].name)} Los dos sois fans de ${compatibility.topGenres[0].name}`}
+                    </span>
+                  </div>
                 )}
               </>
             ) : (

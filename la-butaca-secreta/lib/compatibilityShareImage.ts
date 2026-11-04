@@ -411,10 +411,36 @@ export function drawCompatibilityShareImage(
       : null;
 
   if (extraLine) {
+    // Chip rojo, como el de la URL al pie, pero con letra más
+    // pequeña (esto es un dato más, no el cierre de la imagen).
+    ctx.font = `800 30px ${font}`;
+
+    const extraChipW = ctx.measureText(extraLine).width + 60;
+    const extraChipH = 60;
+    const extraChipX = W / 2 - extraChipW / 2;
+    const extraChipY = cursorY - extraChipH * 0.68;
+
+    const extraGradient = ctx.createLinearGradient(
+      extraChipX,
+      0,
+      extraChipX + extraChipW,
+      0
+    );
+
+    extraGradient.addColorStop(0, "#b91c1c");
+    extraGradient.addColorStop(1, "#ea580c");
+
+    ctx.save();
+    ctx.shadowColor = "rgba(239,68,68,0.4)";
+    ctx.shadowBlur = 24;
+    roundedRect(ctx, extraChipX, extraChipY, extraChipW, extraChipH, extraChipH / 2);
+    ctx.fillStyle = extraGradient;
+    ctx.fill();
+    ctx.restore();
+
     ctx.textAlign = "center";
-    ctx.fillStyle = "#a1a1aa";
-    ctx.font = `600 28px ${font}`;
-    ctx.fillText(extraLine, W / 2, cursorY);
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText(extraLine, W / 2, extraChipY + extraChipH / 2 + 10);
   }
 
   // ---------- Pie ----------
