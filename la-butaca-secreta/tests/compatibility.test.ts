@@ -11,14 +11,15 @@ import type { WatchedRow } from "@/lib/supabase/summary";
 function row(
   tmdbId: number,
   rating: number | undefined,
-  mediaType: "movie" | "tv" = "movie"
+  mediaType: "movie" | "tv" = "movie",
+  genres: string[] = []
 ): WatchedRow {
   return {
     tmdbId,
     mediaType,
     title: `Título ${tmdbId}`,
     rating: rating as WatchedRow["rating"],
-    genres: [],
+    genres,
     seenAt: "2026-11-01T12:00:00.000Z",
   };
 }
@@ -110,6 +111,30 @@ describe("computeCompatibility", () => {
       assert.equal(result.topCommon[0].tmdbId, 2); // diff 0
       assert.equal(result.topCommon[1].tmdbId, 3); // diff 1
       assert.equal(result.topCommon[2].tmdbId, 1); // diff 4
+    }
+  });
+
+  test("topGenres cuenta los géneros de los títulos vistos por los dos, de más a menos", () => {
+    const mine = [
+      row(1, 5, "movie", ["Drama", "Comedia"]),
+      row(2, 4, "movie", ["Drama", "Acción"]),
+      row(3, 3, "movie", ["Drama"]),
+      // Visto solo por mí: no debe contar.
+      row(4, 5, "movie", ["Terror"]),
+    ];
+    const theirs = [
+      row(1, 5, "movie", ["Drama", "Comedia"]),
+      row(2, 4, "movie", ["Drama", "Acción"]),
+      row(3, 3, "movie", ["Drama"]),
+    ];
+
+    const result = computeCompatibility(mine, theirs);
+
+    assert.equal(result.status, "ready");
+    if (result.status === "ready") {
+      assert.deepEqual(result.topGenres[0], { name: "Drama", count: 3 });
+      assert.equal(result.topGenres.length, 3);
+      assert.ok(!result.topGenres.some((g) => g.name === "Terror"));
     }
   });
 

@@ -12,8 +12,25 @@ import {
   SHARE_WIDTH,
   drawBackdrop,
   loadImage,
+  wrapLines,
   type DrawableImage,
 } from "./shareImage";
+
+export type CompatibilityShareTitle = {
+  title: string;
+  // Ya en nuestro dominio (lib/share.ts → posterSource), para poder
+  // dibujarlo en el canvas sin problemas de CORS.
+  posterUrl?: string;
+};
+
+export type CompatibilityShareGenre = {
+  name: string;
+};
+
+export type CompatibilitySharePerson = {
+  name: string;
+  role: "director" | "actor";
+};
 
 export type CompatibilityShareOptions = {
   siteName: string;
@@ -24,9 +41,17 @@ export type CompatibilityShareOptions = {
   icon: string;
   label: string;
   commonRatedCount: number;
+  // Las 3 pelis/series en las que más coincidís, mejor acuerdo
+  // primero (se dibuja la primera al centro del abanico).
+  topCommon: CompatibilityShareTitle[];
+  topGenres: CompatibilityShareGenre[];
+  sharedPerson?: CompatibilitySharePerson | null;
   fontFamily?: string;
   logo?: DrawableImage | null;
   backdrops?: (DrawableImage | null)[];
+  // Cargados aparte (createCompatibilityShareImage), en el mismo
+  // orden que topCommon.
+  posters?: (DrawableImage | null)[];
 };
 
 function roundedRect(
@@ -223,6 +248,173 @@ export function drawCompatibilityShareImage(
     percentY + 60
   );
 
+  let cursorY = percentY + 110;
+
+  // ---------- Pósters en abanico: las 3 en las que más coincidís,
+  // la de más acuerdo al centro (mismo patrón que lib/summaryImage.ts,
+  // en un tamaño más compacto para dejar sitio a géneros y pie) ----------
+  const topCommon = options.topCommon.slice(0, 3);
+  const posters = options.posters ?? [];
+
+  if (topCommon.length > 0) {
+    const mainW = 150;
+    const mainH = 225;
+    const sideW = 118;
+    const sideH = 177;
+    const sideOffsetX = 150;
+
+    const mainCY = cursorY + 10 + mainH / 2;
+    const sideCY = mainCY + 10;
+
+    type FanSlot = {
+      title: string;
+      poster: DrawableImage | null;
+      cx: number;
+      cy: number;
+      w: number;
+      h: number;
+      angle: number;
+    };
+
+    const positions = [
+      { cx: W / 2, cy: mainCY, w: mainW, h: mainH, angle: 0 },
+      { cx: W / 2 - sideOffsetX, cy: sideCY, w: sideW, h: sideH, angle: -10 },
+      { cx: W / 2 + sideOffsetX, cy: sideCY, w: sideW, h: sideH, angle: 10 },
+    ];
+
+    const slots: FanSlot[] = topCommon.map((title, i) => ({
+      title: title.title,
+      poster: posters[i] ?? null,
+      ...positions[i],
+    }));
+
+    // Las laterales primero, la central (índice 0) encima.
+    const order = [...slots.keys()].sort((a, b) => (a === 0 ? 1 : b === 0 ? -1 : 0));
+
+    order.forEach((i) => {
+      const { title, poster, cx, cy, w, h, angle } = slots[i];
+      const rad = (angle * Math.PI) / 180;
+
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(rad);
+
+      ctx.save();
+      ctx.shadowColor = "rgba(0,0,0,0.6)";
+      ctx.shadowBlur = angle === 0 ? 40 : 24;
+      ctx.shadowOffsetY = 8;
+      roundedRect(ctx, -w / 2, -h / 2, w, h, 16);
+      ctx.fillStyle = "#18181b";
+      ctx.fill();
+      ctx.restore();
+
+      ctx.save();
+      roundedRect(ctx, -w / 2, -h / 2, w, h, 16);
+      ctx.clip();
+
+      if (poster && poster.width > 0 && poster.height > 0) {
+        const scale = Math.max(w / poster.width, h / poster.height);
+
+        ctx.drawImage(
+          poster,
+          (-poster.width * scale) / 2,
+          (-poster.height * scale) / 2,
+          poster.width * scale,
+          poster.height * scale
+        );
+      } else {
+        const fallback = ctx.createLinearGradient(0, -h / 2, 0, h / 2);
+
+        fallback.addColorStop(0, "#27272a");
+        fallback.addColorStop(1, "#18181b");
+        ctx.fillStyle = fallback;
+        ctx.fillRect(-w / 2, -h / 2, w, h);
+      }
+
+      ctx.restore();
+
+      roundedRect(ctx, -w / 2 + 2, -h / 2 + 2, w - 4, h - 4, 16);
+      ctx.strokeStyle = "rgba(251,146,60,0.7)";
+      ctx.lineWidth = angle === 0 ? 3 : 2;
+      ctx.stroke();
+
+      ctx.restore();
+
+      // Título, horizontal (no gira), justo debajo del póster.
+      const bottomX = cx - (h / 2) * Math.sin(rad);
+      const bottomY = cy + (h / 2) * Math.cos(rad);
+
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#e4e4e7";
+      ctx.font = `700 ${angle === 0 ? 22 : 18}px ${font}`;
+
+      const [line1 = ""] = wrapLines(
+        (text) => ctx.measureText(text).width,
+        title,
+        w + 30,
+        1
+      );
+
+      ctx.fillText(line1, bottomX, bottomY + 28);
+    });
+
+    cursorY = mainCY + mainH / 2 + 70;
+  }
+
+  // ---------- Géneros en los que más coincidís ----------
+  const topGenres = options.topGenres.slice(0, 3);
+
+  if (topGenres.length > 0) {
+    ctx.font = `800 30px ${font}`;
+
+    const gap = 20;
+    const chipH = 56;
+    const labels = topGenres.map((genre) => genre.name);
+    const chipWidths = labels.map((label) => ctx.measureText(label).width + 48);
+    const totalW =
+      chipWidths.reduce((sum, w) => sum + w, 0) + gap * (labels.length - 1);
+
+    let chipX = W / 2 - totalW / 2;
+    const chipY = cursorY;
+
+    labels.forEach((label, i) => {
+      const chipW = chipWidths[i];
+
+      roundedRect(ctx, chipX, chipY, chipW, chipH, chipH / 2);
+      ctx.fillStyle = "rgba(255,255,255,0.08)";
+      ctx.fill();
+      ctx.strokeStyle = "rgba(251,146,60,0.4)";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      ctx.fillStyle = "#e4e4e7";
+      ctx.textAlign = "center";
+      ctx.fillText(label, chipX + chipW / 2, chipY + chipH / 2 + 10);
+
+      chipX += chipW + gap;
+    });
+
+    cursorY += chipH + 56;
+  }
+
+  // ---------- Dato extra: actor/actriz o director en común ----------
+  if (options.sharedPerson) {
+    const prefix =
+      options.sharedPerson.role === "director"
+        ? "La mano de"
+        : "Os convence";
+    const suffix = options.sharedPerson.role === "actor" ? " en pantalla" : "";
+
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#a1a1aa";
+    ctx.font = `600 28px ${font}`;
+    ctx.fillText(
+      `${prefix} ${options.sharedPerson.name}${suffix}`,
+      W / 2,
+      cursorY
+    );
+  }
+
   // ---------- Pie ----------
   const url = options.siteUrl.replace(/^https?:\/\//, "");
 
@@ -261,9 +453,10 @@ export function drawCompatibilityShareImage(
 export async function createCompatibilityShareImage(
   options: CompatibilityShareOptions
 ): Promise<Blob> {
-  const [logo, backdrops] = await Promise.all([
+  const [logo, backdrops, posters] = await Promise.all([
     loadImage("/Logo.png"),
     Promise.all(BACKDROP_FILES.map((file) => loadImage(file))),
+    Promise.all(options.topCommon.slice(0, 3).map((t) => loadImage(t.posterUrl))),
   ]);
 
   try {
@@ -287,7 +480,7 @@ export async function createCompatibilityShareImage(
     throw new Error("Tu navegador no puede crear la imagen.");
   }
 
-  drawCompatibilityShareImage(ctx, { ...options, logo, backdrops });
+  drawCompatibilityShareImage(ctx, { ...options, logo, backdrops, posters });
 
   return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob((blob) => {

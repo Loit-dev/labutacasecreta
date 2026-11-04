@@ -1,10 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { useProfile } from "@/hooks/useProfile";
 import { computeCompatibility, MIN_COMMON_RATED } from "@/lib/compatibility";
+import { findSharedPerson, type SharedPerson } from "@/lib/compatibilityExtras";
+import { genreEmoji } from "@/lib/genreEmoji";
 import { buildSummary } from "@/lib/summary";
 import { fetchWatchedHistory, type WatchedRow } from "@/lib/supabase/summary";
 import { fetchPendingSyncFor, type PendingSyncItem } from "@/lib/supabase/pendingSync";
@@ -57,6 +61,12 @@ export default function ProfilePublicScreen({ viewerId, profile }: Props) {
   const [friendStatus, setFriendStatus] = useState<FriendStatus>("none");
   const [showShare, setShowShare] = useState(false);
   const [showShareCompat, setShowShareCompat] = useState(false);
+  // Actor/actriz o director que se repite entre los títulos en los
+  // que más coincidís (dato extra de la tarjeta de compatibilidad).
+  // Se calcula aparte porque hace falta pedir el reparto a TMDb
+  // (lib/compatibilityExtras.ts), a diferencia del resto de la
+  // tarjeta que sale directo del historial ya cargado.
+  const [sharedPerson, setSharedPerson] = useState<SharedPerson | null>(null);
   const [showRecommend, setShowRecommend] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [reportSent, setReportSent] = useState(false);
@@ -152,6 +162,37 @@ export default function ProfilePublicScreen({ viewerId, profile }: Props) {
   // en común (commonCount === 0) no se enseña la tarjeta más abajo:
   // no merece la pena decir solo "0 en común".
   const compatibility = isMe ? null : computeCompatibility(myHistory, history);
+
+  // Una clave estable de los 3 títulos en los que más coincidís, para
+  // no repetir la petición del reparto si el resto del historial
+  // cambia pero esos 3 títulos no.
+  const topCommonKey =
+    compatibility?.status === "ready"
+      ? compatibility.topCommon
+          .map((t) => `${t.mediaType}-${t.tmdbId}`)
+          .join(",")
+      : "";
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const titles = topCommonKey
+      ? topCommonKey.split(",").map((entry) => {
+          const [mediaType, tmdbId] = entry.split("-");
+          return { mediaType: mediaType as "movie" | "tv", tmdbId: Number(tmdbId) };
+        })
+      : [];
+
+    const result = titles.length > 0 ? findSharedPerson(titles) : Promise.resolve(null);
+
+    result.then((person) => {
+      if (!cancelled) setSharedPerson(person);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [topCommonKey]);
 
   return (
     <div className="mx-auto flex max-w-md flex-col gap-6">
@@ -272,6 +313,76 @@ export default function ProfilePublicScreen({ viewerId, profile }: Props) {
                   <strong className="text-white">{compatibility.commonCount}</strong>{" "}
                   título{compatibility.commonCount === 1 ? "" : "s"} en común.
                 </p>
+
+                {compatibility.topCommon.length > 0 && (
+                  <div className="my-1 flex items-end justify-center">
+                    {compatibility.topCommon.map((title, index) => {
+                      // La que más coincide (la primera) va al centro,
+                      // grande y recta; las otras dos a los lados, más
+                      // pequeñas y giradas — mismo abanico que en el
+                      // resto de tarjetas (lib/summaryImage.ts).
+                      const isCenter = index === 0;
+                      const rotation = index === 1 ? -10 : index === 2 ? 10 : 0;
+                      const overlap = index === 0 ? "" : index === 1 ? "-mr-3" : "-ml-3";
+
+                      return (
+                        <Link
+                          key={`${title.mediaType}-${title.tmdbId}`}
+                          href={`/${title.mediaType === "tv" ? "serie" : "pelicula"}/${title.tmdbId}`}
+                          title={title.title}
+                          style={{
+                            transform: `rotate(${rotation}deg)`,
+                            zIndex: isCenter ? 10 : 0,
+                          }}
+                          className={`relative shrink-0 overflow-hidden rounded-lg border border-white/15 bg-zinc-800 shadow-lg ${overlap} ${
+                            isCenter ? "h-[104px] w-[70px]" : "h-[86px] w-[58px]"
+                          }`}
+                        >
+                          {title.posterUrl ? (
+                            <Image
+                              src={title.posterUrl}
+                              alt=""
+                              fill
+                              sizes="70px"
+                              className="object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-full items-center justify-center p-1 text-center text-[8px] text-zinc-500">
+                              {title.title}
+                            </div>
+                          )}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {compatibility.topGenres.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {compatibility.topGenres.map((genre) => (
+                      <span
+                        key={genre.name}
+                        className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-bold text-zinc-300"
+                      >
+                        {genreEmoji(genre.name)} {genre.name}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {sharedPerson?.role === "director" && (
+                  <p className="text-xs leading-relaxed text-zinc-300">
+                    Y a los dos os convence la mano de{" "}
+                    <strong className="text-white">{sharedPerson.name}</strong>.
+                  </p>
+                )}
+                {sharedPerson?.role === "actor" && (
+                  <p className="text-xs leading-relaxed text-zinc-300">
+                    Y a los dos os convence{" "}
+                    <strong className="text-white">{sharedPerson.name}</strong> en
+                    pantalla.
+                  </p>
+                )}
 
                 {viewerProfile && (
                   <button
@@ -507,6 +618,12 @@ export default function ProfilePublicScreen({ viewerId, profile }: Props) {
           icon={compatibility.icon}
           label={compatibility.label}
           commonRatedCount={compatibility.commonRatedCount}
+          topCommon={compatibility.topCommon.map((t) => ({
+            title: t.title,
+            posterUrl: t.posterUrl,
+          }))}
+          topGenres={compatibility.topGenres}
+          sharedPerson={sharedPerson}
           onClose={() => setShowShareCompat(false)}
         />
       )}

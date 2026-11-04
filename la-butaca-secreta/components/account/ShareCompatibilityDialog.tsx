@@ -5,7 +5,13 @@ import { useEffect, useState } from "react";
 
 import { useDialog } from "@/hooks/useDialog";
 import { track } from "@/lib/analytics";
-import { createCompatibilityShareImage } from "@/lib/compatibilityShareImage";
+import {
+  createCompatibilityShareImage,
+  type CompatibilityShareGenre,
+  type CompatibilitySharePerson,
+  type CompatibilityShareTitle,
+} from "@/lib/compatibilityShareImage";
+import { posterSource } from "@/lib/share";
 import { SITE_NAME } from "@/lib/site";
 
 type Props = {
@@ -15,6 +21,9 @@ type Props = {
   icon: string;
   label: string;
   commonRatedCount: number;
+  topCommon: CompatibilityShareTitle[];
+  topGenres: CompatibilityShareGenre[];
+  sharedPerson?: CompatibilitySharePerson | null;
   onClose: () => void;
 };
 
@@ -50,6 +59,9 @@ export default function ShareCompatibilityDialog({
   icon,
   label,
   commonRatedCount,
+  topCommon,
+  topGenres,
+  sharedPerson,
   onClose,
 }: Props) {
   const dialogRef = useDialog<HTMLDivElement>(onClose);
@@ -65,6 +77,12 @@ export default function ShareCompatibilityDialog({
       ? `${window.location.origin}/u/${theirUsername}`
       : "";
 
+  // topCommon/topGenres/sharedPerson llegan como objetos nuevos en
+  // cada render del padre (computeCompatibility no está memoizado):
+  // usar su contenido como dependencia, no la referencia, evita
+  // regenerar la imagen de más mientras el diálogo está abierto.
+  const dataKey = JSON.stringify({ topCommon, topGenres, sharedPerson });
+
   useEffect(() => {
     let cancelled = false;
     let objectUrl = "";
@@ -79,6 +97,12 @@ export default function ShareCompatibilityDialog({
       icon,
       label,
       commonRatedCount,
+      topCommon: topCommon.map((t) => ({
+        title: t.title,
+        posterUrl: posterSource(t.posterUrl),
+      })),
+      topGenres,
+      sharedPerson,
     })
       .then((blob) => {
         if (cancelled) return;
@@ -100,7 +124,8 @@ export default function ShareCompatibilityDialog({
 
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [myUsername, theirUsername, percent, icon, label, commonRatedCount]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [myUsername, theirUsername, percent, icon, label, commonRatedCount, dataKey]);
 
   const file = state.status === "ready" ? state.file : null;
 

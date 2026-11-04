@@ -57,6 +57,11 @@ export type CommonTitle = {
   theirRating: Rating;
 };
 
+export type CommonGenre = {
+  name: string;
+  count: number;
+};
+
 export type Compatibility =
   | { status: "not_enough"; commonCount: number; commonRatedCount: number }
   | {
@@ -68,6 +73,9 @@ export type Compatibility =
       commonRatedCount: number;
       // Los títulos en los que más de acuerdo estáis primero.
       topCommon: CommonTitle[];
+      // Los géneros que más se repiten entre los títulos que habéis
+      // visto los dos, de más a menos frecuente.
+      topGenres: CommonGenre[];
     };
 
 function key(row: Pick<WatchedRow, "mediaType" | "tmdbId">): string {
@@ -87,6 +95,10 @@ export function computeCompatibility(
 
   let commonCount = 0;
   const rated: CommonTitle[] = [];
+  // Cuenta cada género por cada título visto por los dos (valorado o
+  // no): así "los géneros donde más coincidís" refleja todo lo que
+  // habéis visto juntos, no solo lo valorado por ambos.
+  const genreCounts = new Map<string, number>();
 
   for (const row of mine) {
     const theirRow = theirsByKey.get(key(row));
@@ -94,6 +106,10 @@ export function computeCompatibility(
     if (!theirRow) continue;
 
     commonCount++;
+
+    for (const genre of row.genres) {
+      genreCounts.set(genre, (genreCounts.get(genre) ?? 0) + 1);
+    }
 
     if (row.rating !== undefined && theirRow.rating !== undefined) {
       rated.push({
@@ -106,6 +122,11 @@ export function computeCompatibility(
       });
     }
   }
+
+  const topGenres: CommonGenre[] = [...genreCounts.entries()]
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 3);
 
   if (rated.length < MIN_COMMON_RATED) {
     return {
@@ -145,5 +166,6 @@ export function computeCompatibility(
     commonCount,
     commonRatedCount: rated.length,
     topCommon,
+    topGenres,
   };
 }
