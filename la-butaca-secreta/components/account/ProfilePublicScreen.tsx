@@ -271,23 +271,37 @@ export default function ProfilePublicScreen({ viewerId, profile }: Props) {
           }}
         >
           <div
-            className={`flex flex-col gap-2.5 rounded-[20px] p-4 ${
-              compatibility.status === "ready" && viewerProfile ? "pb-11" : ""
-            }`}
+            className="flex flex-col gap-2.5 rounded-[20px] p-4"
             style={{
               background:
                 "radial-gradient(120% 140% at 15% 0%, rgba(251,146,60,0.16), transparent 55%), #121214",
             }}
           >
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
               <span className="text-[10px] font-extrabold uppercase tracking-wide text-zinc-400">
                 Compatibilidad
               </span>
-              {compatibility.status === "ready" && (
-                <span className="text-[10px] font-bold text-zinc-500">
-                  {compatibility.commonRatedCount} valoradas por ambos
-                </span>
-              )}
+              <div className="flex items-center gap-2">
+                {compatibility.status === "ready" && (
+                  <span className="text-[10px] font-bold text-zinc-500">
+                    {compatibility.commonRatedCount} valoradas por ambos
+                  </span>
+                )}
+                {compatibility.status === "ready" && viewerProfile && (
+                  <button
+                    onClick={() => setShowShareCompat(true)}
+                    aria-label="Compartir compatibilidad"
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/10 text-amber-300"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+                      <rect x="3" y="3" width="7" height="7" rx="1.5" />
+                      <rect x="14" y="3" width="7" height="7" rx="1.5" />
+                      <rect x="3" y="14" width="7" height="7" rx="1.5" />
+                      <path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20v.01" />
+                    </svg>
+                  </button>
+                )}
+              </div>
             </div>
 
             {compatibility.status === "ready" ? (
@@ -394,20 +408,19 @@ export default function ProfilePublicScreen({ viewerId, profile }: Props) {
                     pantalla.
                   </p>
                 )}
-
-                {viewerProfile && (
-                  <button
-                    onClick={() => setShowShareCompat(true)}
-                    aria-label="Compartir compatibilidad"
-                    className="absolute bottom-2.5 right-2.5 flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white/10 text-amber-300"
-                  >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-                      <rect x="3" y="3" width="7" height="7" rx="1.5" />
-                      <rect x="14" y="3" width="7" height="7" rx="1.5" />
-                      <rect x="3" y="14" width="7" height="7" rx="1.5" />
-                      <path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20v.01" />
-                    </svg>
-                  </button>
+                {/* Sin actor/director en común (lo normal con solo 3
+                    títulos): un gancho más genérico con el género que
+                    más se repite, para que la tarjeta nunca se quede
+                    sin ese toque de "esto es justo para vosotros". */}
+                {!sharedPerson && compatibility.topGenres.length > 0 && (
+                  <p className="text-xs leading-relaxed text-zinc-300">
+                    Y los dos sois fans de{" "}
+                    <strong className="text-white">
+                      {genreEmoji(compatibility.topGenres[0].name)}{" "}
+                      {compatibility.topGenres[0].name}
+                    </strong>
+                    .
+                  </p>
                 )}
               </>
             ) : (

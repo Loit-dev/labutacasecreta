@@ -397,22 +397,24 @@ export function drawCompatibilityShareImage(
     cursorY += chipH + 56;
   }
 
-  // ---------- Dato extra: actor/actriz o director en común ----------
-  if (options.sharedPerson) {
-    const prefix =
-      options.sharedPerson.role === "director"
-        ? "La mano de"
-        : "Os convence";
-    const suffix = options.sharedPerson.role === "actor" ? " en pantalla" : "";
+  // ---------- Dato extra: actor/actriz o director en común, o, si no
+  // hay ninguno (lo normal con solo 3 títulos), el género que más se
+  // repite — para que siempre haya un gancho, aunque sea genérico ----------
+  const extraLine = options.sharedPerson
+    ? `${
+        options.sharedPerson.role === "director" ? "La mano de" : "Os convence"
+      } ${options.sharedPerson.name}${
+        options.sharedPerson.role === "actor" ? " en pantalla" : ""
+      }`
+    : topGenres[0]
+      ? `Los dos sois fans de ${topGenres[0].name}`
+      : null;
 
+  if (extraLine) {
     ctx.textAlign = "center";
     ctx.fillStyle = "#a1a1aa";
     ctx.font = `600 28px ${font}`;
-    ctx.fillText(
-      `${prefix} ${options.sharedPerson.name}${suffix}`,
-      W / 2,
-      cursorY
-    );
+    ctx.fillText(extraLine, W / 2, cursorY);
   }
 
   // ---------- Pie ----------
