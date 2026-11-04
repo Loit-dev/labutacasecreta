@@ -295,7 +295,7 @@ export function drawWatchedShareImage(
   const starsSize = 58;
   // Bloque de la fecha: si hay usuario, "@usuario" + "ha visto <fecha>"
   // en dos líneas; si no, el "Vista el <fecha>" de una sola línea.
-  const dateBlockH = options.username ? 76 : 36;
+  const dateBlockH = options.username ? 78 : 36;
 
   const blockCount = (options.rating ? 1 : 0) + (options.seenAtLabel ? 1 : 0);
   const gapCount = blockCount + 1;
@@ -315,14 +315,34 @@ export function drawWatchedShareImage(
     const blockTop = contentBottom + evenGap;
 
     if (options.username) {
-      const handle = options.username.startsWith("@")
-        ? options.username
-        : `@${options.username}`;
+      const name = options.username.replace(/^@/, "");
+      const handle = `@${name.charAt(0).toUpperCase()}${name.slice(1)}`;
 
-      ctx.fillStyle = "#ffffff";
-      ctx.font = `800 36px ${font}`;
-      const usernameBaseline = blockTop + 28;
+      ctx.font = `800 40px ${font}`;
+
+      const handleW = ctx.measureText(handle).width;
+
+      // Mismo degradado (blanco → naranja) que el titular de arriba,
+      // para darle más presencia que un texto plano.
+      const handleGradient = ctx.createLinearGradient(
+        W / 2 - handleW / 2,
+        0,
+        W / 2 + handleW / 2,
+        0
+      );
+
+      handleGradient.addColorStop(0, "#ffffff");
+      handleGradient.addColorStop(0.55, "#ffffff");
+      handleGradient.addColorStop(1, "#fb923c");
+
+      const usernameBaseline = blockTop + 30;
+
+      ctx.save();
+      ctx.shadowColor = "rgba(0,0,0,0.6)";
+      ctx.shadowBlur = 16;
+      ctx.fillStyle = handleGradient;
       ctx.fillText(handle, W / 2, usernameBaseline);
+      ctx.restore();
 
       ctx.fillStyle = "#d4d4d8";
       ctx.font = `600 30px ${font}`;
