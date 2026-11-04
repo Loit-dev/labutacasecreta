@@ -249,20 +249,35 @@ export function drawWatchedShareImage(
   ctx.stroke();
 
   // ---------- Estrellas (si hay valoración) y fecha de visionado ----------
-  // Se mide desde el borde visual de cada bloque (no desde su línea
-  // base), así el hueco de GAP se nota igual entre el póster, las
-  // estrellas, la fecha y el chip de abajo.
-  let contentBottom = posterTop + posterH;
+  // El margen de abajo (desde la frase final hasta el borde del lienzo)
+  // se fija igual que el de arriba (antes del logo), y el hueco entre
+  // el póster y el chip se reparte a partes iguales entre los bloques
+  // que haya en medio (estrellas, fecha), para que no quede nada
+  // pegado. La frase de abajo se deja pegada al chip, como ya estaba.
+  const topMargin = 225;
+  const taglineBottomOffset = 118; // footY + 112 (línea base) + ~6 de descendente
+  const footY = SHARE_HEIGHT - topMargin - taglineBottomOffset;
+
+  const posterBottom = posterTop + posterH;
   const starsSize = 58;
+  const dateBlockH = 36; // 26 (línea base) + 10 (descendente) desde el top del bloque
+
+  const blockCount = (options.rating ? 1 : 0) + (options.seenAtLabel ? 1 : 0);
+  const gapCount = blockCount + 1;
+  const blocksH =
+    (options.rating ? starsSize : 0) + (options.seenAtLabel ? dateBlockH : 0);
+  const evenGap = (footY - posterBottom - blocksH) / gapCount;
+
+  let contentBottom = posterBottom;
 
   if (options.rating) {
-    const starsTop = contentBottom + GAP;
+    const starsTop = contentBottom + evenGap;
     drawStars(ctx, W / 2, starsTop, options.rating, starsSize);
     contentBottom = starsTop + starsSize;
   }
 
   if (options.seenAtLabel) {
-    const dateTop = contentBottom + GAP;
+    const dateTop = contentBottom + evenGap;
     const dateBaseline = dateTop + 26;
 
     ctx.fillStyle = "#e4e4e7";
@@ -279,7 +294,6 @@ export function drawWatchedShareImage(
 
   const pillW = ctx.measureText(url).width + 90;
   const pillX = W / 2 - pillW / 2;
-  const footY = contentBottom + GAP;
 
   const pillGradient = ctx.createLinearGradient(pillX, 0, pillX + pillW, 0);
 
