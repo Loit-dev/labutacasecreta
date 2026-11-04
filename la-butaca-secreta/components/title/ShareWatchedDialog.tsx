@@ -5,7 +5,9 @@ import { useEffect, useState } from "react";
 
 import { useDialog } from "@/hooks/useDialog";
 import { track } from "@/lib/analytics";
+import { todayDateInput } from "@/lib/dateInput";
 import type { Rating } from "@/lib/rating";
+import { posterSource } from "@/lib/share";
 import { createWatchedShareImage } from "@/lib/watchedShareImage";
 import { SITE_NAME } from "@/lib/site";
 
@@ -15,6 +17,8 @@ type Props = {
   title: string;
   rating?: Rating;
   posterUrl?: string;
+  // YYYY-MM-DD (igual que <input type="date">); hoy por defecto.
+  seenAt?: string;
   onClose: () => void;
 };
 
@@ -49,6 +53,7 @@ export default function ShareWatchedDialog({
   title,
   rating,
   posterUrl,
+  seenAt = todayDateInput(),
   onClose,
 }: Props) {
   const dialogRef = useDialog<HTMLDivElement>(onClose);
@@ -64,6 +69,19 @@ export default function ShareWatchedDialog({
       ? `${window.location.origin}/${type === "tv" ? "serie" : "pelicula"}/${tmdbId}`
       : "";
 
+  // "4 de noviembre de 2026", a partir de YYYY-MM-DD (mediodía local,
+  // como en lib/dateInput.ts, para que no se desplace de día).
+  const seenAtLabel = (() => {
+    const [year, month, day] = seenAt.split("-").map(Number);
+
+    if (!year || !month || !day) return "";
+
+    return new Date(year, month - 1, day, 12, 0, 0).toLocaleDateString(
+      "es-ES",
+      { day: "numeric", month: "long", year: "numeric" }
+    );
+  })();
+
   useEffect(() => {
     let cancelled = false;
     let objectUrl = "";
@@ -75,7 +93,11 @@ export default function ShareWatchedDialog({
       title,
       kind: type,
       rating,
-      posterUrl,
+      seenAtLabel,
+      // Los pósters de TMDb se piden a través de nuestro servidor (ver
+      // lib/share.ts) para que el navegador pueda dibujarlos en un
+      // canvas sin que CORS lo bloquee.
+      posterUrl: posterSource(posterUrl),
     })
       .then((blob) => {
         if (cancelled) return;
@@ -97,7 +119,7 @@ export default function ShareWatchedDialog({
 
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [title, type, rating, posterUrl]);
+  }, [title, type, rating, posterUrl, seenAtLabel]);
 
   const file = state.status === "ready" ? state.file : null;
 

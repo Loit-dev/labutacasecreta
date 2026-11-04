@@ -129,7 +129,7 @@ export default function QuickPicks() {
 
   // Película/serie recién marcada como vista, para ofrecer compartirlo
   const [shareWatched, setShareWatched] = useState<
-    { movie: Picked; rating?: Rating } | null
+    { movie: Picked; rating?: Rating; seenAt?: string } | null
   >(null);
 
   // Ids de tarjetas que se están reemplazando (para no dejar pulsar
@@ -417,7 +417,7 @@ export default function QuickPicks() {
 
     markSeen(movie);
 
-    setShareWatched({ movie, rating });
+    setShareWatched({ movie, rating, seenAt });
   };
 
   const rejectMovie = (movie: Picked) => {
@@ -716,6 +716,7 @@ export default function QuickPicks() {
           title={shareWatched.movie.title}
           rating={shareWatched.rating}
           posterUrl={shareWatched.movie.poster}
+          seenAt={shareWatched.seenAt}
           onClose={() => setShareWatched(null)}
         />
       )}

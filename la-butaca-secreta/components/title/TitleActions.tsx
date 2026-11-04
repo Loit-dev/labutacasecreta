@@ -33,6 +33,7 @@ export default function TitleActions({ type, title }: Props) {
 
   const [showRating, setShowRating] = useState(false);
   const [showShareWatched, setShowShareWatched] = useState(false);
+  const [shareSeenAt, setShareSeenAt] = useState<string | undefined>();
 
   const [seen, setSeen] = useState(() =>
     readSeen(type).includes(title.id)
@@ -104,6 +105,7 @@ export default function TitleActions({ type, title }: Props) {
       });
     }
 
+    setShareSeenAt(seenAt);
     setShowShareWatched(true);
   };
 
@@ -146,6 +148,7 @@ export default function TitleActions({ type, title }: Props) {
           title={title.title}
           rating={rating}
           posterUrl={title.poster}
+          seenAt={shareSeenAt}
           onClose={() => setShowShareWatched(false)}
         />
       )}

@@ -23,6 +23,8 @@ export type WatchedShareOptions = {
   title: string;
   kind: "movie" | "tv";
   rating?: Rating;
+  // Ya formateada para enseñar ("4 de noviembre de 2026")
+  seenAtLabel?: string;
   posterUrl?: string;
   fontFamily?: string;
   logo?: DrawableImage | null;
@@ -177,7 +179,7 @@ export function drawWatchedShareImage(
 
   // ---------- Póster grande ----------
   const posterTop = titleBottom + 60;
-  const posterH = 600;
+  const posterH = 650;
   const posterW = posterH * (2 / 3);
   const posterX = W / 2 - posterW / 2;
 
@@ -242,23 +244,18 @@ export function drawWatchedShareImage(
   ctx.lineWidth = 4;
   ctx.stroke();
 
-  // ---------- Estrellas (si hay valoración) ----------
-  const starsY = posterTop + posterH + 80;
+  // ---------- Estrellas (si hay valoración) y fecha de visionado ----------
+  let belowPosterY = posterTop + posterH + 90;
 
   if (options.rating) {
-    drawStars(ctx, W / 2, starsY, options.rating, 58);
+    drawStars(ctx, W / 2, belowPosterY, options.rating, 58);
+    belowPosterY += 80;
+  }
 
+  if (options.seenAtLabel) {
     ctx.fillStyle = "#e4e4e7";
-    ctx.font = `700 34px ${font}`;
-    ctx.fillText(
-      String(options.rating).replace(".", ","),
-      W / 2,
-      starsY + 64
-    );
-  } else {
-    ctx.fillStyle = "#a1a1aa";
-    ctx.font = `600 32px ${font}`;
-    ctx.fillText("Sin puntuar todavía", W / 2, starsY + 20);
+    ctx.font = `600 34px ${font}`;
+    ctx.fillText(`Vista el ${options.seenAtLabel}`, W / 2, belowPosterY);
   }
 
   // ---------- Pie ----------

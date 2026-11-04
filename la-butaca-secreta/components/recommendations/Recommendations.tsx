@@ -73,7 +73,7 @@ export default function Recommendations({
 
   // Película/serie recién marcada como vista, para ofrecer compartirlo
   const [shareWatched, setShareWatched] = useState<
-    { movie: Recommendation; rating?: Rating } | null
+    { movie: Recommendation; rating?: Rating; seenAt?: string } | null
   >(null);
 
   const { session } = useAuth();
@@ -416,7 +416,7 @@ export default function Recommendations({
     markSeen(movie);
     removed(movie.title);
 
-    setShareWatched({ movie, rating });
+    setShareWatched({ movie, rating, seenAt });
   };
 
   const hasMore =
@@ -590,6 +590,7 @@ export default function Recommendations({
           title={shareWatched.movie.title}
           rating={shareWatched.rating}
           posterUrl={shareWatched.movie.poster}
+          seenAt={shareWatched.seenAt}
           onClose={() => setShareWatched(null)}
         />
       )}
