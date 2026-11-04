@@ -271,7 +271,9 @@ export default function ProfilePublicScreen({ viewerId, profile }: Props) {
           }}
         >
           <div
-            className="flex flex-col gap-2.5 rounded-[20px] p-4"
+            className={`flex flex-col gap-2.5 rounded-[20px] p-4 ${
+              compatibility.status === "ready" && viewerProfile ? "pb-11" : ""
+            }`}
             style={{
               background:
                 "radial-gradient(120% 140% at 15% 0%, rgba(251,146,60,0.16), transparent 55%), #121214",
@@ -316,7 +318,16 @@ export default function ProfilePublicScreen({ viewerId, profile }: Props) {
 
                 {compatibility.topCommon.length > 0 && (
                   <div className="my-1 flex items-end justify-center">
-                    {compatibility.topCommon.map((title, index) => {
+                    {(
+                      // La que más coincide (índice 0) va al centro: hay
+                      // que colocarla físicamente en medio del DOM (no
+                      // solo marcarla "grande"), si no el flex la deja
+                      // la primera, es decir a la izquierda.
+                      compatibility.topCommon.length === 3
+                        ? [1, 0, 2]
+                        : compatibility.topCommon.map((_, i) => i)
+                    ).map((index) => {
+                      const title = compatibility.topCommon[index];
                       // La que más coincide (la primera) va al centro,
                       // grande y recta; las otras dos a los lados, más
                       // pequeñas y giradas — mismo abanico que en el
