@@ -306,9 +306,9 @@ export default function ProfilePublicScreen({ viewerId, profile }: Props) {
 
             {compatibility.status === "ready" ? (
               <>
-                <div className="flex items-center gap-3.5">
+                <div className="flex items-center justify-center gap-3.5">
                   <div className="text-3xl leading-none">{compatibility.icon}</div>
-                  <div>
+                  <div className="text-center">
                     <div
                       className="bg-clip-text text-4xl font-black leading-none text-transparent"
                       style={{
@@ -326,7 +326,15 @@ export default function ProfilePublicScreen({ viewerId, profile }: Props) {
 
                 <p className="text-xs leading-relaxed text-zinc-300">
                   Habéis visto{" "}
-                  <strong className="text-white">{compatibility.commonCount}</strong>{" "}
+                  <strong
+                    className="bg-clip-text font-extrabold text-transparent"
+                    style={{
+                      backgroundImage:
+                        "linear-gradient(90deg, #ffffff 40%, #fb923c)",
+                    }}
+                  >
+                    {compatibility.commonCount}
+                  </strong>{" "}
                   título{compatibility.commonCount === 1 ? "" : "s"} en común.
                 </p>
 
@@ -401,7 +409,7 @@ export default function ProfilePublicScreen({ viewerId, profile }: Props) {
                     Chip rojo, como el de la URL al pie de la imagen
                     que se comparte, pero con letra más pequeña. */}
                 {(sharedPerson || compatibility.topGenres.length > 0) && (
-                  <div>
+                  <div className="flex justify-center">
                     <span
                       className="inline-block rounded-full px-3 py-1.5 text-[11px] font-extrabold leading-snug text-white"
                       style={{
