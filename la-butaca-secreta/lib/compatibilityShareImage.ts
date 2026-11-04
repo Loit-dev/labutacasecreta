@@ -411,12 +411,23 @@ export function drawCompatibilityShareImage(
       : null;
 
   if (extraLine) {
-    // Chip rojo, como el de la URL al pie, pero con letra más
-    // pequeña (esto es un dato más, no el cierre de la imagen).
-    ctx.font = `800 30px ${font}`;
+    // Chip rojo, como el de la URL al pie, pero bien grande: es el
+    // gancho de la imagen, tiene que notarse más que su equivalente
+    // en la web (que va apretado dentro de la tarjeta del perfil).
+    let extraFontSize = 40;
 
-    const extraChipW = ctx.measureText(extraLine).width + 60;
-    const extraChipH = 60;
+    ctx.font = `800 ${extraFontSize}px ${font}`;
+
+    while (
+      extraFontSize > 26 &&
+      ctx.measureText(extraLine).width > W - 160
+    ) {
+      extraFontSize -= 2;
+      ctx.font = `800 ${extraFontSize}px ${font}`;
+    }
+
+    const extraChipW = ctx.measureText(extraLine).width + 76;
+    const extraChipH = 78;
     const extraChipX = W / 2 - extraChipW / 2;
     const extraChipY = cursorY - extraChipH * 0.68;
 
@@ -440,7 +451,11 @@ export function drawCompatibilityShareImage(
 
     ctx.textAlign = "center";
     ctx.fillStyle = "#ffffff";
-    ctx.fillText(extraLine, W / 2, extraChipY + extraChipH / 2 + 10);
+    ctx.fillText(
+      extraLine,
+      W / 2,
+      extraChipY + extraChipH / 2 + extraFontSize * 0.33
+    );
   }
 
   // ---------- Pie ----------
