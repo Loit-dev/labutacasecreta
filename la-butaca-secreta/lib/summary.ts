@@ -206,16 +206,41 @@ function pickHeadline(opts: {
   last7: number;
   isRecord: boolean;
 }): string {
-  if (opts.isRecord) return "Récord personal este mes";
+  // El resumen que se comparte enseña mucho más que la última semana
+  // (totales, mes, racha, pendientes...), así que ninguna frase se
+  // limita a "tu semana" aunque el motivo de elegirla sea lo activa
+  // que ha sido. Cada grupo rota entre varias para que no salga
+  // siempre la misma, usando el día del año como semilla estable (no
+  // cambia en cada visita del mismo día, pero sí de un día a otro).
+  const seed = dayOfYear(opts.now);
 
-  if (opts.last7 >= 4) return "Tu semana en modo maratón";
+  if (opts.isRecord) {
+    const alt = [
+      "Récord personal este mes",
+      "Tu mejor mes hasta ahora",
+      "Nunca habías visto tanto",
+    ];
+
+    return alt[seed % alt.length];
+  }
+
+  if (opts.last7 >= 4) {
+    const alt = [
+      "Maratón en marcha",
+      "No hay quien te pare",
+      "A tope de pantalla",
+      "Racha imparable",
+    ];
+
+    return alt[seed % alt.length];
+  }
 
   const month = MONTH_NAMES[opts.now.getMonth()];
   const capMonth = month.charAt(0).toUpperCase() + month.slice(1);
 
-  const alt = [`${capMonth} de cine`, "Así va tu mes"];
+  const alt = [`${capMonth} de cine`, "Así va tu mes", "Tu butaca secreta"];
 
-  return alt[dayOfYear(opts.now) % alt.length];
+  return alt[seed % alt.length];
 }
 
 /** Construye todas las estadísticas de "Mi Resumen" a partir del historial. */

@@ -133,7 +133,13 @@ const GENRE_RANKS = [
   },
 ];
 
-export default function MiResumenScreen() {
+type Props = {
+  // Para que "Totales" lleve a Diario y "Pendientes" a Pendientes
+  // (AccountScreen.tsx es quien controla la pestaña activa).
+  onNavigateTab?: (tab: "diario" | "pendientes") => void;
+};
+
+export default function MiResumenScreen({ onNavigateTab }: Props) {
   const { session, loading, available } = useAuth();
 
   const [state, setState] = useState<State>({ status: "loading" });
@@ -367,14 +373,18 @@ export default function MiResumenScreen() {
           stats.streakDays >= 1 ? "grid-cols-3" : "grid-cols-2"
         }`}
       >
-        <div className={`${CARD} p-3 text-center sm:p-4`}>
+        <button
+          type="button"
+          onClick={() => onNavigateTab?.("diario")}
+          className={`${CARD} p-3 text-center transition-colors hover:border-white/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:p-4`}
+        >
           <p className="whitespace-nowrap text-[10px] font-bold tracking-wide text-zinc-400 sm:text-[11px]">
             TOTALES
           </p>
           <p className="mt-1 text-2xl font-black text-white sm:text-3xl">
             {stats.totalWatched}
           </p>
-        </div>
+        </button>
 
         <div className={`${CARD} p-3 text-center sm:p-4`}>
           <p className="whitespace-nowrap text-[10px] font-bold tracking-wide text-zinc-400 sm:text-[11px]">
@@ -421,14 +431,18 @@ export default function MiResumenScreen() {
           </div>
         )}
 
-        <div className={`${CARD} p-3 text-center sm:p-4`}>
+        <button
+          type="button"
+          onClick={() => onNavigateTab?.("pendientes")}
+          className={`${CARD} p-3 text-center transition-colors hover:border-white/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:p-4`}
+        >
           <p className="flex items-center justify-center gap-1 whitespace-nowrap text-[10px] font-bold tracking-wide text-zinc-400 sm:text-[11px]">
             PENDIENTES <PinIcon size={11} />
           </p>
           <p className="mt-1 text-2xl font-black text-white sm:text-3xl">
             {watchlist.count}
           </p>
-        </div>
+        </button>
 
         <button
           type="button"

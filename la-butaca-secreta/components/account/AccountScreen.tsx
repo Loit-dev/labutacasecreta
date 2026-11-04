@@ -83,7 +83,7 @@ export default function AccountScreen() {
         </Link>
 
         <div role="tabpanel">
-          {tab === "perfil" && <MiResumenScreen />}
+          {tab === "perfil" && <MiResumenScreen onNavigateTab={setTab} />}
 
           {tab === "diario" && (
             <RequireAccount what="El diario">
