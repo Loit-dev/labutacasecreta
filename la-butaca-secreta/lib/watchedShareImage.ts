@@ -157,9 +157,13 @@ export function drawWatchedShareImage(
   ctx.fillText(headline, W / 2, 468);
   ctx.restore();
 
+  // Hueco uniforme entre bloques (póster, estrellas, fecha, chip de la
+  // web), para que no se vean pegados unos a otros.
+  const GAP = 90;
+
   // ---------- Título de la película/serie (hasta 2 líneas) ----------
   ctx.fillStyle = "#ffffff";
-  ctx.font = `700 46px ${font}`;
+  ctx.font = `800 54px ${font}`;
 
   const titleLines = wrapLines(
     (text) => ctx.measureText(text).width,
@@ -168,8 +172,8 @@ export function drawWatchedShareImage(
     2
   );
 
-  const titleTop = 560;
-  const titleLineH = 56;
+  const titleTop = 566;
+  const titleLineH = 64;
 
   titleLines.forEach((line, i) => {
     ctx.fillText(line, W / 2, titleTop + i * titleLineH);
@@ -178,7 +182,7 @@ export function drawWatchedShareImage(
   const titleBottom = titleTop + (titleLines.length - 1) * titleLineH;
 
   // ---------- Póster grande ----------
-  const posterTop = titleBottom + 60;
+  const posterTop = titleBottom + GAP;
   const posterH = 650;
   const posterW = posterH * (2 / 3);
   const posterX = W / 2 - posterW / 2;
@@ -245,17 +249,27 @@ export function drawWatchedShareImage(
   ctx.stroke();
 
   // ---------- Estrellas (si hay valoración) y fecha de visionado ----------
-  let belowPosterY = posterTop + posterH + 90;
+  // Se mide desde el borde visual de cada bloque (no desde su línea
+  // base), así el hueco de GAP se nota igual entre el póster, las
+  // estrellas, la fecha y el chip de abajo.
+  let contentBottom = posterTop + posterH;
+  const starsSize = 58;
 
   if (options.rating) {
-    drawStars(ctx, W / 2, belowPosterY, options.rating, 58);
-    belowPosterY += 80;
+    const starsTop = contentBottom + GAP;
+    drawStars(ctx, W / 2, starsTop, options.rating, starsSize);
+    contentBottom = starsTop + starsSize;
   }
 
   if (options.seenAtLabel) {
+    const dateTop = contentBottom + GAP;
+    const dateBaseline = dateTop + 26;
+
     ctx.fillStyle = "#e4e4e7";
     ctx.font = `600 34px ${font}`;
-    ctx.fillText(`Vista el ${options.seenAtLabel}`, W / 2, belowPosterY);
+    ctx.fillText(`Vista el ${options.seenAtLabel}`, W / 2, dateBaseline);
+
+    contentBottom = dateBaseline + 10;
   }
 
   // ---------- Pie ----------
@@ -265,7 +279,7 @@ export function drawWatchedShareImage(
 
   const pillW = ctx.measureText(url).width + 90;
   const pillX = W / 2 - pillW / 2;
-  const footY = SHARE_HEIGHT - 400;
+  const footY = contentBottom + GAP;
 
   const pillGradient = ctx.createLinearGradient(pillX, 0, pillX + pillW, 0);
 
