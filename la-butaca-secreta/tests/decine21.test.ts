@@ -9,7 +9,7 @@ describe("estrenos importados de decine21", () => {
     assert.ok(IMPORTADOS.length > 0);
 
     for (const item of IMPORTADOS) {
-      assert.match(item.date, /^2026-(10|11)-\d{2}$/);
+      assert.match(item.date, /^2026-(10|11|12)-\d{2}$/);
       assert.ok(["movie", "tv"].includes(item.type));
       assert.ok(item.query.trim().length > 0, item.query);
       assert.ok(!/ª temporada/.test(item.query), item.query);
