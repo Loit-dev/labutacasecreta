@@ -306,9 +306,9 @@ export default function ProfilePublicScreen({ viewerId, profile }: Props) {
 
             {compatibility.status === "ready" ? (
               <>
-                <div className="flex items-center justify-center gap-3.5">
-                  <div className="text-3xl leading-none">{compatibility.icon}</div>
-                  <div className="text-center">
+                <div className="text-center">
+                  <div className="flex items-center justify-center gap-2.5">
+                    <div className="text-3xl leading-none">{compatibility.icon}</div>
                     <div
                       className="bg-clip-text text-4xl font-black leading-none text-transparent"
                       style={{
@@ -318,9 +318,9 @@ export default function ProfilePublicScreen({ viewerId, profile }: Props) {
                     >
                       {compatibility.percent}%
                     </div>
-                    <div className="mt-0.5 text-sm font-extrabold text-amber-300">
-                      {compatibility.label}
-                    </div>
+                  </div>
+                  <div className="mt-1 text-sm font-extrabold text-amber-300">
+                    {compatibility.label}
                   </div>
                 </div>
 
