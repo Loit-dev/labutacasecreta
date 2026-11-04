@@ -16,6 +16,7 @@ type Props = {
   tmdbId: number;
   title: string;
   rating?: Rating;
+  username?: string;
   posterUrl?: string;
   // YYYY-MM-DD (igual que <input type="date">); hoy por defecto.
   seenAt?: string;
@@ -52,6 +53,7 @@ export default function ShareWatchedDialog({
   tmdbId,
   title,
   rating,
+  username,
   posterUrl,
   seenAt = todayDateInput(),
   onClose,
@@ -93,6 +95,7 @@ export default function ShareWatchedDialog({
       title,
       kind: type,
       rating,
+      username,
       seenAtLabel,
       // Los pósters de TMDb se piden a través de nuestro servidor (ver
       // lib/share.ts) para que el navegador pueda dibujarlos en un
@@ -119,7 +122,7 @@ export default function ShareWatchedDialog({
 
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [title, type, rating, posterUrl, seenAtLabel]);
+  }, [title, type, rating, username, posterUrl, seenAtLabel]);
 
   const file = state.status === "ready" ? state.file : null;
 

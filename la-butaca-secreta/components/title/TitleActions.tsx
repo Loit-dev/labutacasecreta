@@ -5,6 +5,7 @@ import { useState } from "react";
 import RatingPrompt from "@/components/recommendations/RatingPrompt";
 import ShareWatchedDialog from "@/components/title/ShareWatchedDialog";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 import { useWatchlist } from "@/hooks/useWatchlist";
 import { track } from "@/lib/analytics";
 import { dateInputToISO } from "@/lib/dateInput";
@@ -30,6 +31,7 @@ type Props = {
 export default function TitleActions({ type, title }: Props) {
   const watchlist = useWatchlist();
   const { session } = useAuth();
+  const { profile } = useProfile(session?.user.id ?? "");
 
   const [showRating, setShowRating] = useState(false);
   const [showShareWatched, setShowShareWatched] = useState(false);
@@ -147,6 +149,7 @@ export default function TitleActions({ type, title }: Props) {
           tmdbId={title.id}
           title={title.title}
           rating={rating}
+          username={profile?.username}
           posterUrl={title.poster}
           seenAt={shareSeenAt}
           onClose={() => setShowShareWatched(false)}

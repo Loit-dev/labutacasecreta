@@ -23,6 +23,8 @@ export type WatchedShareOptions = {
   title: string;
   kind: "movie" | "tv";
   rating?: Rating;
+  // Sin la "@": se añade al dibujar.
+  username?: string;
   // Ya formateada para enseñar ("4 de noviembre de 2026")
   seenAtLabel?: string;
   posterUrl?: string;
@@ -260,7 +262,9 @@ export function drawWatchedShareImage(
 
   const posterBottom = posterTop + posterH;
   const starsSize = 58;
-  const dateBlockH = 36; // 26 (línea base) + 10 (descendente) desde el top del bloque
+  // Bloque de la fecha: si hay usuario, "@usuario" + "ha visto <fecha>"
+  // en dos líneas; si no, el "Vista el <fecha>" de una sola línea.
+  const dateBlockH = options.username ? 76 : 36;
 
   const blockCount = (options.rating ? 1 : 0) + (options.seenAtLabel ? 1 : 0);
   const gapCount = blockCount + 1;
@@ -277,14 +281,32 @@ export function drawWatchedShareImage(
   }
 
   if (options.seenAtLabel) {
-    const dateTop = contentBottom + evenGap;
-    const dateBaseline = dateTop + 26;
+    const blockTop = contentBottom + evenGap;
 
-    ctx.fillStyle = "#e4e4e7";
-    ctx.font = `600 34px ${font}`;
-    ctx.fillText(`Vista el ${options.seenAtLabel}`, W / 2, dateBaseline);
+    if (options.username) {
+      const handle = options.username.startsWith("@")
+        ? options.username
+        : `@${options.username}`;
 
-    contentBottom = dateBaseline + 10;
+      ctx.fillStyle = "#ffffff";
+      ctx.font = `800 36px ${font}`;
+      const usernameBaseline = blockTop + 28;
+      ctx.fillText(handle, W / 2, usernameBaseline);
+
+      ctx.fillStyle = "#d4d4d8";
+      ctx.font = `600 30px ${font}`;
+      const dateBaseline = usernameBaseline + 38;
+      ctx.fillText(`ha visto ${options.seenAtLabel}`, W / 2, dateBaseline);
+
+      contentBottom = dateBaseline + 10;
+    } else {
+      ctx.fillStyle = "#e4e4e7";
+      ctx.font = `600 34px ${font}`;
+      const dateBaseline = blockTop + 26;
+      ctx.fillText(`Vista el ${options.seenAtLabel}`, W / 2, dateBaseline);
+
+      contentBottom = dateBaseline + 10;
+    }
   }
 
   // ---------- Pie ----------

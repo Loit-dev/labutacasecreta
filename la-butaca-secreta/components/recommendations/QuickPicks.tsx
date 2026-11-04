@@ -12,6 +12,7 @@ import ShareWatchedDialog from "@/components/title/ShareWatchedDialog";
 import { badgeFor } from "./badges";
 
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 import { useWatchlist } from "@/hooks/useWatchlist";
 import { track } from "@/lib/analytics";
 import { ContentType, UserProfile } from "@/lib/conversation/types";
@@ -139,6 +140,7 @@ export default function QuickPicks() {
   );
 
   const { session } = useAuth();
+  const { profile: accountProfile } = useProfile(session?.user.id ?? "");
 
   // En el móvil se ve una tarjeta cada vez, como en el cuestionario
   // completo (mismo patrón de carrusel con puntos y deslizar)
@@ -715,6 +717,7 @@ export default function QuickPicks() {
           tmdbId={shareWatched.movie.id}
           title={shareWatched.movie.title}
           rating={shareWatched.rating}
+          username={accountProfile?.username}
           posterUrl={shareWatched.movie.poster}
           seenAt={shareWatched.seenAt}
           onClose={() => setShareWatched(null)}

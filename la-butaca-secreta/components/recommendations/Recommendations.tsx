@@ -18,6 +18,7 @@ import { badgeFor } from "./badges";
 import { ClapperIcon, RefreshIcon, ShareIcon } from "@/components/icons/Icons";
 
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 import { useRecommendations } from "@/hooks/useRecommendations";
 import { useWatchlist } from "@/hooks/useWatchlist";
 import { track } from "@/lib/analytics";
@@ -77,6 +78,7 @@ export default function Recommendations({
   >(null);
 
   const { session } = useAuth();
+  const { profile: accountProfile } = useProfile(session?.user.id ?? "");
 
   const [touchStart, setTouchStart] = useState<
     number | null
@@ -589,6 +591,7 @@ export default function Recommendations({
           tmdbId={shareWatched.movie.id}
           title={shareWatched.movie.title}
           rating={shareWatched.rating}
+          username={accountProfile?.username}
           posterUrl={shareWatched.movie.poster}
           seenAt={shareWatched.seenAt}
           onClose={() => setShareWatched(null)}
