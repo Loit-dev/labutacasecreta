@@ -27,12 +27,43 @@ export type WatchedShareOptions = {
   username?: string;
   // Ya formateada para enseñar ("4 de noviembre de 2026")
   seenAtLabel?: string;
+  // Frase antes de la fecha (p.ej. "le encantó el", "no le gustó el");
+  // se obtiene con pickSeenVerb(rating) para que varíe según la nota
+  // y no salga siempre igual al compartir.
+  seenVerb?: string;
   posterUrl?: string;
   fontFamily?: string;
   logo?: DrawableImage | null;
   backdrops?: (DrawableImage | null)[];
   poster?: DrawableImage | null;
 };
+
+// Variantes de la frase que acompaña a la fecha (junto al "@usuario"),
+// agrupadas por lo que puntuó, para que la frase cuente algo sobre si
+// le gustó o no (no solo que la vio) y además varíe cada vez que se
+// comparte. Sin nota, se usa un grupo neutro.
+const SEEN_PHRASES_NEUTRAL = ["ha visto", "la vio", "la terminó"];
+
+const SEEN_PHRASES_BY_RATING: { min: number; phrases: string[] }[] = [
+  { min: 4.5, phrases: ["le encantó", "le ha encantado", "le pareció genial"] },
+  { min: 3.5, phrases: ["le gustó mucho", "la disfrutó mucho"] },
+  { min: 2.5, phrases: ["le gustó", "le pareció bien"] },
+  { min: 1.5, phrases: ["no le convenció mucho", "le dejó frío"] },
+  { min: 0, phrases: ["no le gustó", "no le gustó nada"] },
+];
+
+/**
+ * Elige al azar una frase para acompañar la fecha ("<frase> el
+ * <fecha>"), del grupo que corresponda a la nota (o neutra si no hay
+ * valoración), para que cambie cada vez que se comparte.
+ */
+export function pickSeenVerb(rating?: Rating): string {
+  const phrases = rating
+    ? SEEN_PHRASES_BY_RATING.find((group) => rating >= group.min)!.phrases
+    : SEEN_PHRASES_NEUTRAL;
+
+  return `${phrases[Math.floor(Math.random() * phrases.length)]} el`;
+}
 
 function roundedRect(
   ctx: CanvasRenderingContext2D,
@@ -296,7 +327,8 @@ export function drawWatchedShareImage(
       ctx.fillStyle = "#d4d4d8";
       ctx.font = `600 30px ${font}`;
       const dateBaseline = usernameBaseline + 38;
-      ctx.fillText(`ha visto ${options.seenAtLabel}`, W / 2, dateBaseline);
+      const verb = options.seenVerb ?? "ha visto el";
+      ctx.fillText(`${verb} ${options.seenAtLabel}`, W / 2, dateBaseline);
 
       contentBottom = dateBaseline + 10;
     } else {

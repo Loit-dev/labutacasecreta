@@ -8,7 +8,7 @@ import { track } from "@/lib/analytics";
 import { todayDateInput } from "@/lib/dateInput";
 import type { Rating } from "@/lib/rating";
 import { posterSource } from "@/lib/share";
-import { createWatchedShareImage } from "@/lib/watchedShareImage";
+import { createWatchedShareImage, pickSeenVerb } from "@/lib/watchedShareImage";
 import { SITE_NAME } from "@/lib/site";
 
 type Props = {
@@ -63,6 +63,10 @@ export default function ShareWatchedDialog({
   const [state, setState] = useState<State>({ status: "loading" });
   const [message, setMessage] = useState("");
 
+  // Se elige una sola vez al abrir el diálogo (no en cada renderizado),
+  // así no cambia solo porque React vuelva a pintar el componente.
+  const [seenVerb] = useState(() => pickSeenVerb(rating));
+
   // Este diálogo solo se monta tras una interacción del usuario (nunca
   // durante el renderizado del servidor), así que leer `window` aquí
   // directamente es seguro: no hace falta useState/useEffect para esto.
@@ -97,6 +101,7 @@ export default function ShareWatchedDialog({
       rating,
       username,
       seenAtLabel,
+      seenVerb,
       // Los pósters de TMDb se piden a través de nuestro servidor (ver
       // lib/share.ts) para que el navegador pueda dibujarlos en un
       // canvas sin que CORS lo bloquee.
@@ -122,7 +127,7 @@ export default function ShareWatchedDialog({
 
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [title, type, rating, username, posterUrl, seenAtLabel]);
+  }, [title, type, rating, username, posterUrl, seenAtLabel, seenVerb]);
 
   const file = state.status === "ready" ? state.file : null;
 
