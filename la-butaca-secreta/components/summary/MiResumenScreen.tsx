@@ -387,12 +387,6 @@ export default function MiResumenScreen() {
           >
             {stats.monthCount}
           </p>
-          {stats.previousMonthCount > 0 && (
-            <p className="mt-1 text-xs text-zinc-400">
-              {stats.monthDiff > 0 ? `+${stats.monthDiff}` : stats.monthDiff}{" "}
-              vs {stats.previousMonthLabel.toLowerCase()}
-            </p>
-          )}
         </div>
 
         {stats.streakDays >= 1 && (

@@ -249,14 +249,6 @@ export function drawSummaryImage(
   let cursorY = chartY + chartH + 24;
 
   const badge = options.monthBadge;
-  const diff = options.monthDiff;
-  const hasPrevious = (options.previousMonthCount ?? 0) > 0;
-
-  const diffLine = hasPrevious
-    ? `${diff !== undefined && diff > 0 ? "+" : ""}${diff ?? 0} vs ${(
-        options.previousMonthLabel ?? ""
-      ).toLowerCase()}`
-    : undefined;
 
   const hasStreak = (options.streakDays ?? 0) >= 1;
   const hasAvgRating = (options.averageRating ?? 0) > 0;
@@ -268,7 +260,10 @@ export function drawSummaryImage(
       badge ? `ESTE MES ${badge}` : "ESTE MES",
       String(options.monthCount ?? 0),
       badge ? "#facc15" : "#ffffff",
-      diffLine,
+      // El "+N vs <mes anterior>" se quitó: solo sirve de dato interno
+      // para decidir la medalla (monthBadge), comparar meses enteros
+      // contra lo que llevas de este confundía más que ayudaba.
+      undefined,
     ],
     [
       "RACHA 🔥",
