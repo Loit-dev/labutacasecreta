@@ -467,6 +467,13 @@ export default function MiResumenScreen({ onNavigateTab }: Props) {
         <DiscardedDialog onClose={() => setShowDiscarded(false)} />
       )}
 
+      {achievementsState && (
+        <ProfileAchievementsRow
+          state={achievementsState}
+          onOpenFull={() => onNavigateTab?.("logros")}
+        />
+      )}
+
       <div className="grid grid-cols-3 gap-2 sm:gap-4">
         {titles.lastWatched ? (
           <SummaryTitleCard
@@ -556,13 +563,6 @@ export default function MiResumenScreen({ onNavigateTab }: Props) {
             );
           })}
         </div>
-      )}
-
-      {achievementsState && (
-        <ProfileAchievementsRow
-          state={achievementsState}
-          onOpenFull={() => onNavigateTab?.("logros")}
-        />
       )}
 
       {state.line && (

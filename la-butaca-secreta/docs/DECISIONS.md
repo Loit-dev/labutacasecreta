@@ -906,3 +906,33 @@ Varios ajustes pedidos tras probar la fase anterior con datos reales:
 {AchievementsProvider,AchievementsScreen,UnlockToast,ProgressToast,
 SeasonalBanner}.tsx`, `components/account/AccountScreen.tsx`,
 `lib/achievements/{catalog,compute}.ts`, `tests/achievements.test.ts`.
+
+## 2026-11 · Logros: bug de Suspense/Thriller, rebalanceo de género y reubicación
+
+Segundo ajuste el mismo día, tras ver datos reales de una cuenta con
+41 títulos vistos que ya tenía Plata en dos géneros y Oro en
+"Géneros vistos":
+
+- **Bug real encontrado**: `watched.genres` guarda a veces "Suspense"
+  y a veces "Thriller" para el mismo género de TMDb (id 53), según
+  cuándo se guardó la fila (`lib/genreEmoji.ts` ya lo sabía y cubría
+  ambos nombres en la UI, pero los logros no). Sin normalizar esto,
+  "Géneros vistos" contaba el mismo género dos veces como si fueran
+  distintos, y el logro de género "Thriller" nunca sumaba las filas
+  guardadas como "Suspense". Corregido con `normalizeGenre()` en
+  `lib/achievements/compute.ts`, que trata ambos nombres como uno
+  solo antes de contar.
+- **Umbrales de género subidos de nuevo** (moderado, ×1.5-2, a
+  petición explícita tras ver que el bug anterior no explicaba todo):
+  las 18 familias de género pasan de 5/15/35/75/150 a 8/25/60/130/
+  260, y "Géneros vistos" (general, sobre 18 géneros posibles) de
+  6/9/13/16/18 a 8/11/14/16/18 — con 41 vistos, ahora como mucho
+  Bronce en los géneros favoritos, no Plata ni Oro.
+- **Fila de Logros reubicada en "Mi Resumen"**: antes aparecía muy
+  abajo, después de "Tus géneros" y justo antes del titular
+  motivacional. Ahora aparece justo encima de las tres tarjetas de
+  película (Última vista/Favorita/Mejor valorada), a petición
+  explícita, para que se vea sin hacer tanto scroll.
+
+**Dónde**: `lib/achievements/{catalog,compute}.ts`,
+`components/summary/MiResumenScreen.tsx`, `tests/achievements.test.ts`.

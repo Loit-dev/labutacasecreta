@@ -60,6 +60,20 @@ export type AchievementsInput = {
   now?: Date;
 };
 
+/**
+ * `watched.genres` guarda el nombre tal cual lo dio TMDb en el
+ * momento de verlo, y eso a veces difiere del nombre que usa hoy el
+ * resto de la web (ver lib/genreEmoji.ts): el género 53 puede estar
+ * guardado como "Suspense" en filas antiguas aunque el catálogo de
+ * logros (y el resto de la app) lo llame "Thriller". Sin normalizar
+ * esto aquí, "Géneros vistos" contaba el mismo género dos veces como
+ * si fueran distintos, y el logro de género "Thriller" nunca sumaba
+ * esas filas.
+ */
+function normalizeGenre(genre: string): string {
+  return genre === "Suspense" ? "Thriller" : genre;
+}
+
 function dateKeyDay(d: Date): string {
   return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 }
@@ -192,7 +206,8 @@ export function computeAchievements(input: AchievementsInput): AchievementsState
   const genreCounts = new Map<string, number>();
   for (const row of input.watched) {
     for (const genre of row.genres) {
-      genreCounts.set(genre, (genreCounts.get(genre) ?? 0) + 1);
+      const key = normalizeGenre(genre);
+      genreCounts.set(key, (genreCounts.get(key) ?? 0) + 1);
     }
   }
 

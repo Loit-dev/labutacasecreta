@@ -156,6 +156,29 @@ describe("computeAchievements", () => {
     assert.equal(comedia?.value, 2);
   });
 
+  test("\"Suspense\" (nombre antiguo de TMDb) cuenta como \"Thriller\", no como un género aparte", () => {
+    const watched = [
+      row({ tmdbId: 1, genres: ["Thriller"] }),
+      row({ tmdbId: 2, genres: ["Suspense"] }),
+      row({ tmdbId: 3, genres: ["Suspense", "Drama"] }),
+    ];
+
+    const state = computeAchievements({
+      watched,
+      friendsCount: 0,
+      compatibleFriendsCount: 0,
+      listsCount: 0,
+      recommendationsSentCount: 0,
+      shareEventsCount: 0,
+    });
+
+    // 2 géneros distintos (Thriller/Suspense es el mismo, + Drama), no 3.
+    assert.equal(state.general.find((p) => p.key === "generos_vistos")?.value, 2);
+
+    const thriller = state.genero.find((p) => p.key.includes("thriller"));
+    assert.equal(thriller?.value, 3);
+  });
+
   test("estacional Terrorífico exige género Terror DENTRO de la ventana de Halloween", () => {
     const now = new Date("2026-10-28T12:00:00.000Z");
 

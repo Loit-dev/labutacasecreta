@@ -167,10 +167,13 @@ export const GENERAL_FAMILIES: AchievementFamily[] = [
     name: "Géneros vistos",
     metric: "géneros distintos vistos",
     icon: "compass",
-    // Subido (antes 3/5/8/12/16): con 18 géneros en total, Platino
-    // en 12 era demasiado fácil para cualquiera que viera de todo.
-    // Diamante exige los 18 géneros que existen en la app.
-    thresholds: [6, 9, 13, 16, 18],
+    // Subido dos veces (antes 3/5/8/12/16, luego 6/9/13/16/18): con
+    // solo 41 títulos vistos en total ya se llegaba a Oro, en parte
+    // por un bug real (Suspense/Thriller contaban como géneros
+    // distintos, ya arreglado en compute.ts) pero también porque el
+    // umbral seguía siendo bajo. Diamante sigue exigiendo los 18
+    // géneros que existen en la app (es el máximo posible).
+    thresholds: [8, 11, 14, 16, 18],
     levelNames: [
       "Curioso",
       "Explorador",
@@ -256,8 +259,11 @@ export const GENERAL_FAMILIES: AchievementFamily[] = [
   },
 ];
 
-// Umbral común a las 18 familias de género: 5 / 15 / 35 / 75 / 150.
-const GENRE_THRESHOLDS = [5, 15, 35, 75, 150] as const;
+// Umbral común a las 18 familias de género. Subido (antes 5/15/35/
+// 75/150): con solo 41 títulos vistos en total ya se llegaba a Plata
+// en los géneros favoritos — demasiado rápido para un nivel que no es
+// el primero.
+const GENRE_THRESHOLDS = [8, 25, 60, 130, 260] as const;
 
 // name: debe coincidir EXACTO con las cadenas que guarda `watched.genres`
 // (lib/tmdb/mapper.ts → GENRES). Importante: TMDb llama "Suspense" al
