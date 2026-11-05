@@ -936,3 +936,31 @@ Segundo ajuste el mismo día, tras ver datos reales de una cuenta con
 
 **Dónde**: `lib/achievements/{catalog,compute}.ts`,
 `components/summary/MiResumenScreen.tsx`, `tests/achievements.test.ts`.
+
+## 2026-11 · "Compartir que la he visto" fusionado en el mismo diálogo de valorar
+
+Al marcar "Ya la vi"/puntuar, se abrían dos diálogos seguidos: primero
+las estrellas + "Guardar valoración", y luego, siempre, un segundo
+diálogo aparte ("Compartir que la he visto") con la imagen y los
+botones de compartir — un paso extra no deseado en cada valoración.
+
+- **`ShareWatchedDialog.tsx` eliminado**; su contenido (imagen
+  generada en canvas, "Compartir…" nativo, descargar imagen, enlace de
+  WhatsApp, copiar enlace) pasa a `RatingPrompt.tsx`, debajo del botón
+  "Guardar valoración"/"Marcar como vista", en el mismo diálogo —
+  salvo al editar una nota ya puesta (`editing`), donde no aplica.
+- **Guardar ocurre una sola vez por apertura**, lo dispare lo que lo
+  dispare: el botón de guardar, cualquier botón de compartir/
+  descargar, o cerrar el diálogo sin más (click fuera, Escape, la ✕).
+  `RatingPrompt` ahora recibe `onConfirm` (guarda) y `onClose`
+  (desmonta) por separado, en vez de que `onConfirm` cerrara el
+  diálogo él mismo.
+- Pulsar "Guardar valoración" cierra el diálogo; pulsar un botón de
+  compartir/descargar/copiar guarda igual pero deja el diálogo
+  abierto (para poder, p. ej., compartir y también copiar el enlace).
+
+**Dónde**: `components/recommendations/RatingPrompt.tsx` (reescrito),
+`components/title/TitleActions.tsx`,
+`components/recommendations/{QuickPicks,Recommendations}.tsx`,
+`components/account/DiaryTab.tsx`,
+`components/account/ShareCompatibilityDialog.tsx` (solo comentario).

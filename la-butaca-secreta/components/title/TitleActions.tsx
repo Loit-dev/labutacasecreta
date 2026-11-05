@@ -3,7 +3,6 @@
 import { useState } from "react";
 
 import RatingPrompt from "@/components/recommendations/RatingPrompt";
-import ShareWatchedDialog from "@/components/title/ShareWatchedDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useWatchlist } from "@/hooks/useWatchlist";
@@ -36,8 +35,6 @@ export default function TitleActions({ type, title }: Props) {
   const { profile } = useProfile(session?.user.id ?? "");
 
   const [showRating, setShowRating] = useState(false);
-  const [showShareWatched, setShowShareWatched] = useState(false);
-  const [shareSeenAt, setShareSeenAt] = useState<string | undefined>();
 
   const [seen, setSeen] = useState(() =>
     readSeen(type).includes(title.id)
@@ -78,8 +75,6 @@ export default function TitleActions({ type, title }: Props) {
   };
 
   const confirmRating = (value: Rating | undefined, seenAt?: string) => {
-    setShowRating(false);
-
     addSeen(type, title.id);
     setSeen(true);
 
@@ -110,9 +105,6 @@ export default function TitleActions({ type, title }: Props) {
       });
       notifyWatchedAction(title.genres);
     }
-
-    setShareSeenAt(seenAt);
-    setShowShareWatched(true);
   };
 
   return (
@@ -144,19 +136,16 @@ export default function TitleActions({ type, title }: Props) {
       </button>
 
       {showRating && (
-        <RatingPrompt title={title.title} onConfirm={confirmRating} />
-      )}
-
-      {showShareWatched && (
-        <ShareWatchedDialog
-          type={type}
-          tmdbId={title.id}
+        <RatingPrompt
           title={title.title}
-          rating={rating}
-          username={profile?.username}
-          posterUrl={title.poster}
-          seenAt={shareSeenAt}
-          onClose={() => setShowShareWatched(false)}
+          onConfirm={confirmRating}
+          onClose={() => setShowRating(false)}
+          share={{
+            type,
+            tmdbId: title.id,
+            posterUrl: title.poster,
+            username: profile?.username,
+          }}
         />
       )}
     </>

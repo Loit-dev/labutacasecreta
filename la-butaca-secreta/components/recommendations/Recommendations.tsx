@@ -9,7 +9,6 @@ import {
 
 import DetailsModal from "./DetailsModal";
 import RatingPrompt from "./RatingPrompt";
-import ShareWatchedDialog from "@/components/title/ShareWatchedDialog";
 import RecommendationCard from "./RecommendationCard";
 import RecommendationSkeleton from "./RecommendationSkeleton";
 import ShareDialog from "./ShareDialog";
@@ -71,11 +70,6 @@ export default function Recommendations({
   // Película/serie pendiente de valorar al pulsar "Ya la vi"
   const [ratingFor, setRatingFor] = useState<
     Recommendation | null
-  >(null);
-
-  // Película/serie recién marcada como vista, para ofrecer compartirlo
-  const [shareWatched, setShareWatched] = useState<
-    { movie: Recommendation; rating?: Rating; seenAt?: string } | null
   >(null);
 
   const { session } = useAuth();
@@ -390,8 +384,6 @@ export default function Recommendations({
 
     if (!movie) return;
 
-    setRatingFor(null);
-
     if (rating) {
       setRating(type, movie.id, rating);
 
@@ -421,8 +413,6 @@ export default function Recommendations({
 
     markSeen(movie);
     removed(movie.title);
-
-    setShareWatched({ movie, rating, seenAt });
   };
 
   const hasMore =
@@ -586,19 +576,13 @@ export default function Recommendations({
         <RatingPrompt
           title={ratingFor.title}
           onConfirm={confirmRating}
-        />
-      )}
-
-      {shareWatched && (
-        <ShareWatchedDialog
-          type={type}
-          tmdbId={shareWatched.movie.id}
-          title={shareWatched.movie.title}
-          rating={shareWatched.rating}
-          username={accountProfile?.username}
-          posterUrl={shareWatched.movie.poster}
-          seenAt={shareWatched.seenAt}
-          onClose={() => setShareWatched(null)}
+          onClose={() => setRatingFor(null)}
+          share={{
+            type,
+            tmdbId: ratingFor.id,
+            posterUrl: ratingFor.poster,
+            username: accountProfile?.username,
+          }}
         />
       )}
     </section>

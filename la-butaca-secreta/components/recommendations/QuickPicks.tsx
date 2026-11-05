@@ -8,7 +8,6 @@ import RatingPrompt from "./RatingPrompt";
 import RecommendationCard from "./RecommendationCard";
 import RecommendationSkeleton from "./RecommendationSkeleton";
 import ShareDialog from "./ShareDialog";
-import ShareWatchedDialog from "@/components/title/ShareWatchedDialog";
 import { badgeFor } from "./badges";
 
 import { useAuth } from "@/hooks/useAuth";
@@ -128,11 +127,6 @@ export default function QuickPicks() {
 
   // Película/serie pendiente de valorar al pulsar "Ya la vi"
   const [ratingFor, setRatingFor] = useState<Picked | null>(null);
-
-  // Película/serie recién marcada como vista, para ofrecer compartirlo
-  const [shareWatched, setShareWatched] = useState<
-    { movie: Picked; rating?: Rating; seenAt?: string } | null
-  >(null);
 
   // Ids de tarjetas que se están reemplazando (para no dejar pulsar
   // sus botones dos veces mientras llega la sustituta)
@@ -392,8 +386,6 @@ export default function QuickPicks() {
 
     if (!movie) return;
 
-    setRatingFor(null);
-
     if (rating) {
       setRating(movie.mediaType, movie.id, rating);
 
@@ -422,8 +414,6 @@ export default function QuickPicks() {
     }
 
     markSeen(movie);
-
-    setShareWatched({ movie, rating, seenAt });
   };
 
   const rejectMovie = (movie: Picked) => {
@@ -712,19 +702,13 @@ export default function QuickPicks() {
         <RatingPrompt
           title={ratingFor.title}
           onConfirm={confirmRating}
-        />
-      )}
-
-      {shareWatched && (
-        <ShareWatchedDialog
-          type={shareWatched.movie.mediaType}
-          tmdbId={shareWatched.movie.id}
-          title={shareWatched.movie.title}
-          rating={shareWatched.rating}
-          username={accountProfile?.username}
-          posterUrl={shareWatched.movie.poster}
-          seenAt={shareWatched.seenAt}
-          onClose={() => setShareWatched(null)}
+          onClose={() => setRatingFor(null)}
+          share={{
+            type: ratingFor.mediaType,
+            tmdbId: ratingFor.id,
+            posterUrl: ratingFor.poster,
+            username: accountProfile?.username,
+          }}
         />
       )}
     </div>

@@ -37,7 +37,7 @@ type State =
 const FILE_NAME = "compatibilidad-la-butaca-secreta.png";
 
 // Tipografía de la web (la expone next/font como variable CSS), igual
-// que en ShareDialog.tsx / ShareWatchedDialog.tsx.
+// que en ShareDialog.tsx / RatingPrompt.tsx (sección de compartir).
 function siteFont() {
   try {
     return getComputedStyle(document.documentElement)
@@ -50,8 +50,9 @@ function siteFont() {
 
 /**
  * "Compartir compatibilidad" desde el botoncito de la tarjeta del
- * perfil público, con el mismo patrón que ShareWatchedDialog.tsx:
- * imagen generada en canvas + selector nativo de compartir + botón
+ * perfil público, con el mismo patrón que la sección de compartir de
+ * RatingPrompt.tsx: imagen generada en canvas + selector nativo de
+ * compartir + botón
  * directo de WhatsApp + enlace para copiar.
  */
 export default function ShareCompatibilityDialog({

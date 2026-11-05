@@ -315,6 +315,7 @@ export default function DiaryTab({ session }: { session: Session }) {
           initial={editing.rating}
           editing
           onConfirm={confirmRating}
+          onClose={() => setEditing(null)}
         />
       )}
 
