@@ -64,16 +64,47 @@ function dateKeyDay(d: Date): string {
   return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 }
 
-/** Más títulos vistos en un único día, en todo el historial dado. */
+/**
+ * Marcar como visto pone `seen_at` a "ahora", así que catalogar de
+ * golpe varios títulos antiguos (p. ej. al rellenar el diario por
+ * primera vez) deja varias filas con timestamps casi idénticos, sin
+ * que se hayan visto ese día de verdad. Para que "Volumen diario" no
+ * se pueda inflar así, dos vistos separados por menos de este tiempo
+ * cuentan como uno solo — una peli real dura más que esto.
+ */
+const MIN_GAP_BETWEEN_VISTOS_MS = 20 * 60 * 1000; // 20 minutos
+
+/** Más títulos vistos "de verdad" (ver MIN_GAP_BETWEEN_VISTOS_MS) en un único día. */
 function maxDailyVolume(rows: AchievementWatchedRow[]): number {
-  const counts = new Map<string, number>();
+  const byDay = new Map<string, number[]>();
 
   for (const row of rows) {
-    const key = dateKeyDay(new Date(row.seenAt));
-    counts.set(key, (counts.get(key) ?? 0) + 1);
+    const date = new Date(row.seenAt);
+    const key = dateKeyDay(date);
+    const list = byDay.get(key) ?? [];
+    list.push(date.getTime());
+    byDay.set(key, list);
   }
 
-  return counts.size === 0 ? 0 : Math.max(...counts.values());
+  let max = 0;
+
+  for (const timestamps of byDay.values()) {
+    timestamps.sort((a, b) => a - b);
+
+    let count = 0;
+    let lastCounted: number | null = null;
+
+    for (const t of timestamps) {
+      if (lastCounted === null || t - lastCounted >= MIN_GAP_BETWEEN_VISTOS_MS) {
+        count++;
+        lastCounted = t;
+      }
+    }
+
+    max = Math.max(max, count);
+  }
+
+  return max;
 }
 
 /** Días seguidos (hasta hoy o ayer) con algo visto — igual criterio que Mi Resumen. */

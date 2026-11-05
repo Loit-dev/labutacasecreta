@@ -7,7 +7,7 @@ import {
   diffNewLevels,
   type AchievementsState,
 } from "@/lib/achievements/compute";
-import { BETA_TESTER_CUTOFF_ISO } from "@/lib/achievements/catalog";
+import { BETA_TESTER_CUTOFF_ISO, BETA_TESTER_KEY } from "@/lib/achievements/catalog";
 import {
   fetchAchievementWatchedRows,
   fetchCompatibleFriendsCount,
@@ -27,9 +27,10 @@ export type UnlockedLevel = { key: string; level: number };
 type AchievementsResult = {
   state: AchievementsState | null;
   loading: boolean;
-  /** Niveles detectados como nuevos en ESTA carga, para el toast de desbloqueo. */
+  /** Niveles detectados como nuevos en ESTA carga, para el toast de desbloqueo (incluye "beta_tester" si se acaba de conceder). */
   newlyUnlocked: UnlockedLevel[];
-  betaTesterGranted: boolean;
+  /** Persistente: si la cuenta ya tiene "Beta tester" (de esta carga o de una anterior), no solo de la carga actual. */
+  betaTesterUnlocked: boolean;
   /** Llamar tras consumir newlyUnlocked (mostrado el toast) para no repetirlo. */
   clearNewlyUnlocked: () => void;
   /** Vuelve a calcular ya mismo (p. ej. justo tras valorar algo). */
@@ -47,7 +48,7 @@ export function useAchievements(): AchievementsResult {
   const [state, setState] = useState<AchievementsState | null>(null);
   const [loading, setLoading] = useState(true);
   const [newlyUnlocked, setNewlyUnlocked] = useState<UnlockedLevel[]>([]);
-  const [betaTesterGranted, setBetaTesterGranted] = useState(false);
+  const [betaTesterUnlocked, setBetaTesterUnlocked] = useState(false);
   const userId = session?.user.id;
   const createdAt = session?.user.created_at;
   const cancelledRef = useRef(false);
@@ -97,20 +98,27 @@ export function useAchievements(): AchievementsResult {
       await insertUnlockedLevels(userId, newLevels);
     }
 
+    let betaJustGranted = false;
+
     if (createdAt) {
-      const granted = await grantBetaTesterIfEligible(
+      betaJustGranted = await grantBetaTesterIfEligible(
         userId,
         createdAt,
         BETA_TESTER_CUTOFF_ISO
       );
-
-      if (!cancelledRef.current && granted) setBetaTesterGranted(true);
     }
 
     if (cancelledRef.current) return;
 
+    const betaAlreadyUnlocked = (storedLevels[BETA_TESTER_KEY] ?? 0) > 0;
+
     setState(computed);
-    setNewlyUnlocked((prev) => [...prev, ...newLevels]);
+    setBetaTesterUnlocked(betaAlreadyUnlocked || betaJustGranted);
+    setNewlyUnlocked((prev) => [
+      ...prev,
+      ...newLevels,
+      ...(betaJustGranted ? [{ key: BETA_TESTER_KEY, level: 1 }] : []),
+    ]);
     setLoading(false);
   }, [userId, createdAt]);
 
@@ -128,7 +136,7 @@ export function useAchievements(): AchievementsResult {
     state,
     loading,
     newlyUnlocked,
-    betaTesterGranted,
+    betaTesterUnlocked,
     clearNewlyUnlocked: () => setNewlyUnlocked([]),
     refresh: load,
   };

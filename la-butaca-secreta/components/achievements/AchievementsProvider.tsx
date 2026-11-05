@@ -12,6 +12,8 @@ import UnlockToast from "./UnlockToast";
 type Ctx = {
   state: AchievementsState | null;
   loading: boolean;
+  /** Si la cuenta ya tiene "Beta tester" (persistente, no solo de esta carga). */
+  betaTesterUnlocked: boolean;
   /**
    * Llamar justo después de guardar un "visto" con rating, pasando los
    * géneros del título. Refresca los logros y, si no sale ningún
@@ -28,7 +30,7 @@ export function useAchievementsContext(): Ctx {
 
   if (!ctx) {
     // Fuera del provider (no debería pasar): no rompe la app, solo no hace nada.
-    return { state: null, loading: true, notifyWatchedAction: () => {} };
+    return { state: null, loading: true, betaTesterUnlocked: false, notifyWatchedAction: () => {} };
   }
 
   return ctx;
@@ -60,7 +62,8 @@ function findNearMiss(state: AchievementsState, relevantKeys: string[]): NearMis
 
 export default function AchievementsProvider({ children }: { children: ReactNode }) {
   const { session } = useAuth();
-  const { state, loading, newlyUnlocked, clearNewlyUnlocked, refresh } = useAchievements();
+  const { state, loading, newlyUnlocked, betaTesterUnlocked, clearNewlyUnlocked, refresh } =
+    useAchievements();
   const [nearMiss, setNearMiss] = useState<NearMiss | null>(null);
   // Claves relevantes de una acción reciente a la espera de un
   // `refresh()` ya resuelto, para saber contra qué comprobar el
@@ -88,7 +91,7 @@ export default function AchievementsProvider({ children }: { children: ReactNode
   }, [state]);
 
   return (
-    <AchievementsContext.Provider value={{ state, loading, notifyWatchedAction }}>
+    <AchievementsContext.Provider value={{ state, loading, betaTesterUnlocked, notifyWatchedAction }}>
       {children}
 
       {session && newlyUnlocked.length > 0 && (

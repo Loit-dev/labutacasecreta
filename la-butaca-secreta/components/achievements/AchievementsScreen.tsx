@@ -9,8 +9,8 @@ import {
 } from "@/lib/achievements/catalog";
 import type { AchievementsState } from "@/lib/achievements/compute";
 import AchievementIcon from "./AchievementIcon";
-import Medal, { TIER_STYLE } from "./Medal";
-import SeasonalBanner from "./SeasonalBanner";
+import Medal, { BetaMedal, TIER_STYLE } from "./Medal";
+import SeasonalBanner, { SEASONAL_STYLE } from "./SeasonalBanner";
 
 function FamilyRow({
   family,
@@ -62,10 +62,11 @@ function FamilyRow({
 
 type Props = {
   state: AchievementsState;
+  betaTesterUnlocked: boolean;
 };
 
 /** Pantalla "Tus logros" completa: Generales, Por género y Estacionales. Fiel a LogrosScreen.dc.html. */
-export default function AchievementsScreen({ state }: Props) {
+export default function AchievementsScreen({ state, betaTesterUnlocked }: Props) {
   const generalByKey = new Map(state.general.map((p) => [p.key, p]));
   const generoByKey = new Map(state.genero.map((p) => [p.key, p]));
   const seasonalByKey = new Map(state.seasonal.map((p) => [p.key, p]));
@@ -84,6 +85,18 @@ export default function AchievementsScreen({ state }: Props) {
           />
         </div>
       </div>
+
+      {betaTesterUnlocked && (
+        <div className="flex items-center gap-3 rounded-2xl border border-orange-400/25 bg-orange-400/[0.06] px-3.5 py-3">
+          <BetaMedal size={38} />
+          <div className="min-w-0 flex-1">
+            <div className="text-sm font-semibold text-white">Beta tester</div>
+            <div className="mt-0.5 text-xs text-zinc-400">
+              Gracias por estar desde el principio
+            </div>
+          </div>
+        </div>
+      )}
 
       <SeasonalBanner seasonal={state.seasonal} />
 
@@ -137,9 +150,9 @@ export default function AchievementsScreen({ state }: Props) {
                   style={
                     unlocked
                       ? {
-                          background: "linear-gradient(135deg, #fde68a, #f59e0b)",
-                          borderColor: "rgba(245,158,11,0.55)",
-                          color: "#78350f",
+                          background: SEASONAL_STYLE.background,
+                          borderColor: SEASONAL_STYLE.border,
+                          color: SEASONAL_STYLE.color,
                         }
                       : { background: "#1f1f23", borderColor: "rgba(255,255,255,0.08)", color: "#71717a" }
                   }

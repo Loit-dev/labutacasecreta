@@ -865,3 +865,44 @@ ShareDialog.tsx` (registran el evento de compartir);
 `tmdb_vote_average` para filas antiguas del diario; sin push real
 (service worker/VAPID) si en el futuro se quiere notificar fuera de
 la app con la pestaña cerrada.
+
+## 2026-11 · Logros: ajustes tras el primer uso real
+
+Varios ajustes pedidos tras probar la fase anterior con datos reales:
+
+- **"Beta tester" no se veía nunca**: se concedía bien en la base de
+  datos (`grantBetaTesterIfEligible`), pero no estaba enganchado a
+  ningún sitio de la interfaz — ni en la pantalla de logros, ni en el
+  toast de desbloqueo, que además no sabía representarlo (su
+  `familyByKey` no encuentra "beta_tester", al no ser una familia con
+  niveles). Ahora `useAchievements` expone `betaTesterUnlocked` de
+  forma persistente (no solo "se acaba de conceder en esta carga"),
+  `AchievementsScreen` muestra una tarjeta propia con `BetaMedal`
+  cuando está desbloqueado, y `UnlockToast` distingue el caso especial
+  para mostrar el toast de bienvenida correctamente.
+- **Ya se llegaba a Platino enseguida** en "Géneros vistos" (3/5/8/
+  12/16, con solo 18 géneros posibles — Platino en 12 era trivial) y
+  en "Volumen diario" (3/5/8/12/20, pero además fácil de inflar sin
+  querer: marcar como visto pone `seen_at` a "ahora", así que
+  catalogar de golpe varias películas antiguas en una sola sesión ya
+  daba Plata sin haberlas visto ese día de verdad). Se subieron los
+  umbrales de ambas (Géneros vistos: 6/9/13/16/18; Volumen diario:
+  4/6/10/15/22) y, solo para Volumen diario, se cambió además la
+  propia detección: dos "vistos" separados por menos de 20 minutos
+  cuentan como uno solo (`MIN_GAP_BETWEEN_VISTOS_MS` en
+  `lib/achievements/compute.ts`), así que marcar varios títulos de
+  golpe ya no cuenta como varios vistos el mismo día.
+- **Estacionales con el mismo color que Oro**: el badge de un logro
+  estacional conseguido usaba un degradado ámbar casi idéntico al de
+  Oro (tier 3), pese a no ser un nivel. Ahora usan un color propio
+  (`SEASONAL_STYLE` en `SeasonalBanner.tsx`, verde-turquesa),
+  deliberadamente fuera de la paleta de los 5 niveles y del naranja de
+  Beta tester.
+- **Toasts reposicionados**: `UnlockToast` y `ProgressToast` pasan de
+  `bottom-5` a la parte superior de la pantalla (con margen de zona
+  segura para el notch).
+
+**Dónde**: `hooks/useAchievements.ts`, `components/achievements/
+{AchievementsProvider,AchievementsScreen,UnlockToast,ProgressToast,
+SeasonalBanner}.tsx`, `components/account/AccountScreen.tsx`,
+`lib/achievements/{catalog,compute}.ts`, `tests/achievements.test.ts`.

@@ -4,6 +4,18 @@ import { SEASONAL_ACHIEVEMENTS } from "@/lib/achievements/catalog";
 import type { SeasonalProgress } from "@/lib/achievements/compute";
 import AchievementIcon from "./AchievementIcon";
 
+// Color propio para lo estacional, deliberadamente distinto de los 5
+// de nivel (Bronce/Plata/Oro/Platino/Diamante) y del naranja de Beta
+// tester: un estacional conseguido no es un "nivel", es un evento de
+// tiempo limitado, así que no debía confundirse visualmente con Oro.
+export const SEASONAL_STYLE = {
+  background: "linear-gradient(135deg, #6ee7b7, #0d9488)",
+  border: "rgba(45,212,191,0.55)",
+  color: "#042f2e",
+  shadow: "rgba(45,212,191,0.35)",
+  labelColor: "#2dd4bf",
+};
+
 function daysUntilWindowEnd(endMonth: number, endDay: number, now: Date): number {
   let end = new Date(now.getFullYear(), endMonth - 1, endDay, 23, 59, 59);
 
@@ -36,11 +48,11 @@ export default function SeasonalBanner({ seasonal }: { seasonal: SeasonalProgres
   return (
     <div
       className="flex items-center gap-3 rounded-2xl border px-3.5 py-3"
-      style={{ background: "linear-gradient(135deg, #1a1208, #1c1006)", borderColor: "rgba(245,158,11,0.3)" }}
+      style={{ background: "linear-gradient(135deg, #061e1a, #072420)", borderColor: "rgba(45,212,191,0.3)" }}
     >
       <div
         className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[10px]"
-        style={{ background: "linear-gradient(135deg, #fde68a, #f59e0b)", color: "#78350f" }}
+        style={{ background: SEASONAL_STYLE.background, color: SEASONAL_STYLE.color }}
       >
         <AchievementIcon icon={def.icon} size={18} />
       </div>
@@ -49,7 +61,7 @@ export default function SeasonalBanner({ seasonal }: { seasonal: SeasonalProgres
         <div className="mt-0.5 text-[11px] text-zinc-400">{def.condition}</div>
       </div>
       <div className="flex-shrink-0 text-right">
-        <div className="text-sm font-black text-amber-300">
+        <div className="text-sm font-black" style={{ color: SEASONAL_STYLE.labelColor }}>
           {daysLeft} {daysLeft === 1 ? "día" : "días"}
         </div>
         <div className="text-[9px] text-zinc-500">quedan</div>

@@ -51,9 +51,10 @@ export default function ProgressToast({ nearMiss, onDone }: { nearMiss: NearMiss
 
   return (
     <div
-      className={`fixed inset-x-0 bottom-5 z-50 flex justify-center px-4 transition-opacity duration-200 ${
+      className={`fixed inset-x-0 z-50 flex justify-center px-4 transition-opacity duration-200 ${
         visible ? "opacity-100" : "opacity-0"
       }`}
+      style={{ top: "max(1.25rem, env(safe-area-inset-top))" }}
     >
       <div
         className="flex max-w-sm items-center gap-3 rounded-xl border-l-[3px] border border-white/10 bg-zinc-900/95 px-3.5 py-3 shadow-2xl backdrop-blur"

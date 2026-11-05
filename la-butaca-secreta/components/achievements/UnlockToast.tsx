@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from "react";
 
-import { familyByKey, TIER_NAMES } from "@/lib/achievements/catalog";
+import { BETA_TESTER_KEY, familyByKey, TIER_NAMES } from "@/lib/achievements/catalog";
 import { recordShareEvent } from "@/lib/supabase/achievements";
 import { track } from "@/lib/analytics";
 import { ShareIcon } from "@/components/icons/Icons";
 import { SITE_NAME } from "@/lib/site";
-import Medal from "./Medal";
+import Medal, { BetaMedal } from "./Medal";
 
 type UnlockedLevel = { key: string; level: number };
 
@@ -56,10 +56,11 @@ export default function UnlockToast({ userId, unlocked, onDone }: Props) {
 
   if (!current) return null;
 
-  const family = familyByKey(current.key);
-  if (!family) return null;
+  const isBeta = current.key === BETA_TESTER_KEY;
+  const family = isBeta ? null : familyByKey(current.key);
+  if (!isBeta && !family) return null;
 
-  const rare = current.level >= 4;
+  const rare = !isBeta && current.level >= 4;
 
   async function share() {
     const text = `Acabo de conseguir "${family!.levelNames[current.level - 1]}" (${TIER_NAMES[current.level - 1]}) en ${family!.name} en ${SITE_NAME}.`;
@@ -78,18 +79,27 @@ export default function UnlockToast({ userId, unlocked, onDone }: Props) {
 
   return (
     <div
-      className={`fixed inset-x-0 bottom-5 z-50 flex justify-center px-4 transition-opacity duration-200 ${
+      className={`fixed inset-x-0 z-50 flex justify-center px-4 transition-opacity duration-200 ${
         visible ? "opacity-100" : "opacity-0"
       }`}
+      style={{ top: "max(1.25rem, env(safe-area-inset-top))" }}
     >
       <div className="flex max-w-sm items-center gap-3 rounded-2xl border border-white/10 bg-zinc-900/95 px-4 py-3 shadow-2xl backdrop-blur">
-        <Medal icon={family.icon} tier={current.level as 1 | 2 | 3 | 4 | 5} size={40} />
+        {isBeta ? (
+          <BetaMedal size={40} />
+        ) : (
+          <Medal icon={family!.icon} tier={current.level as 1 | 2 | 3 | 4 | 5} size={40} />
+        )}
         <div className="min-w-0 flex-1">
           <div className="text-[10px] font-bold uppercase tracking-wide text-zinc-400">
-            Logro desbloqueado · {TIER_NAMES[current.level - 1]}
+            {isBeta ? "Logro desbloqueado" : `Logro desbloqueado · ${TIER_NAMES[current.level - 1]}`}
           </div>
-          <div className="text-sm font-bold text-white">{family.levelNames[current.level - 1]}</div>
-          <div className="text-xs text-zinc-500">{family.name}</div>
+          <div className="text-sm font-bold text-white">
+            {isBeta ? "Beta tester" : family!.levelNames[current.level - 1]}
+          </div>
+          <div className="text-xs text-zinc-500">
+            {isBeta ? "Gracias por estar desde el principio" : family!.name}
+          </div>
         </div>
         {rare && (
           <button

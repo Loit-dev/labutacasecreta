@@ -35,7 +35,7 @@ type TabId = (typeof TABS)[number][0];
 /** "Mi cuenta": perfil (Mi Resumen), diario, listas y pendientes, en pestañas. */
 export default function AccountScreen() {
   const [tab, setTab] = useState<TabId>("perfil");
-  const { state: achievementsState } = useAchievementsContext();
+  const { state: achievementsState, betaTesterUnlocked } = useAchievementsContext();
 
   // Permite enlazar directamente a una pestaña (p. ej. desde el
   // perfil público: "Seguir" sin @usuario te manda aquí, a Amigos,
@@ -114,7 +114,7 @@ export default function AccountScreen() {
             <RequireAccount what="Los logros">
               {() =>
                 achievementsState ? (
-                  <AchievementsScreen state={achievementsState} />
+                  <AchievementsScreen state={achievementsState} betaTesterUnlocked={betaTesterUnlocked} />
                 ) : (
                   <p className="text-sm text-zinc-400">Calculando tus logros…</p>
                 )

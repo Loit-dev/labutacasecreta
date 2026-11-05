@@ -72,7 +72,12 @@ export const GENERAL_FAMILIES: AchievementFamily[] = [
     name: "Volumen diario",
     metric: "títulos vistos en un mismo día",
     icon: "clapper",
-    thresholds: [3, 5, 8, 12, 20],
+    // Umbrales subidos (antes 3/5/8/12/20) junto con el cambio en
+    // lib/achievements/compute.ts que ya no cuenta como vistos
+    // distintos los marcados de golpe con menos de 20 min entre sí
+    // (ver maxDailyVolume) — antes, catalogar 5 títulos antiguos de
+    // una sentada ya daba Plata, sin haberlos visto ese día de verdad.
+    thresholds: [4, 6, 10, 15, 22],
     levelNames: [
       "Tarde de sofá",
       "Maratonista",
@@ -162,7 +167,10 @@ export const GENERAL_FAMILIES: AchievementFamily[] = [
     name: "Géneros vistos",
     metric: "géneros distintos vistos",
     icon: "compass",
-    thresholds: [3, 5, 8, 12, 16],
+    // Subido (antes 3/5/8/12/16): con 18 géneros en total, Platino
+    // en 12 era demasiado fácil para cualquiera que viera de todo.
+    // Diamante exige los 18 géneros que existen en la app.
+    thresholds: [6, 9, 13, 16, 18],
     levelNames: [
       "Curioso",
       "Explorador",

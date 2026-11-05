@@ -39,12 +39,15 @@ describe("computeAchievements", () => {
 
   test("volumen_diario mira el día con más títulos, no el total", () => {
     const watched = [
-      // Agrupadas cerca del mediodía UTC para que caigan en el mismo
-      // día local sea cual sea la zona horaria de quien ejecute el test.
-      row({ tmdbId: 1, seenAt: "2026-06-01T11:00:00.000Z" }),
-      row({ tmdbId: 2, seenAt: "2026-06-01T12:00:00.000Z" }),
+      // Agrupadas cerca del mediodía UTC, separadas por más de los 20
+      // min mínimos entre vistos, para que cuenten las 4 como
+      // distintas y caigan en el mismo día local sea cual sea la zona
+      // horaria de quien ejecute el test.
+      row({ tmdbId: 1, seenAt: "2026-06-01T09:00:00.000Z" }),
+      row({ tmdbId: 2, seenAt: "2026-06-01T11:00:00.000Z" }),
       row({ tmdbId: 3, seenAt: "2026-06-01T13:00:00.000Z" }),
-      row({ tmdbId: 4, seenAt: "2026-06-03T12:00:00.000Z" }),
+      row({ tmdbId: 4, seenAt: "2026-06-01T15:00:00.000Z" }),
+      row({ tmdbId: 5, seenAt: "2026-06-03T12:00:00.000Z" }),
     ];
 
     const state = computeAchievements({
@@ -58,8 +61,34 @@ describe("computeAchievements", () => {
 
     const volumen = state.general.find((p) => p.key === "volumen_diario");
 
-    assert.equal(volumen?.value, 3);
-    assert.equal(volumen?.level, 1); // umbral Bronce = 3
+    assert.equal(volumen?.value, 4);
+    assert.equal(volumen?.level, 1); // umbral Bronce = 4
+  });
+
+  test("volumen_diario no cuenta como vistos distintos los marcados de golpe (menos de 20 min entre sí)", () => {
+    const watched = Array.from({ length: 10 }, (_, i) =>
+      row({
+        tmdbId: i,
+        // Las 10 filas comparten el mismo día y están separadas solo
+        // unos segundos entre sí — como al catalogar de golpe un
+        // historial antiguo, no al verlas de verdad una tras otra.
+        seenAt: new Date(Date.UTC(2026, 5, 1, 12, 0, i * 5)).toISOString(),
+      })
+    );
+
+    const state = computeAchievements({
+      watched,
+      friendsCount: 0,
+      compatibleFriendsCount: 0,
+      listsCount: 0,
+      recommendationsSentCount: 0,
+      shareEventsCount: 0,
+    });
+
+    const volumen = state.general.find((p) => p.key === "volumen_diario");
+
+    assert.equal(volumen?.value, 1);
+    assert.equal(volumen?.level, 0); // no llega ni a Bronce (4)
   });
 
   test("racha cuenta días consecutivos hasta hoy", () => {
