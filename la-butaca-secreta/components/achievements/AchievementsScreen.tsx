@@ -97,7 +97,7 @@ export default function AchievementsScreen({ state, betaTesterUnlocked }: Props)
         <div className="flex items-center gap-3 rounded-2xl border border-orange-400/25 bg-orange-400/[0.06] px-3.5 py-3">
           <BetaMedal size={38} />
           <div className="min-w-0 flex-1">
-            <div className="text-sm font-semibold text-white">Beta tester</div>
+            <div className="text-sm font-bold text-white">Beta tester</div>
             <div className="mt-0.5 text-xs text-zinc-400">
               Gracias por estar desde el principio
             </div>
@@ -167,7 +167,9 @@ export default function AchievementsScreen({ state, betaTesterUnlocked }: Props)
                   <AchievementIcon icon={s.icon} size={18} />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className={unlocked ? "text-sm font-semibold text-white" : "text-sm font-semibold text-zinc-400"}>
+                  <div
+                    className={unlocked ? "text-sm font-bold text-white" : "text-sm font-semibold text-zinc-400"}
+                  >
                     {s.name}
                   </div>
                   <div className="mt-0.5 text-xs text-zinc-500">
