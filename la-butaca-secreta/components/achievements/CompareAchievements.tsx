@@ -102,10 +102,12 @@ export default function CompareAchievements({ theirUserId, theirName }: Props) {
       <button
         type="button"
         onClick={handleOpen}
-        className="flex w-full items-center justify-between text-sm font-bold text-amber-300"
+        className="group flex w-full items-center justify-between text-sm font-bold text-amber-300"
       >
         Comparar logros
-        <span className="text-xs text-zinc-500">{open ? "ocultar" : "ver"}</span>
+        <span className="text-xs text-zinc-500 transition-colors group-hover:text-white">
+          {open ? "ocultar" : "ver"}
+        </span>
       </button>
 
       {open && (
