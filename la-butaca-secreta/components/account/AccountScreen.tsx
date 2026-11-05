@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type TouchEvent } from "react";
 import Link from "next/link";
 
 import {
@@ -33,10 +33,18 @@ const TABS = [
 
 type TabId = (typeof TABS)[number][0] | "logros";
 
+// Deslizar con el dedo para cambiar de pestaña (izquierda → siguiente,
+// derecha → anterior), igual que el resto de carruseles de la web.
+// Umbral algo más alto que en esos carruseles porque aquí dentro
+// suele haber listas largas que se recorren verticalmente.
+const MIN_SWIPE_DISTANCE = 70;
+
 /** "Mi cuenta": perfil (Mi Resumen), diario, listas y pendientes, en pestañas. */
 export default function AccountScreen() {
   const [tab, setTab] = useState<TabId>("perfil");
   const { state: achievementsState, betaTesterUnlocked } = useAchievementsContext();
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
   // Permite enlazar directamente a una pestaña (p. ej. desde el
   // perfil público: "Seguir" sin @usuario te manda aquí, a Amigos,
@@ -49,6 +57,32 @@ export default function AccountScreen() {
       setTab(requested as TabId);
     }
   }, []);
+
+  function handleTouchStart(event: TouchEvent) {
+    setTouchEnd(null);
+    setTouchStart(event.targetTouches[0].clientX);
+  }
+
+  function handleTouchMove(event: TouchEvent) {
+    setTouchEnd(event.targetTouches[0].clientX);
+  }
+
+  function handleTouchEnd() {
+    if (touchStart === null || touchEnd === null) return;
+
+    const distance = touchStart - touchEnd;
+
+    // "Logros" no está en la barra de pestañas (solo se llega por
+    // enlace), así que ahí deslizar no hace nada.
+    const index = TABS.findIndex(([id]) => id === tab);
+    if (index === -1) return;
+
+    if (distance > MIN_SWIPE_DISTANCE && index < TABS.length - 1) {
+      setTab(TABS[index + 1][0]);
+    } else if (distance < -MIN_SWIPE_DISTANCE && index > 0) {
+      setTab(TABS[index - 1][0]);
+    }
+  }
 
   return (
     <div>
@@ -80,7 +114,12 @@ export default function AccountScreen() {
         })}
       </div>
 
-      <div className="flex flex-col gap-5 px-5 py-6 md:px-8 md:py-10">
+      <div
+        className="flex flex-col gap-5 px-5 py-6 md:px-8 md:py-10"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
         <Link
           href="/"
           className="marquee-font inline-block text-sm text-zinc-300 underline underline-offset-2 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
