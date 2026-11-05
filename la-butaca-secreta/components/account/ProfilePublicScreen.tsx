@@ -119,6 +119,19 @@ export default function ProfilePublicScreen({ viewerId, profile }: Props) {
     router.push("/mi-cuenta?tab=amigos");
   }
 
+  // Este perfil se llega desde sitios muy distintos (buscador,
+  // amigos, seguidores, un enlace compartido...), así que "atrás" es
+  // lo más fiable. Si se abrió directo (sin historial propio, p. ej.
+  // un enlace pegado en el navegador), no hay a dónde volver: se va
+  // al inicio en su lugar.
+  function goBack() {
+    if (window.history.length > 1) {
+      router.back();
+    } else {
+      router.push("/");
+    }
+  }
+
   async function handleFollow() {
     if (viewerProfileLoading) return;
 
@@ -198,6 +211,14 @@ export default function ProfilePublicScreen({ viewerId, profile }: Props) {
 
   return (
     <div className="mx-auto flex max-w-md flex-col gap-6">
+      <button
+        type="button"
+        onClick={goBack}
+        className="marquee-font self-start text-sm text-zinc-300 underline underline-offset-2 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+      >
+        ← Volver
+      </button>
+
       <div className="flex flex-col items-center gap-2 text-center">
         <div className="flex h-[72px] w-[72px] items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-sky-500 text-2xl font-extrabold text-black">
           {name.slice(0, 2).toUpperCase()}
