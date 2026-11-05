@@ -5,7 +5,6 @@ import Link from "next/link";
 
 import {
   AccountIcon,
-  AchievementsIcon,
   DiaryIcon,
   FriendsIcon,
   ListsIcon,
@@ -21,16 +20,18 @@ import ListsTab from "./ListsTab";
 import PendingTab from "./PendingTab";
 import RequireAccount from "./RequireAccount";
 
+// "Logros" no tiene pestaña propia a propósito: solo se llega desde
+// el enlace "Ver todos" del perfil (Mi Resumen → ProfileAchievementsRow),
+// no desde esta barra.
 const TABS = [
   ["perfil", AccountIcon, "Perfil"],
   ["diario", DiaryIcon, "Diario"],
   ["listas", ListsIcon, "Listas"],
   ["pendientes", PendingIcon, "Pendientes"],
   ["amigos", FriendsIcon, "Amigos"],
-  ["logros", AchievementsIcon, "Logros"],
 ] as const;
 
-type TabId = (typeof TABS)[number][0];
+type TabId = (typeof TABS)[number][0] | "logros";
 
 /** "Mi cuenta": perfil (Mi Resumen), diario, listas y pendientes, en pestañas. */
 export default function AccountScreen() {
@@ -44,7 +45,7 @@ export default function AccountScreen() {
   useEffect(() => {
     const requested = new URLSearchParams(window.location.search).get("tab");
 
-    if (requested && TABS.some(([id]) => id === requested)) {
+    if (requested && (TABS.some(([id]) => id === requested) || requested === "logros")) {
       setTab(requested as TabId);
     }
   }, []);

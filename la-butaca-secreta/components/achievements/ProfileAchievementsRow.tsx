@@ -1,6 +1,6 @@
 "use client";
 
-import { ALL_FAMILIES, SEASONAL_ACHIEVEMENTS, familyByKey } from "@/lib/achievements/catalog";
+import { familyByKey } from "@/lib/achievements/catalog";
 import type { AchievementsState } from "@/lib/achievements/compute";
 import Medal from "./Medal";
 
@@ -22,12 +22,6 @@ export default function ProfileAchievementsRow({ state, onOpenFull }: Props) {
   const lockedPool = all.filter((p) => p.level === 0);
   const showcase = [...unlocked, ...lockedPool.slice(0, SHOWCASE_SIZE - unlocked.length)];
 
-  const totalUnlockedCount =
-    state.general.filter((p) => p.level > 0).length +
-    state.genero.filter((p) => p.level > 0).length +
-    state.seasonal.filter((p) => p.unlocked).length;
-  const total = ALL_FAMILIES.length + SEASONAL_ACHIEVEMENTS.length;
-
   return (
     <div>
       <div className="mb-2.5 flex items-center justify-between">
@@ -35,9 +29,9 @@ export default function ProfileAchievementsRow({ state, onOpenFull }: Props) {
         <button
           type="button"
           onClick={onOpenFull}
-          className="text-xs font-semibold text-amber-300 underline underline-offset-2"
+          className="text-xs font-semibold text-zinc-300 transition-colors hover:text-white"
         >
-          Ver todos · {totalUnlockedCount}/{total}
+          Ver todos
         </button>
       </div>
       <div className="flex justify-between">
