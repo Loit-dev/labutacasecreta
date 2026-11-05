@@ -381,28 +381,35 @@ export default function RatingPrompt({
             </p>
 
             <div
-              className="flex min-h-40 items-center justify-center overflow-hidden rounded-2xl bg-black"
+              className="relative h-24 w-full overflow-hidden rounded-2xl bg-black"
               aria-live="polite"
             >
               {imageState.status === "loading" && (
-                <p className="px-4 text-center text-sm text-zinc-300">
+                <p className="flex h-full items-center justify-center px-4 text-center text-sm text-zinc-300">
                   Preparando tu imagen…
                 </p>
               )}
 
               {imageState.status === "error" && (
-                <p role="alert" className="px-4 text-center text-sm text-red-300">
+                <p
+                  role="alert"
+                  className="flex h-full items-center justify-center px-4 text-center text-sm text-red-300"
+                >
                   No he podido crear la imagen. Inténtalo de nuevo en unos
                   segundos.
                 </p>
               )}
 
               {imageState.status === "ready" && (
+                // Vista previa recortada a propósito (arriba y abajo): la
+                // imagen real es vertical (9:16) y completa, solo esta
+                // miniatura se enseña como una franja ancha para que el
+                // diálogo entero quepa sin scroll, sobre todo en móvil.
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={imageState.url}
                   alt={`Imagen de que has visto ${title}`}
-                  className="max-h-[42dvh] w-auto max-w-full"
+                  className="h-full w-full object-cover"
                 />
               )}
             </div>
