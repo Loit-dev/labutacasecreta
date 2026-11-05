@@ -31,7 +31,7 @@ type Props = {
 export default function TitleActions({ type, title }: Props) {
   const watchlist = useWatchlist();
   const { session } = useAuth();
-  const { notifyWatchedAction } = useAchievementsContext();
+  const { notifyWatchedAction, notifyListAction } = useAchievementsContext();
   const { profile } = useProfile(session?.user.id ?? "");
 
   const [showRating, setShowRating] = useState(false);
@@ -62,6 +62,8 @@ export default function TitleActions({ type, title }: Props) {
       id: title.id,
       source: "title_page",
     });
+
+    if (added) notifyListAction(["guardadas"]);
   };
 
   const openRating = () => {

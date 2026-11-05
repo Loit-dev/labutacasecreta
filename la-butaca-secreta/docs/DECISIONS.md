@@ -964,3 +964,40 @@ botones de compartir — un paso extra no deseado en cada valoración.
 `components/recommendations/{QuickPicks,Recommendations}.tsx`,
 `components/account/DiaryTab.tsx`,
 `components/account/ShareCompatibilityDialog.tsx` (solo comentario).
+
+## 2026-11 · Logros: "Guardadas" y "No me apetece"
+
+Dos familias generales nuevas (35 en total, antes 33):
+
+- **"Guardadas"**: tamaño actual de "Mi lista" (`lib/watchlist.ts`).
+  Umbrales 5/15/30/55/100 — Diamante coincide a propósito con
+  `MAX_SAVED` (el máximo de la lista), así que es alcanzable del
+  todo.
+- **"No me apetece"**: nº actual de títulos descartados
+  (`lib/rejected.ts`). Umbrales 5/15/40/100/250, mismo patrón que
+  "Valoraciones bajas".
+
+Ambas miden datos que viven solo en el navegador (localStorage), no
+en Supabase, así que `computeAchievements()` los recibe ya contados
+(`savedCount`/`discardedCount`, opcionales, 0 por defecto) en vez de
+calcularlos a partir de `watched` — `hooks/useAchievements.ts` los lee
+con `readList().length` / `countRejected()` en cada carga. Como es el
+tamaño ACTUAL de la lista, no un contador acumulado, quitar un título
+guardado o descartado puede bajar el nivel — mismo criterio que el
+resto del sistema (nunca se lee un histórico aparte, ver `levelFor()`
+en `compute.ts`).
+
+Para que el progreso se note sin esperar a la siguiente carga de
+página, `AchievementsProvider` expone ahora `notifyListAction(keys)`
+(versión genérica de `notifyWatchedAction`, que pasa a ser un caso
+particular de esta): se llama justo después de guardar algo en "Mi
+lista" o de marcar "No me apetece", desde los sitios donde eso puede
+pasar (ficha de título, Butaca Exprés, recomendaciones normales y
+compartidas, y "Añadir a pendientes" desde una notificación).
+
+**Dónde**: `lib/achievements/catalog.ts`, `lib/achievements/compute.ts`,
+`hooks/useAchievements.ts`, `components/achievements/AchievementsProvider.tsx`,
+`components/title/TitleActions.tsx`,
+`components/recommendations/{QuickPicks,Recommendations,SharedRecommendations}.tsx`,
+`components/account/NotificacionesDialog.tsx`, `tests/achievements.test.ts`,
+`docs/DATABASE.md`.

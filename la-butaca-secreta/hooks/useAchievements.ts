@@ -20,6 +20,8 @@ import {
 } from "@/lib/supabase/achievements";
 import { fetchSocialCounts } from "@/lib/supabase/socialCounts";
 import { fetchWatchedHistory } from "@/lib/supabase/summary";
+import { countRejected } from "@/lib/rejected";
+import { readList } from "@/lib/watchlist";
 import { useAuth } from "./useAuth";
 
 export type UnlockedLevel = { key: string; level: number };
@@ -90,6 +92,11 @@ export function useAchievements(): AchievementsResult {
       listsCount,
       recommendationsSentCount,
       shareEventsCount,
+      // "Mi lista" y "No me apetece" son locales al navegador (no
+      // Supabase), así que se leen directamente aquí en vez de venir
+      // de los fetch de arriba (ver lib/watchlist.ts, lib/rejected.ts).
+      savedCount: readList().length,
+      discardedCount: countRejected(),
     });
 
     const newLevels = diffNewLevels(computed, storedLevels);

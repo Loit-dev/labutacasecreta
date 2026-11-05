@@ -135,7 +135,7 @@ export default function QuickPicks() {
   );
 
   const { session } = useAuth();
-  const { notifyWatchedAction } = useAchievementsContext();
+  const { notifyWatchedAction, notifyListAction } = useAchievementsContext();
   const { profile: accountProfile } = useProfile(session?.user.id ?? "");
 
   // En el móvil se ve una tarjeta cada vez, como en el cuestionario
@@ -267,6 +267,8 @@ export default function QuickPicks() {
       role: movie.role,
       source: "today",
     });
+
+    if (added) notifyListAction(["guardadas"]);
   };
 
   // Igual que en el cuestionario completo: "Ya la vi" la excluye para
@@ -433,6 +435,7 @@ export default function QuickPicks() {
       rating: movie.rating || undefined,
       poster: movie.poster,
     });
+    notifyListAction(["no_me_apetece"]);
     replaceItem(movie);
   };
 

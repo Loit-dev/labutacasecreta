@@ -233,12 +233,15 @@ export default function PrivacyPage() {
         <p>
           Si tienes cuenta, calculamos en tu propio navegador qué
           logros tienes (a partir de tu diario, tus listas, tus
-          amigos y cuántas veces has compartido) y guardamos
-          ligado a tu cuenta solo el nivel que alcanzas de cada
-          uno y la fecha en que lo alcanzaste. No guardamos
-          ningún dato adicional para calcularlos: usamos lo que
-          ya guardábamos de ti por las funciones descritas
-          arriba.
+          amigos, cuántas veces has compartido, y cuántos títulos
+          tienes guardados o descartados con «No me apetece» en
+          este dispositivo) y guardamos ligado a tu cuenta solo
+          el nivel que alcanzas de cada uno y la fecha en que lo
+          alcanzaste. No guardamos ningún dato adicional para
+          calcularlos: usamos lo que ya guardábamos de ti por las
+          funciones descritas arriba, incluido lo que solo se
+          guarda en tu navegador (sin enviarse a nuestros
+          servidores), como «Mi lista» o «No me apetece».
         </p>
 
         <p>

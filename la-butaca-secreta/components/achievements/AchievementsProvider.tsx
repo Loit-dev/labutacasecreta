@@ -21,6 +21,13 @@ type Ctx = {
    * en Valoraciones), muestra el aviso de progreso.
    */
   notifyWatchedAction: (genres: string[]) => void;
+  /**
+   * Versión genérica de notifyWatchedAction para acciones que no son
+   * "ya la vi": guardar en "Mi lista" o descartar con "No me apetece".
+   * Refresca los logros y comprueba el casi-logro solo contra las
+   * claves indicadas (p. ej. ["guardadas"]).
+   */
+  notifyListAction: (relevantKeys: string[]) => void;
 };
 
 const AchievementsContext = createContext<Ctx | null>(null);
@@ -30,7 +37,13 @@ export function useAchievementsContext(): Ctx {
 
   if (!ctx) {
     // Fuera del provider (no debería pasar): no rompe la app, solo no hace nada.
-    return { state: null, loading: true, betaTesterUnlocked: false, notifyWatchedAction: () => {} };
+    return {
+      state: null,
+      loading: true,
+      betaTesterUnlocked: false,
+      notifyWatchedAction: () => {},
+      notifyListAction: () => {},
+    };
   }
 
   return ctx;
@@ -70,10 +83,14 @@ export default function AchievementsProvider({ children }: { children: ReactNode
   // casi-logro cuando el nuevo `state` llegue.
   const pendingKeysRef = useRef<string[] | null>(null);
 
+  function notifyListAction(relevantKeys: string[]) {
+    pendingKeysRef.current = relevantKeys;
+    refresh();
+  }
+
   function notifyWatchedAction(genres: string[]) {
     const genreKeys = genres.map((g) => `genero_${g.toLowerCase().replace(/[^a-z]/g, "")}`);
-    pendingKeysRef.current = [...genreKeys, "valoraciones", "racha", "volumen_diario"];
-    refresh();
+    notifyListAction([...genreKeys, "valoraciones", "racha", "volumen_diario"]);
   }
 
   useEffect(() => {
@@ -91,7 +108,9 @@ export default function AchievementsProvider({ children }: { children: ReactNode
   }, [state]);
 
   return (
-    <AchievementsContext.Provider value={{ state, loading, betaTesterUnlocked, notifyWatchedAction }}>
+    <AchievementsContext.Provider
+      value={{ state, loading, betaTesterUnlocked, notifyWatchedAction, notifyListAction }}
+    >
       {children}
 
       {session && newlyUnlocked.length > 0 && (

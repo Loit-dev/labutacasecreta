@@ -4,7 +4,7 @@
  * que lib/compatibility.ts y lib/summary.ts — así se puede testear sin
  * depender del navegador.
  *
- * 12 familias generales + 18 de género (5 niveles cada una: Bronce,
+ * 14 familias generales + 18 de género (5 niveles cada una: Bronce,
  * Plata, Oro, Platino, Diamante) + 3 estacionales sin nivel + el
  * logro especial "Beta tester" (se concede, no se calcula).
  */
@@ -255,6 +255,42 @@ export const GENERAL_FAMILIES: AchievementFamily[] = [
       "Organizador nato",
       "Archivista",
       "Bibliotecario de butaca",
+    ],
+  },
+  {
+    key: "guardadas",
+    section: "general",
+    name: "Guardadas",
+    metric: "títulos guardados en tu lista ahora mismo",
+    icon: "bookmark",
+    // "Mi lista" es local (localStorage, lib/watchlist.ts) y tiene un
+    // máximo de 100 títulos a la vez (MAX_SAVED): Diamante coincide
+    // con ese máximo a propósito. Como el valor es el tamaño ACTUAL de
+    // la lista (no un contador acumulado), quitar títulos guardados
+    // puede bajar el nivel — mismo criterio que el resto de logros,
+    // que nunca leen un histórico aparte (ver levelFor() en compute.ts).
+    thresholds: [5, 15, 30, 55, 100],
+    levelNames: [
+      "Para más tarde",
+      "Lista que no para",
+      "Coleccionista de pendientes",
+      "Nunca se acaba",
+      "La lista interminable",
+    ],
+  },
+  {
+    key: "no_me_apetece",
+    section: "general",
+    name: "No me apetece",
+    metric: "títulos descartados con «No me apetece»",
+    icon: "ban",
+    thresholds: [5, 15, 40, 100, 250],
+    levelNames: [
+      "No es no",
+      "Selectivo",
+      "Criterio claro",
+      "Filtro de hierro",
+      "Nada pasa el filtro",
     ],
   },
 ];

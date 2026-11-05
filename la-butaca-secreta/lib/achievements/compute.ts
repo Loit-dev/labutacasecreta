@@ -57,6 +57,10 @@ export type AchievementsInput = {
   listsCount: number;
   recommendationsSentCount: number;
   shareEventsCount: number;
+  /** Tamaño actual de "Mi lista" (lib/watchlist.ts, local al navegador). */
+  savedCount?: number;
+  /** Nº actual de "No me apetece" guardados (lib/rejected.ts, local al navegador). */
+  discardedCount?: number;
   now?: Date;
 };
 
@@ -181,7 +185,7 @@ export type AchievementsState = {
   general: AchievementProgress[];
   genero: AchievementProgress[];
   seasonal: SeasonalProgress[];
-  /** Total de familias con algún nivel conseguido (para el "X de 33"). */
+  /** Total de familias con algún nivel conseguido (para el "X de 35"). */
   startedCount: number;
   totalFamilies: number;
 };
@@ -224,6 +228,8 @@ export function computeAchievements(input: AchievementsInput): AchievementsState
     compartir: input.shareEventsCount,
     recomendaciones: input.recommendationsSentCount,
     listas_creadas: input.listsCount,
+    guardadas: input.savedCount ?? 0,
+    no_me_apetece: input.discardedCount ?? 0,
   };
 
   const general: AchievementProgress[] = GENERAL_FAMILIES.map((f) => {

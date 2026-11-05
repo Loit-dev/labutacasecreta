@@ -232,12 +232,21 @@ repetir el mismo `exists (select …)` en cada tabla.
 ## Logros (`supabase/achievements.sql`)
 
 Fase posterior a Amigos (ver `DECISIONS.md`, "2026-11 · Logros").
-33 familias de logros con 5 niveles cada una (12 generales + 18 de
+35 familias de logros con 5 niveles cada una (14 generales + 18 de
 género) más 3 estacionales y "Beta tester" sin niveles (conseguido o
 no). La detección es perezosa: se recalcula en el cliente al entrar
 en la app o justo tras una acción relevante (nunca en segundo plano
 ni por cron), comparando contra lo ya guardado e insertando solo los
 niveles nuevos.
+
+Dos de las familias generales ("Guardadas" y "No me apetece") miden
+datos que viven solo en el navegador (`lib/watchlist.ts`,
+`lib/rejected.ts`; localStorage, no Supabase), no en esta tabla —
+`computeAchievements()` las recibe ya contadas (`savedCount`,
+`discardedCount`) desde `hooks/useAchievements.ts`. Como es el tamaño
+ACTUAL de cada lista (no un contador acumulado), quitar títulos
+guardados o descartados puede bajar el nivel, igual que el resto de
+logros (nunca se lee un histórico aparte).
 
 ### `user_achievements`
 

@@ -28,7 +28,7 @@ type Props = {
 
 export default function NotificacionesDialog({ userId, onClose }: Props) {
   const dialogRef = useDialog<HTMLDivElement>(onClose);
-  const { state: achievementsState } = useAchievementsContext();
+  const { state: achievementsState, notifyListAction } = useAchievementsContext();
   const [items, setItems] = useState<NotificationItem[] | null>(null);
   const [nudge, setNudge] = useState<AchievementNudge | null>(null);
 
@@ -71,6 +71,7 @@ export default function NotificacionesDialog({ userId, onClose }: Props) {
       poster: item.posterUrl ?? undefined,
       platforms: [],
     });
+    notifyListAction(["guardadas"]);
     const ok = await dismissRecommendation(item.id);
     if (ok) removeItem((i) => i.kind === "recommendation" && i.id === item.id);
   }

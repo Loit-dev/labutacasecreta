@@ -12,6 +12,7 @@ import DetailsModal from "./DetailsModal";
 import RecommendationCard from "./RecommendationCard";
 import { badgeFor } from "./badges";
 
+import { useAchievementsContext } from "@/components/achievements/AchievementsProvider";
 import { useWatchlist } from "@/hooks/useWatchlist";
 import { track } from "@/lib/analytics";
 import type { Recommendation } from "@/lib/tmdb/mapper";
@@ -35,6 +36,7 @@ export default function SharedRecommendations({
   type,
 }: Props) {
   const watchlist = useWatchlist();
+  const { notifyListAction } = useAchievementsContext();
 
   const [detailsId, setDetailsId] = useState<number | null>(null);
 
@@ -98,6 +100,8 @@ export default function SharedRecommendations({
       id: movie.id,
       role: movie.role,
     });
+
+    if (added) notifyListAction(["guardadas"]);
   };
 
   const renderCard = (

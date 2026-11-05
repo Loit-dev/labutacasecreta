@@ -286,4 +286,54 @@ describe("diffNewLevels", () => {
 
     assert.equal(diffs.length, 0);
   });
+
+  test("guardadas usa el tamaño actual de «Mi lista»", () => {
+    const state = computeAchievements({
+      watched: [],
+      friendsCount: 0,
+      compatibleFriendsCount: 0,
+      listsCount: 0,
+      recommendationsSentCount: 0,
+      shareEventsCount: 0,
+      savedCount: 15,
+    });
+
+    const guardadas = state.general.find((p) => p.key === "guardadas");
+
+    assert.equal(guardadas?.value, 15);
+    assert.equal(guardadas?.level, 2);
+    assert.equal(guardadas?.nextThreshold, 30);
+  });
+
+  test("no_me_apetece usa el nº de descartados actual", () => {
+    const state = computeAchievements({
+      watched: [],
+      friendsCount: 0,
+      compatibleFriendsCount: 0,
+      listsCount: 0,
+      recommendationsSentCount: 0,
+      shareEventsCount: 0,
+      discardedCount: 42,
+    });
+
+    const noMeApetece = state.general.find((p) => p.key === "no_me_apetece");
+
+    assert.equal(noMeApetece?.value, 42);
+    assert.equal(noMeApetece?.level, 3);
+    assert.equal(noMeApetece?.nextThreshold, 100);
+  });
+
+  test("guardadas y no_me_apetece en 0 si no se pasan (p. ej. sin sesión)", () => {
+    const state = computeAchievements({
+      watched: [],
+      friendsCount: 0,
+      compatibleFriendsCount: 0,
+      listsCount: 0,
+      recommendationsSentCount: 0,
+      shareEventsCount: 0,
+    });
+
+    assert.equal(state.general.find((p) => p.key === "guardadas")?.value, 0);
+    assert.equal(state.general.find((p) => p.key === "no_me_apetece")?.value, 0);
+  });
 });

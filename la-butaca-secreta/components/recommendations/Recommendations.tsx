@@ -73,7 +73,7 @@ export default function Recommendations({
   >(null);
 
   const { session } = useAuth();
-  const { notifyWatchedAction } = useAchievementsContext();
+  const { notifyWatchedAction, notifyListAction } = useAchievementsContext();
   const { profile: accountProfile } = useProfile(session?.user.id ?? "");
 
   const [touchStart, setTouchStart] = useState<
@@ -120,6 +120,8 @@ export default function Recommendations({
         ? `«${movie.title}» guardada en tu lista.`
         : `«${movie.title}» quitada de tu lista.`
     );
+
+    if (added) notifyListAction(["guardadas"]);
   };
 
   const sectionRef = useRef<HTMLElement>(null);
@@ -370,6 +372,7 @@ export default function Recommendations({
         onSeen={() => setRatingFor(movie)}
         onReject={() => {
           reject(movie);
+          notifyListAction(["no_me_apetece"]);
           removed(movie.title);
         }}
       />

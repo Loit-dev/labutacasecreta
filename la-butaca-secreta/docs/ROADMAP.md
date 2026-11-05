@@ -17,7 +17,7 @@ actualiza según avanza el proyecto.
   mes), Diario (vistas con fecha y nota, editable/borrable), Listas
   (crear varias, añadir/quitar títulos), Pendientes, Amigos
   (seguir, amistad, listas públicas/compartidas, recomendaciones) y
-  Logros (33 familias con niveles, 3 estacionales, Beta tester,
+  Logros (35 familias con niveles, 3 estacionales, Beta tester,
   comparar con amigos, banner de cuenta atrás y progreso visible
   tras valorar)
 - Páginas SEO por género/plataforma, ficha de título y de persona
