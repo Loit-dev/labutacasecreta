@@ -43,7 +43,9 @@ function FamilyRow({
           </div>
         ) : (
           <div className="mt-0.5 text-xs text-zinc-400">
-            {family.levelNames[level - 1]} · {TIER_NAMES[level - 1]} · nivel {level} de 5
+            {family.levelNames[level - 1]} · {TIER_NAMES[level - 1]} · nivel {level} de 5 ·{" "}
+            {value}
+            {nextThreshold ? ` / ${nextThreshold}` : ""}
           </div>
         )}
         <div className="mt-1.5 h-[3px] w-full overflow-hidden rounded-full bg-white/10">
