@@ -8,6 +8,7 @@ import { useDialog } from "@/hooks/useDialog";
 import { track } from "@/lib/analytics";
 import { createFollowInviteCode } from "@/lib/supabase/inviteCodes";
 import { createProfileShareImage } from "@/lib/profileShareImage";
+import { recordShareEvent } from "@/lib/supabase/achievements";
 import { SITE_NAME } from "@/lib/site";
 
 type Props = {
@@ -122,6 +123,7 @@ export default function ShareProfileDialog({ userId, username, onClose }: Props)
       });
 
       track("share_done", { method: "native", screen: "profile" });
+      recordShareEvent(userId, "profile");
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") {
         return;
@@ -148,6 +150,7 @@ export default function ShareProfileDialog({ userId, username, onClose }: Props)
     setMessage("Imagen descargada. Ya puedes enviarla o subirla como story.");
 
     track("share_done", { method: "download", screen: "profile" });
+    recordShareEvent(userId, "profile");
   }
 
   async function handleCopyLink() {
@@ -259,9 +262,10 @@ export default function ShareProfileDialog({ userId, username, onClose }: Props)
               )}`}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={() =>
-                track("share_done", { method: "whatsapp_link", screen: "profile" })
-              }
+              onClick={() => {
+                track("share_done", { method: "whatsapp_link", screen: "profile" });
+                recordShareEvent(userId, "profile");
+              }}
               className="flex items-center justify-center gap-2 rounded-xl bg-[#25D366] px-4 py-3 text-sm font-bold text-black transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
               Enviar enlace por WhatsApp (sin imagen)

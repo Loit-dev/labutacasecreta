@@ -4,6 +4,7 @@ import { Bebas_Neue, Geist, Manrope } from "next/font/google";
 import Analytics from "@/components/layout/Analytics";
 import Footer from "@/components/layout/Footer";
 import SpeedInsights from "@/components/layout/SpeedInsights";
+import AchievementsProvider from "@/components/achievements/AchievementsProvider";
 import {
   SITE_DESCRIPTION,
   SITE_NAME,
@@ -128,7 +129,7 @@ export default function RootLayout({
           }}
         />
 
-        {children}
+        <AchievementsProvider>{children}</AchievementsProvider>
 
         <Footer />
 

@@ -3,6 +3,7 @@
 import { createPortal } from "react-dom";
 import { useEffect, useState } from "react";
 
+import { useAuth } from "@/hooks/useAuth";
 import { useDialog } from "@/hooks/useDialog";
 import { track } from "@/lib/analytics";
 import {
@@ -13,6 +14,7 @@ import {
 } from "@/lib/compatibilityShareImage";
 import { posterSource } from "@/lib/share";
 import { SITE_NAME } from "@/lib/site";
+import { recordShareEvent } from "@/lib/supabase/achievements";
 
 type Props = {
   myUsername: string;
@@ -65,9 +67,14 @@ export default function ShareCompatibilityDialog({
   onClose,
 }: Props) {
   const dialogRef = useDialog<HTMLDivElement>(onClose);
+  const { session } = useAuth();
   const [copied, setCopied] = useState(false);
   const [state, setState] = useState<State>({ status: "loading" });
   const [message, setMessage] = useState("");
+
+  function recordShare() {
+    if (session) recordShareEvent(session.user.id, "compatibility");
+  }
 
   // Este diálogo solo se monta tras una interacción del usuario (nunca
   // durante el renderizado del servidor), así que leer `window` aquí
@@ -150,6 +157,7 @@ export default function ShareCompatibilityDialog({
       });
 
       track("share_done", { method: "native", screen: "compatibility" });
+      recordShare();
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") {
         return;
@@ -176,6 +184,7 @@ export default function ShareCompatibilityDialog({
     setMessage("Imagen descargada. Ya puedes enviarla o subirla como story.");
 
     track("share_done", { method: "download", screen: "compatibility" });
+    recordShare();
   }
 
   async function handleCopyLink() {
@@ -282,9 +291,10 @@ export default function ShareCompatibilityDialog({
           href={`https://wa.me/?text=${encodeURIComponent(shareText)}`}
           target="_blank"
           rel="noopener noreferrer"
-          onClick={() =>
-            track("share_done", { method: "whatsapp_link", screen: "compatibility" })
-          }
+          onClick={() => {
+            track("share_done", { method: "whatsapp_link", screen: "compatibility" });
+            recordShare();
+          }}
           className="flex items-center justify-center gap-2 rounded-xl bg-[#25D366] px-4 py-3 text-sm font-bold text-black transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
           Enviar enlace por WhatsApp (sin imagen)

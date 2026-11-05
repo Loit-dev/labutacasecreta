@@ -22,7 +22,7 @@ Nuestro objetivo es eliminar los 30 minutos que muchas personas pierden buscando
 
 🟢 En producción: **[labutacasecreta.vercel.app](https://labutacasecreta.vercel.app)**
 
-La conversación adaptativa, el modo acompañado/grupo, el calendario de estrenos, la lista de guardados, compartir resultado, la instalación como app y la cuenta opcional (login por correo, diario, listas y resumen personal en "Mi cuenta") ya funcionan en producción. Lo que sigue abierto son mejoras continuas (SEO, rendimiento, cobertura del calendario), no el MVP.
+La conversación adaptativa, el modo acompañado/grupo, el calendario de estrenos, la lista de guardados, compartir resultado, la instalación como app, la cuenta opcional (login por correo, diario, listas y resumen personal en "Mi cuenta"), la capa social de Amigos y un sistema de Logros (33 familias con niveles, comparar con amigos, Beta tester y eventos estacionales) ya funcionan en producción. Lo que sigue abierto son mejoras continuas (SEO, rendimiento, cobertura del calendario), no el MVP.
 
 ---
 
@@ -33,7 +33,7 @@ La conversación adaptativa, el modo acompañado/grupo, el calendario de estreno
 - [TMDb](https://www.themoviedb.org/) para datos de películas/series y disponibilidad por plataforma (Netflix, Prime Video, Disney+, Max, Filmin)
 - [TVmaze](https://www.tvmaze.com/) como segunda fuente para estrenos de series
 - Vercel (hosting, Speed Insights, cron/env)
-- [Supabase](https://supabase.com/) (PostgreSQL + Auth + Row Level Security) para la cuenta opcional: login por enlace mágico, diario, favorita y listas (ver `docs/DATABASE.md`)
+- [Supabase](https://supabase.com/) (PostgreSQL + Auth + Row Level Security) para la cuenta opcional: login por enlace mágico, diario, favorita, listas, Amigos y Logros (ver `docs/DATABASE.md`)
 - Sin IA generativa: el motor de preguntas es una lógica adaptativa propia (ver `docs/CONVERSATION_ENGINE.md`), no un LLM
 
 ## ✅ Calidad

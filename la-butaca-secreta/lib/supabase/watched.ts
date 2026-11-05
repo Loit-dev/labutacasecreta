@@ -19,6 +19,8 @@ type SaveWatchedArgs = {
   posterUrl?: string;
   /** Fecha en la que se vio, en ISO. Por defecto, ahora mismo. */
   seenAt?: string;
+  /** Media de TMDb (0-10) en este momento, para el logro "Nota media". */
+  tmdbVoteAverage?: number;
 };
 
 /**
@@ -36,6 +38,7 @@ export async function saveWatched({
   genres,
   posterUrl,
   seenAt,
+  tmdbVoteAverage,
 }: SaveWatchedArgs) {
   if (!supabase) return;
 
@@ -50,6 +53,7 @@ export async function saveWatched({
         genres: genres ?? [],
         seen_at: seenAt ?? new Date().toISOString(),
         poster_url: posterUrl ?? null,
+        tmdb_vote_average: tmdbVoteAverage ?? null,
       },
       { onConflict: "user_id,tmdb_id,media_type" }
     );

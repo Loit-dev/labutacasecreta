@@ -229,6 +229,78 @@ sigue quien pide) y `can_manage_list(p_list_id, p_user_id)` (dueño o
 colaborador aceptado) — las usan las políticas de abajo para no
 repetir el mismo `exists (select …)` en cada tabla.
 
+## Logros (`supabase/achievements.sql`)
+
+Fase posterior a Amigos (ver `DECISIONS.md`, "2026-11 · Logros").
+33 familias de logros con 5 niveles cada una (12 generales + 18 de
+género) más 3 estacionales y "Beta tester" sin niveles (conseguido o
+no). La detección es perezosa: se recalcula en el cliente al entrar
+en la app o justo tras una acción relevante (nunca en segundo plano
+ni por cron), comparando contra lo ya guardado e insertando solo los
+niveles nuevos.
+
+### `user_achievements`
+
+Una fila = un nivel desbloqueado. El nivel actual de una familia es
+`MAX(level)` agrupado por `achievement_key`.
+
+| Columna            | Tipo        | Notas |
+| ------------------- | ----------- | ----- |
+| `user_id`           | uuid (FK `auth.users`) | PK compuesta |
+| `achievement_key`   | text         | Clave de la familia (`total_visto`, `genero_terror`, `beta_tester`…) |
+| `level`             | smallint     | 1–5; las estacionales y "Beta tester" siempre usan 1 |
+| `unlocked_at`       | timestamptz  |       |
+
+Solo lectura/inserción de lo propio (`auth.uid() = user_id`); sin
+política de `UPDATE` ni `DELETE` — un nivel desbloqueado no se borra.
+
+### `user_share_events`
+
+Cuenta de veces que se ha compartido algo desde cada pantalla, para
+el logro "Compartir" (el evento `share_done` de `lib/analytics.ts`
+ya existía, pero solo va a Vercel Analytics agregado, no por cuenta).
+
+| Columna      | Tipo        | Notas |
+| ------------ | ----------- | ----- |
+| `id`         | uuid (PK)    |       |
+| `user_id`    | uuid (FK `auth.users`) |  |
+| `screen`     | text         | `'profile'` \| `'compatibility'` \| `'summary'` \| `'watched'` |
+| `created_at` | timestamptz  |       |
+
+Solo lectura/inserción de lo propio. No guarda qué se compartió, solo
+desde qué pantalla.
+
+### `watched.tmdb_vote_average`
+
+Columna nueva en la tabla `watched` ya existente: la nota media de
+TMDb (0–10) del título en el momento de marcarlo como visto, para
+poder comparar con la nota propia (logro "Nota media"). Numérica,
+opcional; las filas guardadas antes de este cambio quedan a `null` y
+no cuentan para ese logro concreto — limitación conocida, sin
+backfill.
+
+`lib/supabase/achievements.ts` expone `fetchAchievementWatchedRows`,
+`fetchStoredAchievementLevels`, `insertUnlockedLevels`,
+`recordShareEvent`, `fetchShareEventsCount`,
+`fetchRecommendationsSentCount`, `fetchListsCount`,
+`fetchCompatibleFriendsCount` y `grantBetaTesterIfEligible`. Toda la
+lógica de cálculo (qué nivel corresponde a cada familia) vive en
+`lib/achievements/compute.ts`, sin dependencias de Supabase ni de
+React, para poder testearla con `node --test`
+(`tests/achievements.test.ts`).
+
+### Comparar logros con amigos
+
+No es una tabla nueva: `components/achievements/
+CompareAchievements.tsx` reutiliza los datos de `watched` ya
+legibles vía `follows_me()` (ver más abajo) para calcular el
+progreso de un amigo en el cliente — nunca lee `user_achievements` de
+otra cuenta. Por eso solo se comparan las familias que ya eran
+visibles por la capa social (generales calculables desde `watched`),
+no las que dependen de datos privados de la otra cuenta (listas,
+compartidos, amigos en común): `COMPARABLE_GENERAL_KEYS` en ese mismo
+archivo es la lista exacta.
+
 ## Seguridad (RLS)
 
 Todas las tablas tienen **Row Level Security** activada. Para
@@ -260,6 +332,7 @@ cliente: estas excepciones están en las políticas SQL de
 | Mi cuenta → Pendientes             | `localStorage` (`lib/watchlist.ts`), por dispositivo; espejo de solo lectura en `pending_sync` para quien te sigue |
 | Mi cuenta → Amigos                 | `profiles`, `follows`, `friend_requests`, `recommendations`, `reports`, `invite_codes` |
 | Perfil público (`/u/[username]`)   | `profiles`, `watched`, `favorite`, `pending_sync`, `lists`/`list_items` (públicas) |
+| Mi cuenta → Logros                 | `user_achievements`, `user_share_events`, `watched` (incluida `tmdb_vote_average`), `follows`/`friend_requests` (contadores), `lists`, `recommendations` |
 
 Ver también `docs/PRD.md`, `docs/DECISIONS.md` (o la política de
 privacidad en `/privacidad`) para qué se le cuenta al usuario sobre

@@ -517,3 +517,12 @@ export function CowboyHatIcon({ size = 16, className }: IconProps) {
     </svg>
   );
 }
+
+export function ChristmasTreeIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
+      <path d="M12 3l4 5h-2.5l3.5 5h-3l3 5H6l3-5h-3l3.5-5H7z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M12 18v3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}

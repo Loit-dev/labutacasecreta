@@ -3,6 +3,7 @@
 import { createPortal } from "react-dom";
 import { useEffect, useState } from "react";
 
+import { useAuth } from "@/hooks/useAuth";
 import { useDialog } from "@/hooks/useDialog";
 import { track } from "@/lib/analytics";
 import { todayDateInput } from "@/lib/dateInput";
@@ -10,6 +11,7 @@ import type { Rating } from "@/lib/rating";
 import { posterSource } from "@/lib/share";
 import { createWatchedShareImage, pickSeenVerb } from "@/lib/watchedShareImage";
 import { SITE_NAME } from "@/lib/site";
+import { recordShareEvent } from "@/lib/supabase/achievements";
 
 type Props = {
   type: "movie" | "tv";
@@ -59,9 +61,14 @@ export default function ShareWatchedDialog({
   onClose,
 }: Props) {
   const dialogRef = useDialog<HTMLDivElement>(onClose);
+  const { session } = useAuth();
   const [copied, setCopied] = useState(false);
   const [state, setState] = useState<State>({ status: "loading" });
   const [message, setMessage] = useState("");
+
+  function recordShare() {
+    if (session) recordShareEvent(session.user.id, "watched");
+  }
 
   // Se elige una sola vez al abrir el diálogo (no en cada renderizado),
   // así no cambia solo porque React vuelva a pintar el componente.
@@ -152,6 +159,7 @@ export default function ShareWatchedDialog({
       });
 
       track("share_done", { method: "native", screen: "watched", type });
+      recordShare();
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") {
         return;
@@ -178,6 +186,7 @@ export default function ShareWatchedDialog({
     setMessage("Imagen descargada. Ya puedes enviarla o subirla como story.");
 
     track("share_done", { method: "download", screen: "watched", type });
+    recordShare();
   }
 
   async function handleCopyLink() {
@@ -284,9 +293,10 @@ export default function ShareWatchedDialog({
           href={`https://wa.me/?text=${encodeURIComponent(shareText)}`}
           target="_blank"
           rel="noopener noreferrer"
-          onClick={() =>
-            track("share_done", { method: "whatsapp_link", screen: "watched", type })
-          }
+          onClick={() => {
+            track("share_done", { method: "whatsapp_link", screen: "watched", type });
+            recordShare();
+          }}
           className="flex items-center justify-center gap-2 rounded-xl bg-[#25D366] px-4 py-3 text-sm font-bold text-black transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
           Enviar enlace por WhatsApp (sin imagen)

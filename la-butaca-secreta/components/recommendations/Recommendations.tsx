@@ -31,6 +31,7 @@ import { setRating } from "@/lib/rating";
 import { posterSource, type ShareItem } from "@/lib/share";
 import { saveWatched } from "@/lib/supabase/watched";
 import type { Recommendation } from "@/lib/tmdb/mapper";
+import { useAchievementsContext } from "@/components/achievements/AchievementsProvider";
 
 type Props = {
   profile: UserProfile;
@@ -78,6 +79,7 @@ export default function Recommendations({
   >(null);
 
   const { session } = useAuth();
+  const { notifyWatchedAction } = useAchievementsContext();
   const { profile: accountProfile } = useProfile(session?.user.id ?? "");
 
   const [touchStart, setTouchStart] = useState<
@@ -412,7 +414,9 @@ export default function Recommendations({
         genres: movie.genres,
         posterUrl: movie.poster,
         seenAt: seenAt ? dateInputToISO(seenAt) : undefined,
+        tmdbVoteAverage: movie.rating,
       });
+      notifyWatchedAction(movie.genres);
     }
 
     markSeen(movie);

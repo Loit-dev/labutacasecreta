@@ -14,6 +14,12 @@ import { respondListInvite } from "@/lib/supabase/listInvites";
 import { dismissRecommendation } from "@/lib/supabase/recommendations";
 import { addToList } from "@/lib/watchlist";
 import { markNotificationsSeenNow } from "@/lib/notificationsSeen";
+import { useAchievementsContext } from "@/components/achievements/AchievementsProvider";
+import { pickAchievementNudge, type AchievementNudge } from "@/lib/achievements/nudge";
+import {
+  canShowAchievementNudgeNow,
+  markAchievementNudgeShownNow,
+} from "@/lib/achievementNudgeSeen";
 
 type Props = {
   userId: string;
@@ -22,12 +28,26 @@ type Props = {
 
 export default function NotificacionesDialog({ userId, onClose }: Props) {
   const dialogRef = useDialog<HTMLDivElement>(onClose);
+  const { state: achievementsState } = useAchievementsContext();
   const [items, setItems] = useState<NotificationItem[] | null>(null);
+  const [nudge, setNudge] = useState<AchievementNudge | null>(null);
 
   useEffect(() => {
     fetchNotifications(userId).then(setItems);
     markNotificationsSeenNow();
   }, [userId]);
+
+  useEffect(() => {
+    if (!achievementsState || !canShowAchievementNudgeNow()) return;
+
+    const picked = pickAchievementNudge(achievementsState);
+
+    if (picked) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setNudge(picked);
+      markAchievementNudgeShownNow();
+    }
+  }, [achievementsState]);
 
   function removeItem(predicate: (item: NotificationItem) => boolean) {
     setItems((prev) => (prev ? prev.filter((i) => !predicate(i)) : prev));
@@ -82,11 +102,24 @@ export default function NotificacionesDialog({ userId, onClose }: Props) {
           </button>
         </div>
 
+        {nudge && (
+          <div className="rounded-2xl border border-amber-300/30 bg-amber-300/[0.06] p-3">
+            <p className="text-sm text-white">
+              {nudge.type === "event" &&
+                `Quedan ${nudge.daysLeft} ${nudge.daysLeft === 1 ? "día" : "días"} para conseguir "${nudge.name}".`}
+              {nudge.type === "streak_risk" &&
+                `Tu racha de ${nudge.days} días está en riesgo — valora algo hoy para no perderla.`}
+              {nudge.type === "near" &&
+                `Te falta ${nudge.missing} más para ${nudge.nextTierName} en ${nudge.name}.`}
+            </p>
+          </div>
+        )}
+
         {items === null && (
           <p className="text-center text-sm text-zinc-400">Cargando…</p>
         )}
 
-        {items !== null && items.length === 0 && (
+        {items !== null && items.length === 0 && !nudge && (
           <p
             role="status"
             className="rounded-2xl bg-black/40 px-4 py-10 text-center text-sm text-zinc-300"

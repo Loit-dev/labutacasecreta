@@ -15,7 +15,11 @@ actualiza según avanza el proyecto.
 - Cuenta de usuario opcional (login por enlace mágico, Supabase)
 - "Mi cuenta": Perfil (resumen personal + toque competitivo del
   mes), Diario (vistas con fecha y nota, editable/borrable), Listas
-  (crear varias, añadir/quitar títulos), Pendientes
+  (crear varias, añadir/quitar títulos), Pendientes, Amigos
+  (seguir, amistad, listas públicas/compartidas, recomendaciones) y
+  Logros (33 familias con niveles, 3 estacionales, Beta tester,
+  comparar con amigos, banner de cuenta atrás y progreso visible
+  tras valorar)
 - Páginas SEO por género/plataforma, ficha de título y de persona
   (reparto)
 - Accesibilidad: navegación por teclado, lectores de pantalla,

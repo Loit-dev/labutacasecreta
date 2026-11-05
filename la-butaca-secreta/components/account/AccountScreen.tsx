@@ -5,12 +5,15 @@ import Link from "next/link";
 
 import {
   AccountIcon,
+  AchievementsIcon,
   DiaryIcon,
   FriendsIcon,
   ListsIcon,
   PendingIcon,
 } from "@/components/conversation/TabIcons";
 import MiResumenScreen from "@/components/summary/MiResumenScreen";
+import AchievementsScreen from "@/components/achievements/AchievementsScreen";
+import { useAchievementsContext } from "@/components/achievements/AchievementsProvider";
 
 import DiaryTab from "./DiaryTab";
 import FriendsTab from "./FriendsTab";
@@ -24,6 +27,7 @@ const TABS = [
   ["listas", ListsIcon, "Listas"],
   ["pendientes", PendingIcon, "Pendientes"],
   ["amigos", FriendsIcon, "Amigos"],
+  ["logros", AchievementsIcon, "Logros"],
 ] as const;
 
 type TabId = (typeof TABS)[number][0];
@@ -31,6 +35,7 @@ type TabId = (typeof TABS)[number][0];
 /** "Mi cuenta": perfil (Mi Resumen), diario, listas y pendientes, en pestañas. */
 export default function AccountScreen() {
   const [tab, setTab] = useState<TabId>("perfil");
+  const { state: achievementsState } = useAchievementsContext();
 
   // Permite enlazar directamente a una pestaña (p. ej. desde el
   // perfil público: "Seguir" sin @usuario te manda aquí, a Amigos,
@@ -102,6 +107,18 @@ export default function AccountScreen() {
           {tab === "amigos" && (
             <RequireAccount what="Amigos">
               {(session) => <FriendsTab session={session} />}
+            </RequireAccount>
+          )}
+
+          {tab === "logros" && (
+            <RequireAccount what="Los logros">
+              {() =>
+                achievementsState ? (
+                  <AchievementsScreen state={achievementsState} />
+                ) : (
+                  <p className="text-sm text-zinc-400">Calculando tus logros…</p>
+                )
+              }
             </RequireAccount>
           )}
         </div>

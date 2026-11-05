@@ -780,3 +780,88 @@ AccountScreen,FeedGroupDialog,TitleGridDialog}.tsx`;
 Icons.tsx` (`LockIcon`); `lib/supabase/{feed,notifications}.ts`;
 `app/privacidad/page.tsx`; `app/aviso-legal/page.tsx`;
 `docs/{DATABASE,ARCHITECTURE}.md`.
+
+## 2026-11 · Logros
+
+33 familias de logros (12 generales + 18 de género, con 5 niveles
+cada una) más 3 estacionales (Terrorífico, Navideño, Flechazo) y
+"Beta tester" sin niveles, diseñadas primero como mockup (ver el
+proyecto de Claude, `claude/sistema-logros.md`) y llevadas enteras a
+producción de una vez, junto con cuatro mejoras de engagement
+pedidas a la vez que el diseño: comparar logros con amigos,
+Beta tester, banner de cuenta atrás estacional y progreso visible
+tras valorar un título.
+
+- **Detección perezosa, nunca en segundo plano**: se recalcula al
+  entrar en la app o justo tras valorar/marcar algo, nunca por cron
+  ni en servidor (no existe esa infraestructura en el proyecto). La
+  lógica de qué nivel corresponde a cada familia vive en
+  `lib/achievements/compute.ts`, sin dependencias de React ni
+  Supabase, con tests propios (`tests/achievements.test.ts`) —mismo
+  patrón que `lib/compatibility.ts` y `lib/summary.ts`.
+- **Estacionales con condición doble**: Terrorífico y Flechazo ya
+  combinaban género + ventana de fechas; Navideño se corrigió para
+  exigir también un título navideño conocido (`lib/achievements/
+  christmasTitles.ts`), no cualquier cosa vista en diciembre.
+- **Beta tester**: se concede solo una vez, automáticamente, a quien
+  creó su cuenta antes del 1 de marzo de 2027
+  (`BETA_TESTER_CUTOFF_ISO`). La medalla reutiliza la forma y el
+  tamaño exactos de las medallas de nivel, con el degradado real de
+  la web (no un color arbitrario) y el símbolo β, no la palabra
+  "BETA" — ajuste pedido explícitamente tras ver la primera versión.
+- **Comparar logros con amigos, pensado para no ser invasivo**:
+  colapsado por defecto en el perfil público de un amigo (botón para
+  desplegarlo, no aparece abierto), y limitado a las familias que ya
+  eran legibles por la capa social (`COMPARABLE_GENERAL_KEYS` en
+  `CompareAchievements.tsx`) — nunca lee `user_achievements` de otra
+  cuenta, solo recalcula sobre `watched` ya visible vía
+  `follows_me()`.
+- **"Push" sin infraestructura de push real**: no hay service
+  worker ni claves VAPID en el proyecto, así que el aviso de un
+  logro a punto de conseguirse o de un evento estacional que termina
+  se muestra como un elemento más dentro del buzón de notificaciones
+  ya existente (`NotificacionesDialog.tsx`), con prioridad fija
+  (evento > racha en riesgo > casi un nivel) y un límite de una vez
+  cada ~20h (`lib/achievementNudgeSeen.ts`, en `localStorage`) para
+  que no se note invasivo — requisito explícito al pedir esta
+  mejora.
+- **Desbloqueo siempre por toast, nunca por el aviso anterior**: como
+  la detección es perezosa y en cliente, un logro nunca se "entera"
+  fuera de una sesión activa, así que el desbloqueo en sí siempre se
+  muestra con un toast dentro de la app (`UnlockToast.tsx`), con
+  botón de compartir directo en niveles altos (Platino/Diamante).
+- **Migración en `supabase/achievements.sql`**: dos tablas nuevas
+  (`user_achievements`, `user_share_events`) y una columna nueva en
+  `watched` (`tmdb_vote_average`, para el logro "Nota media"; las
+  filas guardadas antes de este cambio quedan sin ese dato y no
+  cuentan para ese logro concreto). Ejecutada ya contra producción.
+- **Documentación actualizada a la vez que el código**:
+  `/privacidad` gana una sección "Logros"; `docs/DATABASE.md`
+  documenta las tablas nuevas; `docs/ARCHITECTURE.md` añade la
+  pestaña Logros y el proveedor de contexto; `docs/ROADMAP.md` lo
+  mueve a "Hecho".
+
+**Dónde**: `lib/achievements/{catalog,christmasTitles,compute,
+nudge}.ts`; `lib/achievementNudgeSeen.ts`;
+`lib/supabase/achievements.ts`; `hooks/useAchievements.ts`;
+`components/achievements/{AchievementIcon,Medal,AchievementsScreen,
+SeasonalBanner,ProfileAchievementsRow,UnlockToast,ProgressToast,
+AchievementsProvider,CompareAchievements}.tsx`;
+`components/account/AccountScreen.tsx` (pestaña nueva);
+`components/account/NotificacionesDialog.tsx` (aviso);
+`components/account/ProfilePublicScreen.tsx` (comparar);
+`components/summary/MiResumenScreen.tsx` (resumen de 8 insignias);
+`components/title/TitleActions.tsx`,
+`components/recommendations/{Recommendations,QuickPicks}.tsx`
+(disparan la detección al valorar); `components/account/
+ShareProfileDialog.tsx`, `components/account/
+ShareCompatibilityDialog.tsx`, `components/title/
+ShareWatchedDialog.tsx`, `components/recommendations/
+ShareDialog.tsx` (registran el evento de compartir);
+`app/layout.tsx` (proveedor); `supabase/achievements.sql`;
+`app/privacidad/page.tsx`; `docs/{DATABASE,ARCHITECTURE,ROADMAP}.md`.
+
+**Pendiente, deliberadamente fuera de esta fase**: sin backfill de
+`tmdb_vote_average` para filas antiguas del diario; sin push real
+(service worker/VAPID) si en el futuro se quiere notificar fuera de
+la app con la pestaña cerrada.

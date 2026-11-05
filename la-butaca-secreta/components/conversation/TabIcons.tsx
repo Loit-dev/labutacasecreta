@@ -100,3 +100,13 @@ export function FriendsIcon() {
     </svg>
   );
 }
+
+export function AchievementsIcon() {
+  return (
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M7 4h10v6a5 5 0 01-10 0V4z" stroke="#facc15" strokeWidth="1.6" strokeLinejoin="round" />
+      <path d="M7 5H4.5a1 1 0 00-1 1.2c.4 1.8 1.6 3 3.5 3.3M17 5h2.5a1 1 0 011 1.2c-.4 1.8-1.6 3-3.5 3.3" stroke="#facc15" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M12 15v3M9 21h6l-.7-2.3a1 1 0 00-1-.7h-2.6a1 1 0 00-1 .7L9 21z" stroke="#facc15" strokeWidth="1.6" strokeLinejoin="round" />
+    </svg>
+  );
+}

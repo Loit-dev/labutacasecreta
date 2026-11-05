@@ -21,6 +21,9 @@ import {
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import type { Recommendation } from "@/lib/tmdb/mapper";
 
+import { useAchievementsContext } from "@/components/achievements/AchievementsProvider";
+import ProfileAchievementsRow from "@/components/achievements/ProfileAchievementsRow";
+
 import DiscardedDialog from "./DiscardedDialog";
 import FavoriteCard from "./FavoriteCard";
 import FavoritePickerDialog from "./FavoritePickerDialog";
@@ -134,13 +137,15 @@ const GENRE_RANKS = [
 ];
 
 type Props = {
-  // Para que "Totales" lleve a Diario y "Pendientes" a Pendientes
-  // (AccountScreen.tsx es quien controla la pestaña activa).
-  onNavigateTab?: (tab: "diario" | "pendientes") => void;
+  // Para que "Totales" lleve a Diario, "Pendientes" a Pendientes y
+  // "Ver todos" (logros) a Logros (AccountScreen.tsx controla la
+  // pestaña activa).
+  onNavigateTab?: (tab: "diario" | "pendientes" | "logros") => void;
 };
 
 export default function MiResumenScreen({ onNavigateTab }: Props) {
   const { session, loading, available } = useAuth();
+  const { state: achievementsState } = useAchievementsContext();
 
   const [state, setState] = useState<State>({ status: "loading" });
 
@@ -551,6 +556,13 @@ export default function MiResumenScreen({ onNavigateTab }: Props) {
             );
           })}
         </div>
+      )}
+
+      {achievementsState && (
+        <ProfileAchievementsRow
+          state={achievementsState}
+          onOpenFull={() => onNavigateTab?.("logros")}
+        />
       )}
 
       {state.line && (

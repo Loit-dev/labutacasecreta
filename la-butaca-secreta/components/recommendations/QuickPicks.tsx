@@ -31,6 +31,7 @@ import { addRejected } from "@/lib/rejected";
 import { posterSource, type ShareItem, type ShareKind } from "@/lib/share";
 import { addShown, readRecentlyShown } from "@/lib/shown";
 import { saveWatched } from "@/lib/supabase/watched";
+import { useAchievementsContext } from "@/components/achievements/AchievementsProvider";
 import type { Recommendation } from "@/lib/tmdb/mapper";
 import { addSeen, readSeen } from "@/lib/viewed";
 
@@ -140,6 +141,7 @@ export default function QuickPicks() {
   );
 
   const { session } = useAuth();
+  const { notifyWatchedAction } = useAchievementsContext();
   const { profile: accountProfile } = useProfile(session?.user.id ?? "");
 
   // En el móvil se ve una tarjeta cada vez, como en el cuestionario
@@ -414,7 +416,9 @@ export default function QuickPicks() {
         genres: movie.genres,
         posterUrl: movie.poster,
         seenAt: seenAt ? dateInputToISO(seenAt) : undefined,
+        tmdbVoteAverage: movie.rating,
       });
+      notifyWatchedAction(movie.genres);
     }
 
     markSeen(movie);

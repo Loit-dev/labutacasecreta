@@ -21,6 +21,8 @@ import type { ProfileRow } from "@/lib/supabase/profiles";
 import { useRejected } from "@/hooks/useRejected";
 import { LockIcon } from "@/components/icons/Icons";
 
+import CompareAchievements from "@/components/achievements/CompareAchievements";
+
 import ShareProfileDialog from "./ShareProfileDialog";
 import ShareCompatibilityDialog from "./ShareCompatibilityDialog";
 import RecommendDialog from "./RecommendDialog";
@@ -438,6 +440,10 @@ export default function ProfilePublicScreen({ viewerId, profile }: Props) {
             )}
           </div>
         </div>
+      )}
+
+      {!isMe && (
+        <CompareAchievements theirUserId={profile.userId} theirName={profile.displayName ?? profile.username} />
       )}
 
       {stats && (

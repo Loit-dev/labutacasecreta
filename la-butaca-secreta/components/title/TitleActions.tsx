@@ -14,6 +14,7 @@ import { recordAvoid, recordBoost } from "@/lib/genreAffinity";
 import type { Rating } from "@/lib/rating";
 import { readRating, setRating } from "@/lib/rating";
 import { saveWatched } from "@/lib/supabase/watched";
+import { useAchievementsContext } from "@/components/achievements/AchievementsProvider";
 import type { Recommendation } from "@/lib/tmdb/mapper";
 import { addSeen, readSeen } from "@/lib/viewed";
 
@@ -31,6 +32,7 @@ type Props = {
 export default function TitleActions({ type, title }: Props) {
   const watchlist = useWatchlist();
   const { session } = useAuth();
+  const { notifyWatchedAction } = useAchievementsContext();
   const { profile } = useProfile(session?.user.id ?? "");
 
   const [showRating, setShowRating] = useState(false);
@@ -104,7 +106,9 @@ export default function TitleActions({ type, title }: Props) {
         genres: title.genres,
         posterUrl: title.poster,
         seenAt: seenAt ? dateInputToISO(seenAt) : undefined,
+        tmdbVoteAverage: title.rating,
       });
+      notifyWatchedAction(title.genres);
     }
 
     setShareSeenAt(seenAt);

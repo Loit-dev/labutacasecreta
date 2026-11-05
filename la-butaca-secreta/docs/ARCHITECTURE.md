@@ -15,8 +15,9 @@ esquema de datos, `DATABASE.md`; para las rutas internas, `API.md`.
   estrenos de episodios de series (calendario).
 - **Supabase** (PostgreSQL + Auth + Row Level Security) para la parte
   opcional de cuenta: login por enlace mágico, diario, favorita,
-  listas y la capa social opcional de Amigos — @usuario, seguir,
-  amistad, listas públicas/compartidas y recomendaciones (ver
+  listas, la capa social opcional de Amigos — @usuario, seguir,
+  amistad, listas públicas/compartidas y recomendaciones — y los
+  Logros (niveles desbloqueados, eventos de compartir; ver
   `DATABASE.md`).
 - **Sin IA generativa ni LLM**: el motor de preguntas es lógica
   adaptativa propia (`CONVERSATION_ENGINE.md`), y el motor de
@@ -84,14 +85,25 @@ e2e/ y tests/   Playwright (end-to-end) y tests unitarios (node --test).
 `MiResumenScreen` para la pestaña Perfil, y añade Diario
 (`DiaryTab`), Listas (`ListsTab` + `ListDetailDialog` +
 `TitlePickerDialog`), Pendientes (`PendingTab`, que reutiliza
-`useWatchlist`, el mismo hook que "Mi lista") y Amigos (`FriendsTab`:
+`useWatchlist`, el mismo hook que "Mi lista"), Amigos (`FriendsTab`:
 seguir/seguidores/amigos, feed de novedades, buscador, notificaciones
-y "Compartir mi perfil"). `RequireAccount` centraliza los tres
-estados de guarda (login no configurado / cargando / sin sesión)
-para las pestañas que necesitan cuenta. La pestaña se puede enlazar
-directamente con `?tab=<id>` (p. ej. `/mi-cuenta?tab=amigos`, usado
-para mandar a crear el @usuario al intentar seguir a alguien sin
-tenerlo todavía).
+y "Compartir mi perfil") y Logros (`AchievementsScreen`: generales,
+por género y estacionales — ver `components/achievements/`).
+`RequireAccount` centraliza los tres estados de guarda (login no
+configurado / cargando / sin sesión) para las pestañas que necesitan
+cuenta. La pestaña se puede enlazar directamente con `?tab=<id>`
+(p. ej. `/mi-cuenta?tab=amigos`, usado para mandar a crear el
+@usuario al intentar seguir a alguien sin tenerlo todavía, o
+`/mi-cuenta?tab=logros`).
+
+`components/achievements/AchievementsProvider.tsx` envuelve toda la
+app (`app/layout.tsx`) y expone el estado de logros vía contexto: es
+quien dispara el toast de desbloqueo, el snackbar de "casi lo
+tienes" tras valorar un título y, con datos ya calculados, el aviso
+dentro de la campanita de notificaciones (`NotificacionesDialog.tsx`)
+— no hay infraestructura de push real (sin service worker/VAPID), así
+que ese aviso es un elemento más del buzón existente, limitado a uno
+cada ~20h (`lib/achievementNudgeSeen.ts`) para no ser invasivo.
 
 ## Dónde vive cada dato
 
@@ -104,6 +116,8 @@ tenerlo todavía).
 | Afinidad de géneros (qué gusta/no gusta) | `localStorage` (`lib/genreAffinity.ts`) | Por dispositivo |
 | Títulos descartados ("No me apetece")    | `localStorage` (`lib/rejected.ts`) — deliberadamente sin espejo en servidor, para que sea siempre privado | Por dispositivo |
 | @usuario, seguidores, amistades, recomendaciones | Supabase (`profiles`, `follows`, `friend_requests`, `recommendations`, `reports`, `invite_codes`) | Por cuenta, sincronizado |
+| Niveles de logro desbloqueados, eventos de compartir | Supabase (`user_achievements`, `user_share_events`) | Por cuenta, sincronizado |
+| Último aviso de logro mostrado en notificaciones (para el límite de 1 cada ~20h) | `localStorage` (`lib/achievementNudgeSeen.ts`) | Por dispositivo |
 
 Nota: por eso "Mi Resumen"/"Mi cuenta" puede mostrar a la vez datos
 de cuenta (diario) y datos de dispositivo (pendientes, descartadas)

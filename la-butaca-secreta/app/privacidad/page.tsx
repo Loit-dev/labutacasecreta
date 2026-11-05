@@ -123,6 +123,13 @@ export default function PrivacyPage() {
             Tus <strong>listas</strong>: el nombre de cada
             lista que crees y los títulos que añadas a ellas.
           </li>
+          <li>
+            Tus <strong>logros</strong>: qué niveles has
+            desbloqueado y cuándo, y un conteo de desde qué
+            pantalla has pulsado «Compartir» (sin guardar qué
+            compartiste). Más abajo, en «Logros», lo explicamos
+            con más detalle.
+          </li>
         </ul>
 
         <p>
@@ -221,6 +228,47 @@ export default function PrivacyPage() {
       </section>
 
       <section>
+        <h2>Logros</h2>
+
+        <p>
+          Si tienes cuenta, calculamos en tu propio navegador qué
+          logros tienes (a partir de tu diario, tus listas, tus
+          amigos y cuántas veces has compartido) y guardamos
+          ligado a tu cuenta solo el nivel que alcanzas de cada
+          uno y la fecha en que lo alcanzaste. No guardamos
+          ningún dato adicional para calcularlos: usamos lo que
+          ya guardábamos de ti por las funciones descritas
+          arriba.
+        </p>
+
+        <p>
+          El logro «Beta tester» se concede una sola vez, de
+          forma automática, si tu cuenta se creó antes de una
+          fecha límite; no necesitas hacer nada para conseguirlo.
+        </p>
+
+        <p>
+          Si usas «Amigos», puedes comparar tus logros con los de
+          alguien que te siga o a quien sigas: esa comparación se
+          calcula al momento con datos que ya eran visibles entre
+          vosotros (tu diario y el suyo), nunca con los logros ya
+          guardados de la otra persona, y está siempre oculta por
+          defecto — hay que desplegarla a propósito desde su
+          perfil.
+        </p>
+
+        <p>
+          Cuando estás cerca de subir de nivel o se acerca el
+          final de un logro por tiempo limitado, puede aparecer un
+          aviso dentro de tus notificaciones habituales (la
+          campanita): no son avisos push de verdad —no enviamos
+          nada a tu dispositivo cuando no tienes la web abierta—,
+          y como máximo aparece uno nuevo cada 20 horas
+          aproximadamente, para que no resulte invasivo.
+        </p>
+      </section>
+
+      <section>
         <h2>Analítica de uso</h2>
 
         <p>
@@ -291,12 +339,12 @@ export default function PrivacyPage() {
           <li>
             <strong>Supabase</strong> aloja la base de datos y
             el inicio de sesión de quienes crean una cuenta
-            (correo electrónico, diario, favorita y listas, y
-            si usas «Amigos», tu @usuario, a quién sigues o te
-            sigue, tus amistades, tus listas públicas y las
-            recomendaciones que envíes o recibas, todo
-            descrito arriba). Solo se usa si decides crear una
-            cuenta.
+            (correo electrónico, diario, favorita, listas y
+            logros, y si usas «Amigos», tu @usuario, a quién
+            sigues o te sigue, tus amistades, tus listas
+            públicas y las recomendaciones que envíes o
+            recibas, todo descrito arriba). Solo se usa si
+            decides crear una cuenta.
           </li>
           <li>
             <strong>TMDb</strong> proporciona los datos de
@@ -331,8 +379,11 @@ export default function PrivacyPage() {
           cuenta, puedes acceder, corregir o borrar tu diario,
           tus listas y tu actividad de «Amigos» (seguidores,
           amistades, listas públicas) tú mismo desde «Mi
-          cuenta», y pedirnos por correo que borremos la
-          cuenta entera cuando quieras. Si tienes cualquier otra duda sobre esta
+          cuenta». Tus logros se derivan de esos mismos datos,
+          así que borrar o cambiar el diario, las listas o
+          Amigos cambia también lo que calculamos; puedes
+          pedirnos por correo que borremos la cuenta entera
+          cuando quieras. Si tienes cualquier otra duda sobre esta
           política o sobre tus derechos de protección de
           datos, puedes escribirnos
           {CONTACT_EMAIL ? (

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 
+import { useAuth } from "@/hooks/useAuth";
 import { useDialog } from "@/hooks/useDialog";
 import { track } from "@/lib/analytics";
 import { audienceLabel, formatNames } from "@/lib/group";
@@ -19,6 +20,7 @@ import {
   type ShareKindCode,
 } from "@/lib/shareLink";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
+import { recordShareEvent } from "@/lib/supabase/achievements";
 
 type Props = {
   items: ShareItem[];
@@ -61,12 +63,17 @@ export default function ShareDialog({
   headline,
   onClose,
 }: Props) {
+  const { session } = useAuth();
   const effectiveLinkType: ShareKindCode =
     linkType ?? (kind === "mixed" ? "movie" : kind);
   // Modo acompañado: por defecto se comparten los nombres puestos,
   // pero se puede marcar esta opción para no incluirlos ni en el
   // enlace ni en la imagen (se dirá "hoy" en vez de los nombres)
   const [anonymous, setAnonymous] = useState(false);
+
+  function recordShare() {
+    if (session) recordShareEvent(session.user.id, "summary");
+  }
 
   const effectiveGroup = useMemo(() => {
     if (!group) return undefined;
@@ -178,6 +185,7 @@ export default function ShareDialog({
       });
 
       track("share_done", { method: "native", type: kind });
+      recordShare();
     } catch (error) {
       // Cerrar el menú de compartir sin elegir nada no es un error
       if (
@@ -224,6 +232,7 @@ export default function ShareDialog({
     setMessage("Imagen descargada. Ya puedes enviarla o subirla.");
 
     track("share_done", { method: "download", type: kind });
+    recordShare();
   }
 
   return createPortal(
