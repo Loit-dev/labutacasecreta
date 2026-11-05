@@ -82,9 +82,15 @@ export const metadata: Metadata = {
     follow: true,
   },
 
-  // Verificación de propiedad del sitio en Google Search Console
+  // Verificación de propiedad del sitio en Google Search Console.
+  // Dos códigos porque hay dos propiedades verificadas con cuentas
+  // de Google distintas (la de siempre y labutacasecreta.media@,
+  // esta última para la verificación OAuth de "página principal").
   verification: {
-    google: "1axYKhgmC2YcMj6PlYbyz0lTINnA_y-2s3x1AudJWL0",
+    google: [
+      "1axYKhgmC2YcMj6PlYbyz0lTINnA_y-2s3x1AudJWL0",
+      "BOp-7wc7QoHw0SMatV1LONxpmazPXtAreoA7pTu89IA",
+    ],
   },
 
   // Icono al «Añadir a pantalla de inicio» (iPhone)
