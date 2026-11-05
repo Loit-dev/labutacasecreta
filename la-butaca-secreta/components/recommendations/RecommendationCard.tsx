@@ -307,7 +307,7 @@ export default function RecommendationCard({
       : "marquee-font mt-auto w-full rounded-md bg-red-600 px-4 py-3 text-base text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
   }
 >
-  {compact ? "Ver" : "Ver detalles"}
+  Ver detalles
 </button>
 
         {(onToggleSave || onSeen || onReject) && (
