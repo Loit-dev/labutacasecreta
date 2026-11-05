@@ -7,6 +7,7 @@ import { computeAchievements, type AchievementsState } from "@/lib/achievements/
 import { fetchAchievementWatchedRows } from "@/lib/supabase/achievements";
 import { useAchievementsContext } from "./AchievementsProvider";
 import AchievementIcon from "./AchievementIcon";
+import { TIER_STYLE } from "./Medal";
 
 // Familias que se pueden comparar con cualquier otra cuenta sin
 // permiso especial: solo las que se calculan a partir del historial
@@ -126,8 +127,8 @@ export default function CompareAchievements({ theirUserId, theirName }: Props) {
                     <AchievementIcon icon={family.icon} size={13} />
                   </div>
                   <span className="flex-1 text-xs font-semibold text-white">{family.name}</span>
-                  <Badge label={`Tú · ${d.myLevel > 0 ? TIER_NAMES[d.myLevel - 1] : "—"}`} tone="mine" />
-                  <Badge label={`${theirName} · ${d.theirLevel > 0 ? TIER_NAMES[d.theirLevel - 1] : "—"}`} tone="theirs" />
+                  <Badge name="Tú" level={d.myLevel} tone="mine" />
+                  <Badge name={theirName} level={d.theirLevel} tone="theirs" />
                 </div>
               );
             })}
@@ -137,14 +138,31 @@ export default function CompareAchievements({ theirUserId, theirName }: Props) {
   );
 }
 
-function Badge({ label, tone }: { label: string; tone: "mine" | "theirs" }) {
+// Pequeño punto con el degradado real de esa medalla, como un
+// "icono de medalla" en miniatura — mismo origen que Medal.tsx.
+const LOCKED_DOT = { background: "#3f3f46", border: "rgba(255,255,255,0.15)" };
+
+function Badge({ name, level, tone }: { name: string; level: number; tone: "mine" | "theirs" }) {
+  const tierStyle = level > 0 ? TIER_STYLE[level as 1 | 2 | 3 | 4 | 5] : null;
+
   return (
     <span
-      className={`shrink-0 rounded-full px-2 py-1 text-[9px] font-extrabold ${
-        tone === "mine" ? "bg-sky-400/15 text-sky-300" : "bg-violet-400/15 text-violet-300"
+      className={`flex shrink-0 items-center gap-1.5 rounded-full px-2 py-1 ${
+        tone === "mine" ? "bg-sky-400/10" : "bg-violet-400/10"
       }`}
     >
-      {label}
+      <span
+        aria-hidden="true"
+        className="h-3 w-3 shrink-0 rounded-full border"
+        style={{
+          background: tierStyle ? tierStyle.background : LOCKED_DOT.background,
+          borderColor: tierStyle ? tierStyle.border : LOCKED_DOT.border,
+        }}
+      />
+      <span className="text-[9px] font-extrabold text-white">{name}</span>
+      <span className="text-[9px] font-extrabold" style={{ color: tierStyle ? tierStyle.labelColor : "#a1a1aa" }}>
+        {level > 0 ? TIER_NAMES[level - 1] : "—"}
+      </span>
     </span>
   );
 }
