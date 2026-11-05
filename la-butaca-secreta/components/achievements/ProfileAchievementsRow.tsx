@@ -23,9 +23,9 @@ export default function ProfileAchievementsRow({ state, onOpenFull }: Props) {
   const showcase = [...unlocked, ...lockedPool.slice(0, SHOWCASE_SIZE - unlocked.length)];
 
   return (
-    <div>
-      <div className="mb-2.5 flex items-center justify-between">
-        <span className="text-xs font-bold uppercase tracking-wide text-zinc-400">Logros</span>
+    <div className="rounded-3xl border border-white/20 bg-black/5 p-4 shadow-2xl backdrop-blur-sm md:bg-black/15 md:backdrop-blur-xl lg:bg-black/30 lg:backdrop-blur-2xl">
+      <div className="mb-3.5 flex items-center justify-between border-b border-dashed border-white/10 pb-3">
+        <span className="text-sm font-bold text-white">Logros</span>
         <button
           type="button"
           onClick={onOpenFull}
@@ -34,7 +34,7 @@ export default function ProfileAchievementsRow({ state, onOpenFull }: Props) {
           Ver todos
         </button>
       </div>
-      <div className="flex justify-between">
+      <div className="grid grid-cols-4 gap-x-2 gap-y-4 sm:grid-cols-8">
         {showcase.map((p) => {
           const family = familyByKey(p.key);
           if (!family) return null;
@@ -46,9 +46,9 @@ export default function ProfileAchievementsRow({ state, onOpenFull }: Props) {
           const label = p.level > 0 ? family.levelNames[p.level - 1] : family.name;
 
           return (
-            <div key={p.key} className="flex w-[38px] flex-col items-center gap-1 text-center">
-              <Medal icon={family.icon} tier={p.level as 0 | 1 | 2 | 3 | 4 | 5} size={28} />
-              <span className="w-full truncate text-[6.5px] font-semibold leading-tight text-zinc-400">
+            <div key={p.key} className="flex flex-col items-center gap-1.5 text-center">
+              <Medal icon={family.icon} tier={p.level as 0 | 1 | 2 | 3 | 4 | 5} size={40} />
+              <span className="line-clamp-2 text-[10px] font-semibold leading-tight text-zinc-300">
                 {label}
               </span>
             </div>
