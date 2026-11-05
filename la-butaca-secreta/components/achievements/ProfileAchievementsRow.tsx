@@ -39,11 +39,17 @@ export default function ProfileAchievementsRow({ state, onOpenFull }: Props) {
           const family = familyByKey(p.key);
           if (!family) return null;
 
+          // Con nivel: el título propio de ese nivel ("Sin fronteras"),
+          // no el nombre de la familia ("Géneros vistos") — eso último
+          // ya lo dice el icono/medalla. Sin empezar: no hay título de
+          // nivel todavía, así que sí hace falta el nombre de la familia.
+          const label = p.level > 0 ? family.levelNames[p.level - 1] : family.name;
+
           return (
             <div key={p.key} className="flex w-[38px] flex-col items-center gap-1 text-center">
               <Medal icon={family.icon} tier={p.level as 0 | 1 | 2 | 3 | 4 | 5} size={28} />
               <span className="w-full truncate text-[6.5px] font-semibold leading-tight text-zinc-400">
-                {family.name}
+                {label}
               </span>
             </div>
           );
