@@ -376,9 +376,8 @@ export const IMPORTADOS: Importado[] = [
   // Es la serie nueva de HBO (estreno de la serie, no la peli de 2001):
   // en TMDb la ficha de la serie se llama solo "Harry Potter" (la
   // primera temporada es la que se titula "...y la piedra filosofal").
-  // Con el query exacto de la temporada no había match y la entrada se
-  // descartaba en silencio — por eso no aparecía en la web (corregido
-  // el 25 nov, confirmado en TMDb: ficha de serie "Harry Potter",
-  // estreno 25 dic 2026).
-  { date: "2026-12-25", type: "tv", query: "Harry Potter", year: 2026, season: 1 },
+  // Como todavía no se ha estrenado, TMDb aún no tiene datos de
+  // disponibilidad en España (sin eso la entrada se descarta sin
+  // plataforma) — se fuerza "max" a mano, ya anunciado oficialmente.
+  { date: "2026-12-25", type: "tv", query: "Harry Potter", year: 2026, season: 1, platform: "max" },
 ];
