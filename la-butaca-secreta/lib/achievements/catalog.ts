@@ -293,6 +293,23 @@ export const GENERAL_FAMILIES: AchievementFamily[] = [
       "Nada pasa el filtro",
     ],
   },
+  {
+    key: "canon_visto",
+    section: "general",
+    name: "El Canon",
+    metric: "películas vistas de El Canon (250 imprescindibles, data/canon/canon250.ts)",
+    icon: "scroll",
+    // Diamante coincide a propósito con el total de la lista (250):
+    // verlas todas es, por diseño, el nivel máximo posible.
+    thresholds: [20, 60, 120, 190, 250],
+    levelNames: [
+      "Primeros pasos en el Canon",
+      "Cinéfilo en formación",
+      "Conocedor del Canon",
+      "Casi todo visto",
+      "El Canon completo",
+    ],
+  },
 ];
 
 // Umbral común a las 18 familias de género. Subido (antes 5/15/35/

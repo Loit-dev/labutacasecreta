@@ -323,6 +323,24 @@ describe("diffNewLevels", () => {
     assert.equal(noMeApetece?.nextThreshold, 100);
   });
 
+  test("canon_visto usa el recuento ya calculado (intersección con El Canon)", () => {
+    const state = computeAchievements({
+      watched: [],
+      friendsCount: 0,
+      compatibleFriendsCount: 0,
+      listsCount: 0,
+      recommendationsSentCount: 0,
+      shareEventsCount: 0,
+      canonCount: 60,
+    });
+
+    const canon = state.general.find((p) => p.key === "canon_visto");
+
+    assert.equal(canon?.value, 60);
+    assert.equal(canon?.level, 2);
+    assert.equal(canon?.nextThreshold, 120);
+  });
+
   test("guardadas y no_me_apetece en 0 si no se pasan (p. ej. sin sesión)", () => {
     const state = computeAchievements({
       watched: [],
@@ -335,5 +353,6 @@ describe("diffNewLevels", () => {
 
     assert.equal(state.general.find((p) => p.key === "guardadas")?.value, 0);
     assert.equal(state.general.find((p) => p.key === "no_me_apetece")?.value, 0);
+    assert.equal(state.general.find((p) => p.key === "canon_visto")?.value, 0);
   });
 });

@@ -61,6 +61,12 @@ export type AchievementsInput = {
   savedCount?: number;
   /** Nº actual de "No me apetece" guardados (lib/rejected.ts, local al navegador). */
   discardedCount?: number;
+  /**
+   * Nº de películas de El Canon (data/canon/canon250.ts) ya vistas.
+   * Se calcula fuera (intersección entre /api/canon y el historial de
+   * películas vistas), no aquí: esta función sigue sin tocar fetch.
+   */
+  canonCount?: number;
   now?: Date;
 };
 
@@ -230,6 +236,7 @@ export function computeAchievements(input: AchievementsInput): AchievementsState
     listas_creadas: input.listsCount,
     guardadas: input.savedCount ?? 0,
     no_me_apetece: input.discardedCount ?? 0,
+    canon_visto: input.canonCount ?? 0,
   };
 
   const general: AchievementProgress[] = GENERAL_FAMILIES.map((f) => {

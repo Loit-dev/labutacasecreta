@@ -22,6 +22,7 @@ import { fetchSocialCounts } from "@/lib/supabase/socialCounts";
 import { fetchWatchedHistory } from "@/lib/supabase/summary";
 import { countRejected } from "@/lib/rejected";
 import { readList } from "@/lib/watchlist";
+import type { CanonResult } from "@/lib/canon";
 import { useAuth } from "./useAuth";
 
 export type UnlockedLevel = { key: string; level: number };
@@ -69,6 +70,7 @@ export function useAchievements(): AchievementsResult {
       recommendationsSentCount,
       shareEventsCount,
       storedLevels,
+      canonItems,
     ] = await Promise.all([
       fetchAchievementWatchedRows(userId),
       fetchWatchedHistory(userId),
@@ -77,6 +79,7 @@ export function useAchievements(): AchievementsResult {
       fetchRecommendationsSentCount(userId),
       fetchShareEventsCount(userId),
       fetchStoredAchievementLevels(userId),
+      fetch("/api/canon").then((r) => (r.ok ? r.json() : [])) as Promise<CanonResult[]>,
     ]);
 
     if (cancelledRef.current) return;
@@ -84,6 +87,16 @@ export function useAchievements(): AchievementsResult {
     const compatibleFriendsCount = await fetchCompatibleFriendsCount(userId, myHistory);
 
     if (cancelledRef.current) return;
+
+    // El Canon vive en data/canon/canon250.ts, resuelto contra TMDb
+    // por /api/canon (cacheado 24h): el progreso es la intersección
+    // entre esas 250 películas y las que ya están en el diario.
+    const watchedMovieIds = new Set(
+      myHistory.filter((row) => row.mediaType === "movie").map((row) => row.tmdbId)
+    );
+    const canonCount = canonItems.filter(
+      (item) => item.tmdbId !== null && watchedMovieIds.has(item.tmdbId)
+    ).length;
 
     const computed = computeAchievements({
       watched: achievementRows,
@@ -97,6 +110,7 @@ export function useAchievements(): AchievementsResult {
       // de los fetch de arriba (ver lib/watchlist.ts, lib/rejected.ts).
       savedCount: readList().length,
       discardedCount: countRejected(),
+      canonCount,
     });
 
     const newLevels = diffNewLevels(computed, storedLevels);
