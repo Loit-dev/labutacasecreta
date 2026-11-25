@@ -373,8 +373,12 @@ export const IMPORTADOS: Importado[] = [
   { date: "2026-12-18", type: "movie", query: "Ray Gunn", year: 2026 },
   { date: "2026-12-21", type: "tv", query: "Frisco King", year: 2026 },
   { date: "2026-12-23", type: "movie", query: "Las nuevas desventuras de Cliff Booth", year: 2026 },
-  // Es la película (2001), no una serie: con type "tv" la búsqueda en
-  // TMDb no encontraba nada y la entrada se descartaba en silencio —
-  // por eso no aparecía en la web (detectado el 25 nov).
-  { date: "2026-12-25", type: "movie", query: "Harry Potter y la piedra filosofal", year: 2001 },
+  // Es la serie nueva de HBO (estreno de la serie, no la peli de 2001):
+  // en TMDb la ficha de la serie se llama solo "Harry Potter" (la
+  // primera temporada es la que se titula "...y la piedra filosofal").
+  // Con el query exacto de la temporada no había match y la entrada se
+  // descartaba en silencio — por eso no aparecía en la web (corregido
+  // el 25 nov, confirmado en TMDb: ficha de serie "Harry Potter",
+  // estreno 25 dic 2026).
+  { date: "2026-12-25", type: "tv", query: "Harry Potter", year: 2026, season: 1 },
 ];
