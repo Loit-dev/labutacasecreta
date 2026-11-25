@@ -44,19 +44,25 @@ const SITE_BACKGROUND =
   "radial-gradient(circle at top left, rgba(220,38,38,0.18), transparent 30%), radial-gradient(circle at top right, rgba(59,130,246,0.12), transparent 30%), linear-gradient(180deg, #050505 0%, #09090b 40%, #050505 100%)";
 
 /**
- * Un "papel de regalo" por pantalla: su propio papel con motivo
- * navideño de fondo y su propio lazo de cinta (color y esquina),
- * nítido y con relieve de raso — como un regalo real, no un degradado
- * abstracto. Cada pantalla usa un color y una esquina distintos.
+ * Un "papel de regalo" por pantalla: su propio papel (color + motivo
+ * navideño estampado, como el papel de verdad) y su propio lazo de
+ * cinta de raso (color y esquina) — como en un regalo real envuelto,
+ * no un degradado abstracto. Cada pantalla usa un papel y un lazo
+ * distintos.
  */
+type Motif = "snowflake" | "tree" | "star" | "holly";
+
 type RibbonScheme = {
   /** Color base del raso, su sombra y su brillo (para el degradado del lazo). */
   color: string;
   shadow: string;
   highlight: string;
-  /** Los dos brillos difusos del "papel" (mismo estilo que el fondo de
-   * la web: un resplandor arriba-izquierda y otro arriba-derecha sobre
-   * la base oscura), distintos en cada pantalla. */
+  /** Color de fondo del papel (tono oscuro, para seguir leyéndose como la web). */
+  paperBase: string;
+  /** Motivo navideño estampado en el papel, y su color. */
+  motif: Motif;
+  motifColor: string;
+  /** Resplandores suaves sobre el papel, mismo estilo que el fondo de la web. */
   glowA: string;
   glowB: string;
   /** Esquina donde se cruza el lazo. */
@@ -68,76 +74,139 @@ const GIFT_WRAPS: Record<string, RibbonScheme> = {
     color: "#dc2626",
     shadow: "#7f1d1d",
     highlight: "#fca5a5",
-    glowA: "rgba(220,38,38,0.28)",
-    glowB: "rgba(59,130,246,0.18)",
+    paperBase: "#3f0a0a",
+    motif: "snowflake",
+    motifColor: "#fbbf24",
+    glowA: "rgba(220,38,38,0.22)",
+    glowB: "rgba(251,191,36,0.14)",
     corner: "tl",
   },
   total: {
     color: "#d97706",
     shadow: "#78350f",
     highlight: "#fde68a",
-    glowA: "rgba(251,191,36,0.26)",
-    glowB: "rgba(220,38,38,0.2)",
+    paperBase: "#3a2410",
+    motif: "tree",
+    motifColor: "#fde68a",
+    glowA: "rgba(251,191,36,0.22)",
+    glowB: "rgba(220,38,38,0.14)",
     corner: "tr",
   },
   genero: {
     color: "#15803d",
     shadow: "#052e16",
     highlight: "#86efac",
-    glowA: "rgba(59,130,246,0.22)",
-    glowB: "rgba(21,128,61,0.24)",
+    paperBase: "#06281a",
+    motif: "tree",
+    motifColor: "#fbbf24",
+    glowA: "rgba(21,128,61,0.24)",
+    glowB: "rgba(59,130,246,0.14)",
     corner: "bl",
   },
   cara: {
     color: "#9d174d",
     shadow: "#500724",
     highlight: "#f9a8d4",
-    glowA: "rgba(157,23,77,0.26)",
-    glowB: "rgba(251,191,36,0.16)",
+    paperBase: "#3b0d28",
+    motif: "holly",
+    motifColor: "#f9a8d4",
+    glowA: "rgba(157,23,77,0.24)",
+    glowB: "rgba(251,191,36,0.12)",
     corner: "br",
   },
   trendy: {
     color: "#ea580c",
     shadow: "#7c2d12",
     highlight: "#fdba74",
-    glowA: "rgba(234,88,12,0.26)",
-    glowB: "rgba(21,128,61,0.2)",
+    paperBase: "#3a2410",
+    motif: "star",
+    motifColor: "#fdba74",
+    glowA: "rgba(234,88,12,0.24)",
+    glowB: "rgba(21,128,61,0.12)",
     corner: "tl",
   },
   amigos: {
     color: "#0f766e",
     shadow: "#042f2e",
     highlight: "#5eead4",
-    glowA: "rgba(15,118,110,0.26)",
-    glowB: "rgba(251,191,36,0.18)",
+    paperBase: "#0a1f33",
+    motif: "snowflake",
+    motifColor: "#e2e8f0",
+    glowA: "rgba(15,118,110,0.24)",
+    glowB: "rgba(251,191,36,0.12)",
     corner: "tr",
   },
   progreso: {
     color: "#d97706",
     shadow: "#78350f",
     highlight: "#fde68a",
-    glowA: "rgba(251,191,36,0.24)",
-    glowB: "rgba(234,88,12,0.2)",
+    paperBase: "#38240c",
+    motif: "star",
+    motifColor: "#fde68a",
+    glowA: "rgba(251,191,36,0.22)",
+    glowB: "rgba(234,88,12,0.14)",
     corner: "bl",
   },
   final: {
     color: "#dc2626",
     shadow: "#7f1d1d",
     highlight: "#fca5a5",
-    glowA: "rgba(220,38,38,0.26)",
-    glowB: "rgba(251,191,36,0.2)",
+    paperBase: "#3f0a0a",
+    motif: "holly",
+    motifColor: "#fde68a",
+    glowA: "rgba(220,38,38,0.22)",
+    glowB: "rgba(251,191,36,0.16)",
     corner: "br",
   },
 };
 
+const MOTIF_TILE = 72;
+
+/** Estampado navideño tileable para el papel: copo de nieve, abeto, estrella u hoja de acebo con sus bayas — siempre nítido, como un papel de regalo impreso de verdad. */
+function motifPattern(motif: Motif, color: string): string {
+  const t = MOTIF_TILE;
+  const half = t / 2;
+
+  let inner = "";
+  if (motif === "snowflake") {
+    inner = `<g stroke="${color}" stroke-opacity="0.55" stroke-width="2.2" stroke-linecap="round" fill="none">
+      <path d="M${half} 10 L${half} 62 M${half - 16} 16 L${half + 16} 56 M${half + 16} 16 L${half - 16} 56"/>
+      <path d="M${half} 18 L${half - 6} 24 M${half} 18 L${half + 6} 24 M${half} 54 L${half - 6} 48 M${half} 54 L${half + 6} 48"/>
+    </g>`;
+  } else if (motif === "tree") {
+    inner = `<g fill="${color}" fill-opacity="0.5">
+      <path d="M${half} 8 L${half + 10} 24 L${half + 4} 24 L${half + 14} 38 L${half + 7} 38 L${half + 18} 54 L${half - 18} 54 L${half - 7} 38 L${half - 14} 38 L${half - 4} 24 L${half - 10} 24 Z"/>
+      <rect x="${half - 3}" y="54" width="6" height="8"/>
+    </g>`;
+  } else if (motif === "star") {
+    inner = `<g fill="${color}" fill-opacity="0.5">
+      <path d="M${half} 14 C${half + 1} 26 ${half + 2} 27 ${half + 14} 28 C${half + 2} 29 ${half + 1} 30 ${half} 42 C${half - 1} 30 ${half - 2} 29 ${half - 14} 28 C${half - 2} 27 ${half - 1} 26 ${half} 14 Z"/>
+      <circle cx="${half - 22}" cy="${half + 14}" r="2.4"/>
+      <circle cx="${half + 22}" cy="${half + 16}" r="2"/>
+    </g>`;
+  } else {
+    inner = `<g fill="${color}" fill-opacity="0.5">
+      <path d="M${half - 6} 34 C${half - 14} 30 ${half - 16} 20 ${half - 8} 16 C${half - 6} 22 ${half - 2} 24 ${half + 2} 22 C${half - 2} 28 ${half - 2} 32 ${half - 6} 34 Z"/>
+      <path d="M${half + 6} 34 C${half + 14} 30 ${half + 16} 20 ${half + 8} 16 C${half + 6} 22 ${half + 2} 24 ${half - 2} 22 C${half + 2} 28 ${half + 2} 32 ${half + 6} 34 Z"/>
+      <circle cx="${half - 3}" cy="40" r="3" fill="#dc2626" fill-opacity="0.75"/>
+      <circle cx="${half + 3}" cy="42" r="3" fill="#dc2626" fill-opacity="0.75"/>
+    </g>`;
+  }
+
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${t}' height='${t}'>${inner}</svg>`;
+  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+}
+
 /**
- * El "papel" de cada pantalla: el mismo estilo de fondo que usa toda la
- * web (dos resplandores difusos sobre una base oscura), a tamaño
- * completo de la tarjeta, con sus propios colores por pantalla — no un
- * patrón pequeño en mosaico.
+ * El "papel" de cada pantalla: su color propio con el estampado
+ * navideño encima (tamaño completo, no en miniatura) y, por debajo,
+ * los mismos resplandores difusos que el fondo de la web para que
+ * no quede un color plano.
  */
 function paperBackground(scheme: RibbonScheme): string {
-  return `radial-gradient(circle at top left, ${scheme.glowA}, transparent 55%), radial-gradient(circle at top right, ${scheme.glowB}, transparent 55%), linear-gradient(180deg, #050505 0%, #09090b 40%, #050505 100%)`;
+  const pattern = motifPattern(scheme.motif, scheme.motifColor);
+
+  return `${pattern} 0 0/${MOTIF_TILE}px ${MOTIF_TILE}px repeat, radial-gradient(circle at top left, ${scheme.glowA}, transparent 60%), radial-gradient(circle at top right, ${scheme.glowB}, transparent 60%), linear-gradient(180deg, ${scheme.paperBase} 0%, #050505 60%, #050505 100%)`;
 }
 
 /**
@@ -162,7 +231,7 @@ function RibbonCorner({ scheme }: { scheme: RibbonScheme }) {
       viewBox={`0 0 ${vb.w} ${vb.h}`}
       preserveAspectRatio="xMidYMid slice"
       className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.94]"
-      style={{ filter: "blur(1.1px) drop-shadow(0 10px 22px rgba(0,0,0,0.5))" }}
+      style={{ filter: "drop-shadow(0 10px 22px rgba(0,0,0,0.5))" }}
     >
       <defs>
         <linearGradient id={`rv-${uid}`} x1="0" y1="0" x2="1" y2="0">
@@ -266,89 +335,13 @@ function FestiveBokeh({ seed, scheme }: { seed: string; scheme: RibbonScheme }) 
   );
 }
 
-/** Elige `count` elementos de `arr` de forma pseudoaleatoria pero estable a partir de `seed`, sin repetir. */
-function seededPick<T>(seed: string, arr: T[], count: number): T[] {
-  if (arr.length === 0) return [];
-
-  let s = 0;
-  for (let i = 0; i < seed.length; i++) s = (s * 31 + seed.charCodeAt(i)) >>> 0;
-
-  function next(): number {
-    s = (s * 1103515245 + 12345) >>> 0;
-    return (s >>> 8) / 16777216;
-  }
-
-  const copy = [...arr];
-  const picked: T[] = [];
-
-  for (let i = 0; i < count && copy.length > 0; i++) {
-    const idx = Math.floor(next() * copy.length);
-    picked.push(copy.splice(idx, 1)[0]);
-  }
-
-  return picked;
-}
-
-const POSTER_SLOTS = [
-  { top: "-8%", left: "-22%", w: 200, h: 280, rotate: -14 },
-  { top: "58%", left: "62%", w: 180, h: 250, rotate: 10 },
-  { top: "74%", left: "-18%", w: 190, h: 260, rotate: 9 },
-] as const;
-
-/**
- * El mismo "fondo difuminado" que el resto de la web (PosterWall):
- * pósters reales —aquí, los que el usuario vio ese año— girados, a
- * baja opacidad y con blur, en las esquinas. Cada pantalla elige sus
- * propios pósters y posiciones a partir de su id, así que el papel es
- * distinto en cada una sin dejar de ser "pósters de tu año".
- */
-function PosterBackdrop({ posters, seed }: { posters: string[]; seed: string }) {
-  const chosen = seededPick(seed, posters, POSTER_SLOTS.length);
-
-  return (
-    <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-      {chosen.map((url, i) => {
-        const slot = POSTER_SLOTS[i % POSTER_SLOTS.length];
-
-        return (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            key={`${url}-${i}`}
-            src={url}
-            alt=""
-            className="absolute rounded-2xl object-cover opacity-25 blur-[2px]"
-            style={{
-              top: slot.top,
-              left: slot.left,
-              width: slot.w,
-              height: slot.h,
-              transform: `rotate(${slot.rotate}deg)`,
-            }}
-          />
-        );
-      })}
-
-      <div className="absolute inset-0 bg-black/40" />
-    </div>
-  );
-}
-
-function GiftWrapLayer({
-  wrap,
-  slideId,
-  posterUrls,
-}: {
-  wrap: RibbonScheme;
-  slideId: string;
-  posterUrls: string[];
-}) {
+function GiftWrapLayer({ wrap, slideId }: { wrap: RibbonScheme; slideId: string }) {
   return (
     <div
       aria-hidden
       className="pointer-events-none absolute inset-0 overflow-hidden"
       style={{ background: paperBackground(wrap) }}
     >
-      <PosterBackdrop posters={posterUrls} seed={slideId} />
       <FestiveBokeh seed={slideId} scheme={wrap} />
       <RibbonCorner scheme={wrap} />
     </div>
@@ -1433,7 +1426,6 @@ export default function WrappedScreen({ year, onClose }: Props) {
   const currentWrapId =
     index < slides.length ? slides[index]?.id : "final";
   const currentWrap = GIFT_WRAPS[currentWrapId ?? "portada"] ?? GIFT_WRAPS.portada;
-  const wrapPosterUrls = stats ? yearPosterUrls(watched, stats.year, 24) : [];
 
   function go(delta: 1 | -1) {
     setIndex((current) => {
@@ -1485,11 +1477,7 @@ export default function WrappedScreen({ year, onClose }: Props) {
         </div>
 
         <div className="relative flex-1 overflow-hidden px-6 py-4">
-          <GiftWrapLayer
-            wrap={currentWrap}
-            slideId={currentWrapId ?? "portada"}
-            posterUrls={wrapPosterUrls}
-          />
+          <GiftWrapLayer wrap={currentWrap} slideId={currentWrapId ?? "portada"} />
 
           {loading && (
             <p className="flex h-full items-center justify-center text-sm text-zinc-400">
