@@ -44,111 +44,170 @@ const SITE_BACKGROUND =
   "radial-gradient(circle at top left, rgba(220,38,38,0.18), transparent 30%), radial-gradient(circle at top right, rgba(59,130,246,0.12), transparent 30%), linear-gradient(180deg, #050505 0%, #09090b 40%, #050505 100%)";
 
 /**
- * Un "papel de regalo" por pantalla: su propio tinte de papel, el color
- * del lazo que la cruza y dónde cae ese cruce — así cada tarjeta del
- * Resumen se siente envuelta de un modo distinto, no todas con el mismo
- * patrón. Todo con blur real (nunca un filo nítido) para que siga
- * leyéndose como un degradado difuso, igual que el resto de la web.
+ * Un "papel de regalo" por pantalla: su propio papel con motivo
+ * navideño de fondo y su propio lazo de cinta (color y esquina),
+ * nítido y con relieve de raso — como un regalo real, no un degradado
+ * abstracto. Cada pantalla usa un color y una esquina distintos.
  */
-type GiftWrap = {
+type RibbonScheme = {
+  /** Color base del raso, su sombra y su brillo (para el degradado del lazo). */
+  color: string;
+  shadow: string;
+  highlight: string;
+  /** Tinte del motivo navideño del papel de fondo. */
   paper: string;
-  ribbon: string;
-  top: string;
-  left: string;
-  size: number;
-  angle: number;
+  /** Esquina donde se cruza el lazo. */
+  corner: "tl" | "tr" | "bl" | "br";
 };
 
-const GIFT_WRAPS: Record<string, GiftWrap> = {
+const GIFT_WRAPS: Record<string, RibbonScheme> = {
   portada: {
-    paper: "rgba(251,191,36,0.14)",
-    ribbon: "rgba(220,38,38,0.6)",
-    top: "6%",
-    left: "50%",
-    size: 70,
-    angle: 32,
+    color: "#dc2626",
+    shadow: "#7f1d1d",
+    highlight: "#fca5a5",
+    paper: "#fbbf24",
+    corner: "tl",
   },
   total: {
-    paper: "rgba(220,38,38,0.12)",
-    ribbon: "rgba(251,191,36,0.6)",
-    top: "22%",
-    left: "18%",
-    size: 65,
-    angle: 52,
+    color: "#d97706",
+    shadow: "#78350f",
+    highlight: "#fde68a",
+    paper: "#dc2626",
+    corner: "tr",
   },
   genero: {
-    paper: "rgba(59,130,246,0.1)",
-    ribbon: "rgba(226,232,240,0.5)",
-    top: "68%",
-    left: "80%",
-    size: 75,
-    angle: 40,
+    color: "#15803d",
+    shadow: "#052e16",
+    highlight: "#86efac",
+    paper: "#f5f5dc",
+    corner: "bl",
   },
   cara: {
-    paper: "rgba(168,85,247,0.11)",
-    ribbon: "rgba(251,191,36,0.55)",
-    top: "48%",
-    left: "50%",
-    size: 60,
-    angle: 26,
+    color: "#9d174d",
+    shadow: "#500724",
+    highlight: "#f9a8d4",
+    paper: "#fbbf24",
+    corner: "br",
   },
   trendy: {
-    paper: "rgba(249,115,22,0.13)",
-    ribbon: "rgba(220,38,38,0.55)",
-    top: "10%",
-    left: "86%",
-    size: 60,
-    angle: 46,
+    color: "#ea580c",
+    shadow: "#7c2d12",
+    highlight: "#fdba74",
+    paper: "#15803d",
+    corner: "tl",
   },
   amigos: {
-    paper: "rgba(20,184,166,0.11)",
-    ribbon: "rgba(251,191,36,0.55)",
-    top: "84%",
-    left: "16%",
-    size: 75,
-    angle: 36,
+    color: "#0f766e",
+    shadow: "#042f2e",
+    highlight: "#5eead4",
+    paper: "#fbbf24",
+    corner: "tr",
   },
   progreso: {
-    paper: "rgba(251,191,36,0.13)",
-    ribbon: "rgba(220,38,38,0.55)",
-    top: "32%",
-    left: "84%",
-    size: 75,
-    angle: 42,
+    color: "#d97706",
+    shadow: "#78350f",
+    highlight: "#fde68a",
+    paper: "#15803d",
+    corner: "bl",
   },
   final: {
-    paper: "rgba(220,38,38,0.15)",
-    ribbon: "rgba(251,191,36,0.6)",
-    top: "50%",
-    left: "50%",
-    size: 80,
-    angle: 30,
+    color: "#dc2626",
+    shadow: "#7f1d1d",
+    highlight: "#fca5a5",
+    paper: "#fbbf24",
+    corner: "br",
   },
 };
 
-function GiftWrapLayer({ wrap }: { wrap: GiftWrap }) {
-  const band: React.CSSProperties = {
-    position: "absolute",
-    top: wrap.top,
-    left: wrap.left,
-    width: "190%",
-    height: wrap.size,
-    filter: "blur(14px)",
-    background: `linear-gradient(90deg, transparent 0%, ${wrap.ribbon} 32%, ${wrap.ribbon} 68%, transparent 100%)`,
-  };
+/** Patrón de papel con motivos navideños (copos/estrellas), teñido con el color del esquema, tileable. */
+function paperPattern(hex: string): string {
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64'>
+    <g fill='none' stroke='${hex}' stroke-opacity='0.5' stroke-width='1.6' stroke-linecap='round'>
+      <path d='M32 6 L32 26 M24 10 L40 22 M40 10 L24 22'/>
+      <path d='M0 38 L14 48 M14 38 L0 48'/>
+      <path d='M50 48 L64 58 M64 48 L50 58'/>
+    </g>
+  </svg>`;
+  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+}
 
+/** Lazo de cinta en una esquina: dos bandas de raso (con sombra/brillo) que se cruzan bajo un lazo. */
+function RibbonCorner({ scheme }: { scheme: RibbonScheme }) {
+  const vb = { w: 300, h: 620 };
+  const band = 44;
+  const flipX = scheme.corner === "tr" || scheme.corner === "br";
+  const flipY = scheme.corner === "bl" || scheme.corner === "br";
+  const vX = flipX ? vb.w - 58 : 58;
+  const hY = flipY ? vb.h - 58 : 58;
+  const uid = `${scheme.corner}-${scheme.color.replace("#", "")}`;
+
+  return (
+    <svg
+      aria-hidden
+      viewBox={`0 0 ${vb.w} ${vb.h}`}
+      preserveAspectRatio="xMidYMid slice"
+      className="pointer-events-none absolute inset-0 h-full w-full opacity-90"
+    >
+      <defs>
+        <linearGradient id={`rv-${uid}`} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor={scheme.shadow} />
+          <stop offset="32%" stopColor={scheme.color} />
+          <stop offset="50%" stopColor={scheme.highlight} />
+          <stop offset="68%" stopColor={scheme.color} />
+          <stop offset="100%" stopColor={scheme.shadow} />
+        </linearGradient>
+        <linearGradient id={`rh-${uid}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={scheme.shadow} />
+          <stop offset="32%" stopColor={scheme.color} />
+          <stop offset="50%" stopColor={scheme.highlight} />
+          <stop offset="68%" stopColor={scheme.color} />
+          <stop offset="100%" stopColor={scheme.shadow} />
+        </linearGradient>
+        <linearGradient id={`loop-${uid}`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor={scheme.highlight} />
+          <stop offset="55%" stopColor={scheme.color} />
+          <stop offset="100%" stopColor={scheme.shadow} />
+        </linearGradient>
+      </defs>
+
+      <rect x={vX - band / 2} y="0" width={band} height={vb.h} fill={`url(#rv-${uid})`} />
+      <rect x="0" y={hY - band / 2} width={vb.w} height={band} fill={`url(#rh-${uid})`} />
+
+      <g transform={`translate(${vX}, ${hY})`}>
+        {/* cola del lazo, por detrás de los dos lazos */}
+        <path d="M -6 10 L -11 38 L 0 29 L 11 38 L 6 10 Z" fill={scheme.shadow} />
+        {/* los dos lazos del nudo */}
+        <path
+          d="M 0 -7 C -18 -26 -48 -22 -48 -2 C -48 16 -22 20 0 7 Z"
+          fill={`url(#loop-${uid})`}
+          stroke={scheme.shadow}
+          strokeWidth="2"
+        />
+        <path
+          d="M 0 -7 C 18 -26 48 -22 48 -2 C 48 16 22 20 0 7 Z"
+          fill={`url(#loop-${uid})`}
+          stroke={scheme.shadow}
+          strokeWidth="2"
+        />
+        {/* nudo central */}
+        <circle r="11" fill={scheme.color} stroke={scheme.shadow} strokeWidth="2" />
+        <circle r="4" fill={scheme.highlight} opacity={0.8} />
+      </g>
+    </svg>
+  );
+}
+
+function GiftWrapLayer({ wrap }: { wrap: RibbonScheme }) {
   return (
     <div
       aria-hidden
       className="pointer-events-none absolute inset-0 overflow-hidden"
-      style={{ background: wrap.paper }}
+      style={{
+        backgroundImage: paperPattern(wrap.paper),
+        backgroundSize: "64px 64px",
+      }}
     >
-      <div
-        style={{ ...band, transform: `translate(-50%, -50%) rotate(${wrap.angle}deg)` }}
-      />
-      <div
-        style={{ ...band, transform: `translate(-50%, -50%) rotate(${-wrap.angle}deg)` }}
-      />
+      <RibbonCorner scheme={wrap} />
     </div>
   );
 }
