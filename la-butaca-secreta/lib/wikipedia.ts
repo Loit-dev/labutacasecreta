@@ -49,8 +49,8 @@ type WikiSectionsResponse = {
   parse?: { sections?: { index: string; line: string }[] };
 };
 
-type WikiTextResponse = {
-  parse?: { text?: string | { "*": string } };
+type WikiWikitextResponse = {
+  parse?: { wikitext?: string | { "*": string } };
 };
 
 async function wikiFetch<T>(params: Record<string, string>): Promise<T> {
@@ -79,16 +79,65 @@ async function wikiFetch<T>(params: Record<string, string>): Promise<T> {
   return response.json();
 }
 
-function stripMarkup(html: string): string {
-  return html
-    .replace(/<style[\s\S]*?<\/style>/gi, "")
-    .replace(/<table[\s\S]*?<\/table>/gi, "")
-    .replace(/<sup[\s\S]*?<\/sup>/gi, "")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/\[\s*editar\s*\]/gi, "")
-    .replace(/&nbsp;/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+/**
+ * Se pide el wikitext (fuente en bruto) en vez del HTML ya renderizado:
+ * así es mucho más fácil quedarse solo con el párrafo introductorio
+ * de la sección, sin arrastrar el índice que Wikipedia antepone a
+ * secciones con subsecciones, ni los pies de foto o tablas, que en el
+ * HTML renderizado quedan todos mezclados como texto plano.
+ */
+function leadParagraphOf(wikitext: string): string {
+  // Quita la línea de cabecera ("== Producción ==") si viene incluida.
+  let body = wikitext.replace(/^\s*=+[^=\n]+=+[ \t]*\n/, "");
+
+  // Corta justo antes de la primera subsección (p. ej. "=== Guion
+  // ==="), para quedarnos solo con el párrafo introductorio y no con
+  // toda la sección entera (que puede ser larguísima).
+  const subsectionAt = body.search(/\n[ \t]*=+[^=\n]+=+[ \t]*\n/);
+
+  if (subsectionAt !== -1) {
+    body = body.slice(0, subsectionAt);
+  }
+
+  return body;
+}
+
+function stripWikitext(wikitext: string): string {
+  return (
+    wikitext
+      // Comentarios y referencias (<ref>texto</ref> o <ref .../>).
+      .replace(/<!--[\s\S]*?-->/g, "")
+      .replace(/<ref[^>]*\/>/gi, "")
+      .replace(/<ref[^>]*>[\s\S]*?<\/ref>/gi, "")
+      // Plantillas {{cita|...}}, {{esd|...}}, etc. Dos pasadas para
+      // resolver una plantilla anidada dentro de otra (dos niveles
+      // bastan para el caso normal; lo que quede más anidado se
+      // limpia igualmente al quitar las llaves sueltas al final).
+      .replace(/\{\{[^{}]*\}\}/g, "")
+      .replace(/\{\{[^{}]*\}\}/g, "")
+      // Archivos/imágenes incrustados, con su pie de foto. El pie
+      // suele llevar enlaces anidados (p. ej. "[[Archivo:Foo.jpg|thumb|
+      // [[Christopher Nolan|Nolan]] dirigiendo...]]"), así que hace
+      // falta admitir un nivel de corchetes dentro antes de cerrar,
+      // si no el "]]" del enlace interno corta el emparejamiento
+      // demasiado pronto y deja el resto del pie de foto como texto
+      // suelto.
+      .replace(
+        /\[\[(?:Archivo|File|Imagen|Image):(?:[^[\]]|\[\[[^\]]*\]\])*\]\]/gi,
+        ""
+      )
+      // Enlaces internos [[A|B]] → B, [[A]] → A.
+      .replace(/\[\[[^\]|]*\|([^\]]*)\]\]/g, "$1")
+      .replace(/\[\[([^\]]*)\]\]/g, "$1")
+      // Negrita/cursiva wiki.
+      .replace(/'{2,5}/g, "")
+      // Cualquier resto de etiqueta HTML o llave/corchete suelto.
+      .replace(/<[^>]+>/g, " ")
+      .replace(/[{}[\]]/g, "")
+      .replace(/&nbsp;/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+  );
 }
 
 async function findArticle(
@@ -145,19 +194,22 @@ export async function getProductionTrivia(
 
     if (!match) return null;
 
-    const textData = await wikiFetch<WikiTextResponse>({
+    const wikitextData = await wikiFetch<WikiWikitextResponse>({
       action: "parse",
       pageid: String(article.pageid),
-      prop: "text",
+      prop: "wikitext",
       section: match.index,
     });
 
-    const html = textData?.parse?.text;
-    const rawHtml = typeof html === "string" ? html : html?.["*"];
+    const raw = wikitextData?.parse?.wikitext;
+    const rawWikitext = typeof raw === "string" ? raw : raw?.["*"];
 
-    if (!rawHtml) return null;
+    if (!rawWikitext) return null;
 
-    const text = stripMarkup(rawHtml).slice(0, MAX_TEXT_LENGTH).trim();
+    const text = stripWikitext(leadParagraphOf(rawWikitext)).slice(
+      0,
+      MAX_TEXT_LENGTH
+    );
 
     if (text.length < MIN_TEXT_LENGTH) return null;
 
