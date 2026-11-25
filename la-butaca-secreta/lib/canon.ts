@@ -7,6 +7,7 @@ export type CanonResult = {
   year: number;
   decade: number;
   director: string;
+  country: string;
   // null cuando TMDb no encuentra nada para ese título (no debería
   // pasar con la lista ya contrastada, pero por si acaso).
   tmdbId: number | null;

@@ -33,6 +33,8 @@ export default function CanonScreen({ session }: { session: Session }) {
   const [watchedIds, setWatchedIds] = useState<Set<number> | null>(null);
   const [decade, setDecade] = useState<number | null>(null);
   const [filter, setFilter] = useState<Filter>("todas");
+  const [country, setCountry] = useState<string | null>(null);
+  const [directorQuery, setDirectorQuery] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -68,6 +70,12 @@ export default function CanonScreen({ session }: { session: Session }) {
     [state]
   );
 
+  const countries = useMemo(() => {
+    return Array.from(new Set(items.map((item) => item.country))).sort((a, b) =>
+      a.localeCompare(b, "es")
+    );
+  }, [items]);
+
   const watchedCount = useMemo(() => {
     if (!watchedIds) return 0;
 
@@ -75,8 +83,18 @@ export default function CanonScreen({ session }: { session: Session }) {
   }, [items, watchedIds]);
 
   const visible = useMemo(() => {
+    const normalizedDirectorQuery = directorQuery.trim().toLocaleLowerCase("es");
+
     return items.filter((item) => {
       if (decade !== null && item.decade !== decade) return false;
+      if (country !== null && item.country !== country) return false;
+
+      if (
+        normalizedDirectorQuery &&
+        !item.director.toLocaleLowerCase("es").includes(normalizedDirectorQuery)
+      ) {
+        return false;
+      }
 
       if (!watchedIds) return true;
 
@@ -87,7 +105,7 @@ export default function CanonScreen({ session }: { session: Session }) {
 
       return true;
     });
-  }, [items, decade, filter, watchedIds]);
+  }, [items, decade, filter, watchedIds, country, directorQuery]);
 
   const total = items.length || 250;
   const pct = total > 0 ? Math.round((watchedCount / total) * 100) : 0;
@@ -178,6 +196,29 @@ export default function CanonScreen({ session }: { session: Session }) {
             {decadeLabel(d)}
           </button>
         ))}
+      </div>
+
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <input
+          type="text"
+          value={directorQuery}
+          onChange={(event) => setDirectorQuery(event.target.value)}
+          placeholder="Buscar por director..."
+          className="w-full rounded-xl border border-white/15 bg-black/20 px-3 py-2 text-sm text-white placeholder:text-zinc-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:flex-1"
+        />
+
+        <select
+          value={country ?? ""}
+          onChange={(event) => setCountry(event.target.value || null)}
+          className="w-full rounded-xl border border-white/15 bg-black/20 px-3 py-2 text-sm text-zinc-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-56"
+        >
+          <option value="">Todos los países</option>
+          {countries.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
       </div>
 
       {state.status === "loading" ? (
