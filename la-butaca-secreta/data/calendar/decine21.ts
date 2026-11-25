@@ -211,7 +211,6 @@ export const IMPORTADOS: Importado[] = [
   { date: "2026-10-30", type: "tv", query: "Nocturno", year: 2026 },
   { date: "2026-10-30", type: "movie", query: "Viva", year: 2026 },
   { date: "2026-10-30", type: "movie", query: "Apocalipsis Z: Nuevo mundo", year: 2026 },
-  { date: "2026-12-02", type: "tv", query: "Caldas. El último barco", year: 2026 },
   { date: "2026-10-30", type: "movie", query: "Las corrientes", year: 2026 },
   { date: "2026-10-30", type: "movie", query: "Los músicos", year: 2026 },
   { date: "2026-10-30", type: "movie", query: "Oddity", year: 2026 },
@@ -346,12 +345,33 @@ export const IMPORTADOS: Importado[] = [
   { date: "2026-11-26", type: "movie", query: "El pasajero", year: 2026 },
   { date: "2026-11-26", type: "movie", query: "Mínimo contacto", year: 2026 },
   { date: "2026-11-26", type: "tv", query: "Fool night", year: 2026 },
+  // Cuarta pasada, 25 nov (noche): FilmAffinity ya accesible desde esta
+  // sesión vía `www.filmaffinity.com` (no `m.`, que redirige/bloquea) —
+  // se repasaron las 5 plataformas de nuevo y aparecían más títulos del
+  // 26 nov en adelante que decine21.com no había traído.
+  { date: "2026-11-26", type: "tv", query: "Las esposas cazadoras", year: 2026, season: 2 },
+  { date: "2026-11-26", type: "tv", query: "El secuestro de Toos van der Valk", year: 2026 },
+  { date: "2026-11-26", type: "tv", query: "Servicio de urgencias", year: 2026 },
+  { date: "2026-11-26", type: "tv", query: "Navidades filipinas", year: 2026 },
   { date: "2026-11-27", type: "movie", query: "15 pruebas de amor", year: 2026 },
   { date: "2026-11-27", type: "movie", query: "El amor que permanece", year: 2026 },
   { date: "2026-11-27", type: "movie", query: "El niño", year: 2026 },
   { date: "2026-11-27", type: "movie", query: "Quasimodo, el alma de París", year: 2026 },
   { date: "2026-11-27", type: "movie", query: "El zoo de los horrores", year: 2026 },
   { date: "2026-11-27", type: "movie", query: "Su propio infierno", year: 2026 },
+  { date: "2026-11-27", type: "movie", query: "Soy Tyson Fury", year: 2026 },
+  { date: "2026-11-27", type: "tv", query: "The Tupac Tapes with Angie Martinez", year: 2026 },
+  { date: "2026-11-27", type: "tv", query: "Expediente Linares", year: 2026 },
+  { date: "2026-11-27", type: "tv", query: "Mickey Solo en casa", year: 2026 },
+  { date: "2026-11-27", type: "movie", query: "La isla de los faisanes", year: 2025 },
+  { date: "2026-11-27", type: "movie", query: "Eva y Bea", year: 2025 },
+  { date: "2026-11-27", type: "movie", query: "Recuerdo tu nombre", year: 2025 },
+  { date: "2026-11-27", type: "movie", query: "Respirando bajo el agua", year: 2024 },
+  { date: "2026-11-27", type: "movie", query: "Escribiendo Hawa", year: 2024 },
+  // "Family Guy: The Peter Clause" (Disney+, 30 nov) se deja fuera a
+  // propósito: es un episodio suelto de una serie ya en emisión, no un
+  // título ni una temporada nueva.
+  { date: "2026-11-29", type: "tv", query: "Nine to Six", year: 2026 },
   { date: "2026-11-30", type: "tv", query: "The Boy Who Stole Billions", year: 2026 },
 
   // Diciembre contrastado contra FilmAffinity (próx. estrenos) por
@@ -360,12 +380,39 @@ export const IMPORTADOS: Importado[] = [
   // aparecen solas en el calendario vía TMDb/TVmaze.
   // Resto de diciembre (1, 2, 10, 18, 21, 23) contrastado el 25 nov
   // contra el calendario mensual de decine21.com (FilmAffinity seguía
-  // bloqueada esa sesión); todavía no cubre el mes entero, solo lo que
-  // esa fuente ya tenía publicado a esa fecha.
+  // bloqueada esa sesión); se completó el resto del mes (hasta el 4
+  // dic, que es donde llegaban las 5 páginas "próx. estrenos" de
+  // FilmAffinity a esta fecha) más tarde esa misma noche, con
+  // FilmAffinity ya accesible.
   { date: "2026-12-01", type: "tv", query: "Trinity", year: 2026 },
+  { date: "2026-12-01", type: "tv", query: "Collect & Praise", year: 2026 },
+  { date: "2026-12-01", type: "tv", query: "Todas las criaturas grandes y pequeñas", year: 2026, season: 7 },
+  // "Un campo abierto" (Netflix, 1 dic) se deja fuera: es un
+  // mediometraje documental.
+  { date: "2026-12-02", type: "tv", query: "Caldas. El último barco", year: 2026 },
   { date: "2026-12-02", type: "movie", query: "En busca del saco mágico", year: 2026 },
   { date: "2026-12-02", type: "tv", query: "Mono malo", year: 2026, season: 2 },
+  { date: "2026-12-02", type: "movie", query: "Atrapada en las vacaciones", year: 2026 },
+  { date: "2026-12-02", type: "movie", query: "Marcos: Otro mundo es posible", year: 2026 },
+  { date: "2026-12-02", type: "tv", query: "La II Guerra Mundial: Tras las líneas enemigas", year: 2026 },
+  { date: "2026-12-02", type: "tv", query: "El buen jefe", year: 2026 },
+  { date: "2026-12-02", type: "tv", query: "Mejores enemigas", year: 2026 },
+  { date: "2026-12-03", type: "tv", query: "Orgullo y prejuicio", year: 2026 },
+  { date: "2026-12-03", type: "movie", query: "Secretos", year: 2026 },
+  { date: "2026-12-03", type: "movie", query: "Las locuras de mi novia feminista", year: 2026 },
+  { date: "2026-12-03", type: "tv", query: "Las llamas del poder", year: 2026 },
+  { date: "2026-12-03", type: "movie", query: "La decisión del pianista", year: 2024 },
   { date: "2026-12-04", type: "movie", query: "Diary of a Wimpy Kid: The Getaway", year: 2026 },
+  { date: "2026-12-04", type: "movie", query: "La última ronda en Venecia", year: 2025 },
+  { date: "2026-12-04", type: "movie", query: "Yes!", year: 2025 },
+  { date: "2026-12-04", type: "movie", query: "Sucia", year: 2026 },
+  { date: "2026-12-04", type: "movie", query: "Looney Tunes. El día que la Tierra explotó", year: 2024 },
+  { date: "2026-12-04", type: "movie", query: "La memoria de las mariposas", year: 2026 },
+  { date: "2026-12-04", type: "movie", query: "Sunflower", year: 2023 },
+  { date: "2026-12-04", type: "movie", query: "Chemsex: Un viaje al interior", year: 2025 },
+  { date: "2026-12-04", type: "movie", query: "Hate Songs", year: 2024 },
+  { date: "2026-12-04", type: "movie", query: "Calcinación", year: 2025 },
+  { date: "2026-12-04", type: "movie", query: "La gran Navidad de los animales", year: 2024 },
   { date: "2026-12-08", type: "tv", query: "Solo asesinatos en el edificio", year: 2026, season: 6 },
   { date: "2026-12-10", type: "tv", query: "Matar a un oso", year: 2026 },
   { date: "2026-12-18", type: "movie", query: "Subijana, más allá de un bigote", year: 2026 },
