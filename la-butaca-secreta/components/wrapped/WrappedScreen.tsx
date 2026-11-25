@@ -140,10 +140,16 @@ function paperBackground(scheme: RibbonScheme): string {
   return `radial-gradient(circle at top left, ${scheme.glowA}, transparent 55%), radial-gradient(circle at top right, ${scheme.glowB}, transparent 55%), linear-gradient(180deg, #050505 0%, #09090b 40%, #050505 100%)`;
 }
 
-/** Lazo de cinta en una esquina: dos bandas de raso (con sombra/brillo) que se cruzan bajo un lazo. */
+/**
+ * Lazo de cinta en una esquina: dos bandas de raso (con sombra, cuerpo
+ * y brillo especular, para que se note redondeado) que se cruzan bajo
+ * un lazo. Todo el grupo lleva un desenfoque ligero + una sombra suave
+ * debajo, para que se integre en el fondo difuminado en vez de verse
+ * como una pegatina recortada.
+ */
 function RibbonCorner({ scheme }: { scheme: RibbonScheme }) {
   const vb = { w: 300, h: 620 };
-  const band = 44;
+  const band = 46;
   const flipX = scheme.corner === "tr" || scheme.corner === "br";
   const flipY = scheme.corner === "bl" || scheme.corner === "br";
   const vX = flipX ? vb.w - 58 : 58;
@@ -155,26 +161,32 @@ function RibbonCorner({ scheme }: { scheme: RibbonScheme }) {
       aria-hidden
       viewBox={`0 0 ${vb.w} ${vb.h}`}
       preserveAspectRatio="xMidYMid slice"
-      className="pointer-events-none absolute inset-0 h-full w-full opacity-90"
+      className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.94]"
+      style={{ filter: "blur(1.1px) drop-shadow(0 10px 22px rgba(0,0,0,0.5))" }}
     >
       <defs>
         <linearGradient id={`rv-${uid}`} x1="0" y1="0" x2="1" y2="0">
           <stop offset="0%" stopColor={scheme.shadow} />
-          <stop offset="32%" stopColor={scheme.color} />
-          <stop offset="50%" stopColor={scheme.highlight} />
-          <stop offset="68%" stopColor={scheme.color} />
+          <stop offset="28%" stopColor={scheme.color} />
+          <stop offset="46%" stopColor={scheme.highlight} />
+          <stop offset="50%" stopColor="#fff" stopOpacity="0.85" />
+          <stop offset="54%" stopColor={scheme.highlight} />
+          <stop offset="72%" stopColor={scheme.color} />
           <stop offset="100%" stopColor={scheme.shadow} />
         </linearGradient>
         <linearGradient id={`rh-${uid}`} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor={scheme.shadow} />
-          <stop offset="32%" stopColor={scheme.color} />
-          <stop offset="50%" stopColor={scheme.highlight} />
-          <stop offset="68%" stopColor={scheme.color} />
+          <stop offset="28%" stopColor={scheme.color} />
+          <stop offset="46%" stopColor={scheme.highlight} />
+          <stop offset="50%" stopColor="#fff" stopOpacity="0.85" />
+          <stop offset="54%" stopColor={scheme.highlight} />
+          <stop offset="72%" stopColor={scheme.color} />
           <stop offset="100%" stopColor={scheme.shadow} />
         </linearGradient>
         <linearGradient id={`loop-${uid}`} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor={scheme.highlight} />
-          <stop offset="55%" stopColor={scheme.color} />
+          <stop offset="0%" stopColor="#fff" stopOpacity="0.9" />
+          <stop offset="30%" stopColor={scheme.highlight} />
+          <stop offset="65%" stopColor={scheme.color} />
           <stop offset="100%" stopColor={scheme.shadow} />
         </linearGradient>
       </defs>
@@ -184,35 +196,84 @@ function RibbonCorner({ scheme }: { scheme: RibbonScheme }) {
 
       <g transform={`translate(${vX}, ${hY})`}>
         {/* cola del lazo, por detrás de los dos lazos */}
-        <path d="M -6 10 L -11 38 L 0 29 L 11 38 L 6 10 Z" fill={scheme.shadow} />
+        <path d="M -7 11 L -12 40 L 0 30 L 12 40 L 7 11 Z" fill={scheme.shadow} />
+        <path d="M -7 11 L -10 32 L 0 26 L 0 11 Z" fill={scheme.color} opacity={0.6} />
         {/* los dos lazos del nudo */}
         <path
-          d="M 0 -7 C -18 -26 -48 -22 -48 -2 C -48 16 -22 20 0 7 Z"
+          d="M 0 -8 C -20 -28 -52 -24 -52 -2 C -52 18 -24 22 0 8 Z"
           fill={`url(#loop-${uid})`}
           stroke={scheme.shadow}
           strokeWidth="2"
         />
         <path
-          d="M 0 -7 C 18 -26 48 -22 48 -2 C 48 16 22 20 0 7 Z"
+          d="M 0 -8 C 20 -28 52 -24 52 -2 C 52 18 24 22 0 8 Z"
           fill={`url(#loop-${uid})`}
           stroke={scheme.shadow}
           strokeWidth="2"
         />
         {/* nudo central */}
-        <circle r="11" fill={scheme.color} stroke={scheme.shadow} strokeWidth="2" />
-        <circle r="4" fill={scheme.highlight} opacity={0.8} />
+        <circle r="12" fill={scheme.color} stroke={scheme.shadow} strokeWidth="2" />
+        <circle cx="-3" cy="-3" r="4.5" fill="#fff" opacity={0.75} />
       </g>
     </svg>
   );
 }
 
-function GiftWrapLayer({ wrap }: { wrap: RibbonScheme }) {
+/** Genera posiciones pseudoaleatorias (pero estables) a partir de un texto, para que cada pantalla reparta sus copos de forma distinta sin tener que escribirlas a mano una a una. */
+function seededDots(
+  seed: string,
+  count: number
+): Array<{ top: number; left: number; size: number }> {
+  let s = 0;
+  for (let i = 0; i < seed.length; i++) s = (s * 31 + seed.charCodeAt(i)) >>> 0;
+
+  function next(): number {
+    s = (s * 1103515245 + 12345) >>> 0;
+    return (s >>> 8) / 16777216;
+  }
+
+  return Array.from({ length: count }).map(() => ({
+    top: 6 + next() * 82,
+    left: 6 + next() * 82,
+    size: 10 + next() * 16,
+  }));
+}
+
+/** Copos/estrellas navideñas difuminadas (como el resto de la web: resplandores suaves, no iconos nítidos), repartidas de forma distinta en cada pantalla. */
+function FestiveBokeh({ seed, scheme }: { seed: string; scheme: RibbonScheme }) {
+  const dots = seededDots(seed, 7);
+  const colors = ["#ffffff", scheme.highlight, "#ffffff"];
+
+  return (
+    <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+      {dots.map((d, i) => (
+        <div
+          key={i}
+          style={{
+            position: "absolute",
+            top: `${d.top}%`,
+            left: `${d.left}%`,
+            width: d.size,
+            height: d.size,
+            borderRadius: "9999px",
+            background: colors[i % colors.length],
+            filter: "blur(5px)",
+            opacity: i % 3 === 0 ? 0.5 : 0.3,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function GiftWrapLayer({ wrap, slideId }: { wrap: RibbonScheme; slideId: string }) {
   return (
     <div
       aria-hidden
       className="pointer-events-none absolute inset-0 overflow-hidden"
       style={{ background: paperBackground(wrap) }}
     >
+      <FestiveBokeh seed={slideId} scheme={wrap} />
       <RibbonCorner scheme={wrap} />
     </div>
   );
@@ -1347,7 +1408,7 @@ export default function WrappedScreen({ year, onClose }: Props) {
         </div>
 
         <div className="relative flex-1 overflow-hidden px-6 py-4">
-          <GiftWrapLayer wrap={currentWrap} />
+          <GiftWrapLayer wrap={currentWrap} slideId={currentWrapId ?? "portada"} />
 
           {loading && (
             <p className="flex h-full items-center justify-center text-sm text-zinc-400">
