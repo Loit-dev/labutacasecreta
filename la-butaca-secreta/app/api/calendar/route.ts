@@ -8,6 +8,7 @@ import {
   parseMonth,
   type CalendarEntry,
 } from "@/lib/calendar";
+import { mapLimited } from "@/lib/concurrency";
 import { PLATFORMS, type PlatformKey } from "@/lib/platforms";
 import {
   discoverCalendar,
@@ -41,32 +42,6 @@ const POSTER_BASE = "https://image.tmdb.org/t/p/w185";
 
 // Consultas simultáneas a TMDb al comprobar fechas de estreno
 const CONCURRENCY = 10;
-
-async function mapLimited<T, R>(
-  items: T[],
-  limit: number,
-  task: (item: T) => Promise<R>
-): Promise<R[]> {
-  const out: R[] = new Array(items.length);
-  let next = 0;
-
-  async function worker() {
-    while (next < items.length) {
-      const index = next++;
-
-      out[index] = await task(items[index]);
-    }
-  }
-
-  await Promise.all(
-    Array.from(
-      { length: Math.min(limit, items.length) },
-      worker
-    )
-  );
-
-  return out;
-}
 
 function toEntry(
   item: TMDBMovie,

@@ -23,6 +23,7 @@ import type { Recommendation } from "@/lib/tmdb/mapper";
 
 import { useAchievementsContext } from "@/components/achievements/AchievementsProvider";
 import ProfileAchievementsRow from "@/components/achievements/ProfileAchievementsRow";
+import CanonProfileRow from "@/components/canon/CanonProfileRow";
 
 import DiscardedDialog from "./DiscardedDialog";
 import FavoriteCard from "./FavoriteCard";
@@ -138,9 +139,9 @@ const GENRE_RANKS = [
 
 type Props = {
   // Para que "Totales" lleve a Diario, "Pendientes" a Pendientes y
-  // "Ver todos" (logros) a Logros (AccountScreen.tsx controla la
-  // pestaña activa).
-  onNavigateTab?: (tab: "diario" | "pendientes" | "logros") => void;
+  // "Ver todos" (logros) a Logros, "El Canon" a Canon (AccountScreen.tsx
+  // controla la pestaña activa).
+  onNavigateTab?: (tab: "diario" | "pendientes" | "logros" | "canon") => void;
 };
 
 export default function MiResumenScreen({ onNavigateTab }: Props) {
@@ -473,6 +474,8 @@ export default function MiResumenScreen({ onNavigateTab }: Props) {
           onOpenFull={() => onNavigateTab?.("logros")}
         />
       )}
+
+      <CanonProfileRow session={session} onOpenFull={() => onNavigateTab?.("canon")} />
 
       <div className="grid grid-cols-3 gap-2 sm:gap-4">
         {titles.lastWatched ? (

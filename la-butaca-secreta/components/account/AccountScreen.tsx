@@ -13,6 +13,7 @@ import {
 import MiResumenScreen from "@/components/summary/MiResumenScreen";
 import AchievementsScreen from "@/components/achievements/AchievementsScreen";
 import { useAchievementsContext } from "@/components/achievements/AchievementsProvider";
+import CanonScreen from "@/components/canon/CanonScreen";
 
 import DiaryTab from "./DiaryTab";
 import FriendsTab from "./FriendsTab";
@@ -20,9 +21,10 @@ import ListsTab from "./ListsTab";
 import PendingTab from "./PendingTab";
 import RequireAccount from "./RequireAccount";
 
-// "Logros" no tiene pestaña propia a propósito: solo se llega desde
-// el enlace "Ver todos" del perfil (Mi Resumen → ProfileAchievementsRow),
-// no desde esta barra.
+// "Logros" y "Canon" no tienen pestaña propia a propósito: solo se
+// llega desde sus filas en el perfil (Mi Resumen → ProfileAchievementsRow
+// / CanonProfileRow), no desde esta barra — igual que Logros, no son
+// algo que se consulte a diario, así que no merecen un hueco fijo.
 const TABS = [
   ["perfil", AccountIcon, "Perfil"],
   ["diario", DiaryIcon, "Diario"],
@@ -31,7 +33,7 @@ const TABS = [
   ["amigos", FriendsIcon, "Amigos"],
 ] as const;
 
-type TabId = (typeof TABS)[number][0] | "logros";
+type TabId = (typeof TABS)[number][0] | "logros" | "canon";
 
 // Deslizar con el dedo para cambiar de pestaña (izquierda → siguiente,
 // derecha → anterior), igual que el resto de carruseles de la web.
@@ -53,7 +55,12 @@ export default function AccountScreen() {
   useEffect(() => {
     const requested = new URLSearchParams(window.location.search).get("tab");
 
-    if (requested && (TABS.some(([id]) => id === requested) || requested === "logros")) {
+    if (
+      requested &&
+      (TABS.some(([id]) => id === requested) ||
+        requested === "logros" ||
+        requested === "canon")
+    ) {
       setTab(requested as TabId);
     }
   }, []);
@@ -72,8 +79,8 @@ export default function AccountScreen() {
 
     const distance = touchStart - touchEnd;
 
-    // "Logros" no está en la barra de pestañas (solo se llega por
-    // enlace), así que ahí deslizar no hace nada.
+    // "Logros" y "Canon" no están en la barra de pestañas (solo se
+    // llega por enlace), así que ahí deslizar no hace nada.
     const index = TABS.findIndex(([id]) => id === tab);
     if (index === -1) return;
 
@@ -159,6 +166,12 @@ export default function AccountScreen() {
                   <p className="text-sm text-zinc-400">Calculando tus logros…</p>
                 )
               }
+            </RequireAccount>
+          )}
+
+          {tab === "canon" && (
+            <RequireAccount what="El Canon">
+              {(session) => <CanonScreen session={session} />}
             </RequireAccount>
           )}
         </div>
