@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { topCastHighlights, type CastHighlights } from "@/lib/wrappedExtras";
-import type { TitleCredits } from "@/lib/compatibilityExtras";
+import { topCastHighlights, type CastCredit } from "@/lib/wrappedExtras";
+import type { CastHighlights } from "@/lib/wrappedExtras";
 
 type TitleRef = { tmdbId: number; mediaType: "movie" | "tv" };
 
@@ -15,7 +15,7 @@ const CONCURRENCY = 5;
 async function fetchTitleCredits(
   tmdbId: number,
   mediaType: "movie" | "tv"
-): Promise<TitleCredits> {
+): Promise<CastCredit> {
   try {
     const response = await fetch(
       `/api/credits?id=${tmdbId}&type=${mediaType}`
@@ -27,7 +27,10 @@ async function fetchTitleCredits(
 
     return {
       director: typeof data.director === "string" ? data.director : null,
+      directorPhoto:
+        typeof data.directorPhoto === "string" ? data.directorPhoto : null,
       cast: Array.isArray(data.cast) ? data.cast : [],
+      castPhotos: Array.isArray(data.castPhotos) ? data.castPhotos : [],
     };
   } catch {
     return { director: null, cast: [] };

@@ -43,3 +43,46 @@ $$;
 -- Solo la ejecuta gente logueada, y solo para su propio recuento
 -- (auth.uid() dentro de la función, nunca un id que se pueda pasar).
 grant execute on function public.my_month_rank() to authenticated;
+
+-- ─────────────────────────────────────────────────────────────────
+-- 2026-11 · Resumen Anual ("Wrapped"): "Trendy y joya oculta" necesita
+-- saber cuánta gente de la app ha visto cada título tuyo este año —
+-- un dato cruzado entre cuentas que hoy no se agrega en ningún sitio
+-- (my_month_rank es solo tu percentil, no por título). Recibe tus
+-- propios tmdb_id/media_type (los que ya tienes en el cliente) y
+-- devuelve, por cada uno, cuántos usuarios DISTINTOS lo vieron este
+-- año — nunca quién, solo el recuento. Pégalo en Supabase → SQL Editor
+-- → New query → Run.
+-- ─────────────────────────────────────────────────────────────────
+
+create or replace function public.title_watch_counts(
+  p_tmdb_ids integer[],
+  p_media_types text[],
+  p_year integer
+)
+returns table (
+  tmdb_id integer,
+  media_type text,
+  watcher_count integer
+)
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select
+    pairs.tmdb_id,
+    pairs.media_type,
+    count(distinct w.user_id)::integer as watcher_count
+  from unnest(p_tmdb_ids, p_media_types) as pairs(tmdb_id, media_type)
+  left join public.watched w
+    on w.tmdb_id = pairs.tmdb_id
+    and w.media_type = pairs.media_type
+    and extract(year from w.seen_at) = p_year
+  group by pairs.tmdb_id, pairs.media_type;
+$$;
+
+-- Cualquier usuario logueado puede pedir el recuento de SUS propios
+-- títulos (los tmdb_id/media_type se los pasa él mismo desde el
+-- cliente) — la función no expone quién vio qué, solo un número.
+grant execute on function public.title_watch_counts(integer[], text[], integer) to authenticated;

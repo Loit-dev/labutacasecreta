@@ -9,11 +9,27 @@
 
 import type { TitleCredits } from "@/lib/compatibilityExtras";
 
-export type PersonHighlight = { name: string; count: number };
+export type PersonHighlight = {
+  name: string;
+  count: number;
+  /** Foto (URL completa de TMDb) de alguno de los títulos donde apareció; null si no hay. */
+  photoPath?: string | null;
+};
 
 export type CastHighlights = {
   actor?: PersonHighlight;
   director?: PersonHighlight;
+};
+
+/**
+ * Igual que TitleCredits (lib/compatibilityExtras.ts) pero con la foto
+ * de cada nombre, en el mismo orden que `cast` — opcional para que
+ * quien ya llamaba a /api/credits sin pedir fotos (la tarjeta de
+ * "Compatibilidad") no tenga que cambiar nada.
+ */
+export type CastCredit = TitleCredits & {
+  directorPhoto?: string | null;
+  castPhotos?: (string | null)[];
 };
 
 // Con un solo título no significa nada que "se repita" un actor o
@@ -22,10 +38,12 @@ export type CastHighlights = {
 // lib/compatibilityExtras.ts).
 const MIN_REPEAT = 2;
 
-/** De los créditos de todos los títulos vistos este año, el actor y el director que más se repiten (independientes entre sí). */
-export function topCastHighlights(credits: TitleCredits[]): CastHighlights {
+/** De los créditos de todos los títulos vistos este año, el actor y el director que más se repiten (independientes entre sí), con la primera foto que se les encuentre. */
+export function topCastHighlights(credits: CastCredit[]): CastHighlights {
   const directorCounts = new Map<string, number>();
   const castCounts = new Map<string, number>();
+  const directorPhotos = new Map<string, string | null>();
+  const castPhotos = new Map<string, string | null>();
 
   for (const credit of credits) {
     if (credit.director) {
@@ -33,11 +51,21 @@ export function topCastHighlights(credits: TitleCredits[]): CastHighlights {
         credit.director,
         (directorCounts.get(credit.director) ?? 0) + 1
       );
+
+      if (!directorPhotos.get(credit.director) && credit.directorPhoto) {
+        directorPhotos.set(credit.director, credit.directorPhoto);
+      }
     }
 
-    for (const name of credit.cast) {
+    credit.cast.forEach((name, i) => {
       castCounts.set(name, (castCounts.get(name) ?? 0) + 1);
-    }
+
+      const photo = credit.castPhotos?.[i];
+
+      if (!castPhotos.get(name) && photo) {
+        castPhotos.set(name, photo);
+      }
+    });
   }
 
   const bestDirector = [...directorCounts.entries()]
@@ -49,11 +77,97 @@ export function topCastHighlights(credits: TitleCredits[]): CastHighlights {
     .sort((a, b) => b[1] - a[1])[0];
 
   return {
-    actor: bestActor ? { name: bestActor[0], count: bestActor[1] } : undefined,
+    actor: bestActor
+      ? {
+          name: bestActor[0],
+          count: bestActor[1],
+          photoPath: castPhotos.get(bestActor[0]) ?? null,
+        }
+      : undefined,
     director: bestDirector
-      ? { name: bestDirector[0], count: bestDirector[1] }
+      ? {
+          name: bestDirector[0],
+          count: bestDirector[1],
+          photoPath: directorPhotos.get(bestDirector[0]) ?? null,
+        }
       : undefined,
   };
+}
+
+export type TitleWithCount = {
+  tmdbId: number;
+  mediaType: "movie" | "tv";
+  title: string;
+  posterUrl?: string;
+  rating?: number;
+  /** Cuántos usuarios DISTINTOS de la app vieron este título este año (title_watch_counts, supabase/resumen.sql). */
+  watcherCount: number;
+};
+
+export type TrendyPick = {
+  tmdbId: number;
+  mediaType: "movie" | "tv";
+  title: string;
+  posterUrl?: string;
+  watcherCount: number;
+};
+
+export type HiddenGemPick = TrendyPick & { rating: number };
+
+export type TrendyHighlights = {
+  trendy?: TrendyPick;
+  hiddenGem?: HiddenGemPick;
+};
+
+// Por debajo de esta nota no cuenta como "joya oculta": tiene que
+// gustarte de verdad, no solo que casi nadie más la haya visto.
+const MIN_HIDDEN_GEM_RATING = 4;
+
+/** De los títulos vistos este año, el más visto por el resto de la app ("trendy") y, entre los que valoraste alto, el que menos vio nadie más ("joya oculta"). */
+export function pickTrendyAndHiddenGem(
+  rows: TitleWithCount[]
+): TrendyHighlights {
+  if (rows.length === 0) return {};
+
+  const toPick = (row: TitleWithCount): TrendyPick => ({
+    tmdbId: row.tmdbId,
+    mediaType: row.mediaType,
+    title: row.title,
+    posterUrl: row.posterUrl,
+    watcherCount: row.watcherCount,
+  });
+
+  const mostWatched = [...rows].sort(
+    (a, b) => b.watcherCount - a.watcherCount
+  )[0];
+
+  // Que al menos una persona más de la app lo haya visto: si nadie más
+  // vio nada de tu año, "lo más trendy que viste" no dice nada.
+  const trendy =
+    mostWatched.watcherCount >= 2 ? toPick(mostWatched) : undefined;
+
+  const gemCandidates = rows.filter(
+    (row) =>
+      (row.rating ?? 0) >= MIN_HIDDEN_GEM_RATING &&
+      !(
+        trendy &&
+        row.tmdbId === trendy.tmdbId &&
+        row.mediaType === trendy.mediaType
+      )
+  );
+
+  gemCandidates.sort(
+    (a, b) =>
+      a.watcherCount - b.watcherCount || (b.rating ?? 0) - (a.rating ?? 0)
+  );
+
+  const gem = gemCandidates[0];
+
+  const hiddenGem: HiddenGemPick | undefined = gem
+    ? { ...toPick(gem), rating: gem.rating as number }
+    : undefined;
+
+  return { trendy, hiddenGem };
 }
 
 export type GroupCompatInput = {

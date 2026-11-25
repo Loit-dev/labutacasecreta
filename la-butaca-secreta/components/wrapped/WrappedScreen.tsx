@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { useAuth } from "@/hooks/useAuth";
@@ -8,14 +8,18 @@ import { useDialog } from "@/hooks/useDialog";
 import { useWrapped } from "@/hooks/useWrapped";
 import { useWrappedCastHighlights } from "@/hooks/useWrappedCastHighlights";
 import { useWrappedFriendsGroup } from "@/hooks/useWrappedFriendsGroup";
+import { useWrappedTrendy } from "@/hooks/useWrappedTrendy";
 import { track } from "@/lib/analytics";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { recordShareEvent } from "@/lib/supabase/achievements";
+import { fetchMyProfile } from "@/lib/supabase/profiles";
 import type { WatchedRow } from "@/lib/supabase/summary";
 import type { WrappedStats } from "@/lib/wrapped";
+import { createWrappedShareImage } from "@/lib/wrappedShareImage";
 import {
   DiscardIcon,
   FireIcon,
+  GemIcon,
   PersonIcon,
   PinIcon,
   ShareIcon,
@@ -425,35 +429,197 @@ async function performShare(
   }
 }
 
-function ShareSlide({ stats, onShared }: { stats: WrappedStats; onShared: () => void }) {
+function siteFont(): string {
+  try {
+    return getComputedStyle(document.documentElement)
+      .getPropertyValue("--font-manrope")
+      .trim();
+  } catch {
+    return "";
+  }
+}
+
+type FinalCardState =
+  | { status: "loading" }
+  | { status: "error" }
+  | { status: "ready"; file: File; url: string };
+
+/**
+ * Tarjeta final: una imagen real (mismo fondo cinematográfico que el
+ * resto de "compartir" de la web, lib/shareImage.ts) con lo más
+ * importante del año, no todas las cifras — mismo patrón que
+ * ShareSummaryDialog.tsx (genera la imagen al montar, enseña preview,
+ * Compartir/Descargar).
+ */
+function FinalShareCard({
+  stats,
+  watched,
+}: {
+  stats: WrappedStats;
+  watched: WatchedRow[];
+}) {
   const { session } = useAuth();
-  const [copied, setCopied] = useState(false);
+  const [state, setState] = useState<FinalCardState>({ status: "loading" });
+  const [message, setMessage] = useState("");
+
+  const fileName = `wrapped-${stats.year}-la-butaca-secreta.png`;
+
+  useEffect(() => {
+    let cancelled = false;
+    let objectUrl = "";
+
+    async function run() {
+      const userId = session?.user.id;
+      const profile = userId ? await fetchMyProfile(userId) : null;
+
+      const posterUrls = watched
+        .filter(
+          (row) =>
+            new Date(row.seenAt).getFullYear() === stats.year && row.posterUrl
+        )
+        .slice(0, 12)
+        .map((row) => row.posterUrl as string);
+
+      try {
+        const blob = await createWrappedShareImage({
+          siteName: SITE_NAME,
+          siteUrl: SITE_URL,
+          year: stats.year,
+          displayName: profile?.displayName ?? undefined,
+          totalWatched: stats.totalWatched,
+          topGenreName: stats.topGenres[0]?.name,
+          longestStreak: stats.longestStreak,
+          posterUrls,
+          fontFamily: siteFont(),
+        });
+
+        if (cancelled) return;
+
+        objectUrl = URL.createObjectURL(blob);
+        setState({
+          status: "ready",
+          url: objectUrl,
+          file: new File([blob], fileName, { type: "image/png" }),
+        });
+      } catch {
+        if (!cancelled) setState({ status: "error" });
+      }
+    }
+
+    run();
+
+    return () => {
+      cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stats.year]);
+
+  const file = state.status === "ready" ? state.file : null;
+
+  const canShareFiles =
+    !!file &&
+    typeof navigator !== "undefined" &&
+    typeof navigator.canShare === "function" &&
+    navigator.canShare({ files: [file] });
 
   async function share() {
-    const result = await performShare(stats, session, onShared);
-    if (result === "copied") setCopied(true);
+    if (!file) return;
+
+    try {
+      await navigator.share({
+        files: [file],
+        title: `${SITE_NAME} · Resumen ${stats.year}`,
+        text: shareText(stats),
+      });
+
+      track("share_done", { method: "native", screen: "wrapped" });
+      if (session) recordShareEvent(session.user.id, "wrapped");
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+
+      setMessage(
+        "No he podido abrir el menú de compartir. Descarga la imagen y envíala tú."
+      );
+    }
+  }
+
+  function download() {
+    if (state.status !== "ready") return;
+
+    const link = document.createElement("a");
+
+    link.href = state.url;
+    link.download = fileName;
+
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    setMessage("Imagen descargada. Ya puedes enviarla o subirla.");
+    track("share_done", { method: "download", screen: "wrapped" });
+    if (session) recordShareEvent(session.user.id, "wrapped");
   }
 
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-5 text-center">
-      <Eyebrow>Tu {stats.year}, en una frase</Eyebrow>
-      <h2
-        className="marquee-font text-4xl leading-[0.95] text-white"
-        style={DISPLAY_TRACKING}
+    <div className="flex h-full flex-col items-center gap-3 text-center">
+      <Eyebrow>Tu {stats.year}, resumido</Eyebrow>
+
+      <div
+        className="flex w-full flex-1 items-center justify-center overflow-hidden rounded-2xl bg-black/30"
+        aria-live="polite"
       >
-        {stats.totalWatched} títulos.
-        <br />
-        {stats.topGenres[0]?.name ?? "Un año"} de cine.
-      </h2>
-      <button
-        type="button"
-        onClick={share}
-        className="rounded-full bg-red-600 px-8 py-4 text-sm font-bold text-white hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-      >
-        Compartir
-      </button>
-      {copied && (
-        <p className="text-xs text-zinc-400">Copiado — pégalo donde quieras.</p>
+        {state.status === "loading" && (
+          <p className="px-4 text-sm text-zinc-300">
+            Preparando tu imagen…
+          </p>
+        )}
+
+        {state.status === "error" && (
+          <p role="alert" className="px-4 text-sm text-red-300">
+            No he podido crear la imagen. Inténtalo de nuevo en unos
+            segundos.
+          </p>
+        )}
+
+        {state.status === "ready" && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={state.url}
+            alt={`Tu ${stats.year} en ${SITE_NAME}`}
+            className="max-h-full w-auto max-w-full rounded-2xl"
+          />
+        )}
+      </div>
+
+      <div className="flex w-full shrink-0 gap-2">
+        {canShareFiles && (
+          <button
+            type="button"
+            onClick={share}
+            className="flex-1 rounded-full bg-red-600 px-4 py-3 text-sm font-bold text-white hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          >
+            Compartir
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={download}
+          disabled={state.status !== "ready"}
+          className={`flex-1 rounded-full px-4 py-3 text-sm font-bold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:cursor-not-allowed disabled:opacity-50 ${
+            canShareFiles
+              ? "border border-white/20 hover:bg-white/10"
+              : "bg-red-600 hover:bg-red-500"
+          }`}
+        >
+          Descargar imagen
+        </button>
+      </div>
+
+      {message && (
+        <p role="status" className="shrink-0 text-xs text-zinc-400">
+          {message}
+        </p>
       )}
     </div>
   );
@@ -490,6 +656,42 @@ function HeaderShareButton({ stats }: { stats: WrappedStats }) {
 
 type TitleRef = { tmdbId: number; mediaType: "movie" | "tv" };
 
+function initialsOf(name: string): string {
+  const parts = name.trim().split(/\s+/);
+
+  return ((parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "")).toUpperCase();
+}
+
+/** Foto de TMDb si la hay; si no, las iniciales sobre un color de marca (mismo patrón que los avatares de amigos). */
+function PersonAvatar({
+  name,
+  photoPath,
+  gradient,
+}: {
+  name: string;
+  photoPath?: string | null;
+  gradient: string;
+}) {
+  if (photoPath) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={photoPath}
+        alt=""
+        className="h-12 w-12 shrink-0 rounded-full object-cover"
+      />
+    );
+  }
+
+  return (
+    <span
+      className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${gradient} text-sm font-bold text-white`}
+    >
+      {initialsOf(name) || <PersonIcon size={20} />}
+    </span>
+  );
+}
+
 /** "Repetiste con ellos": agrega el reparto de los títulos del año bajo demanda (hooks/useWrappedCastHighlights.ts). */
 function CastHighlightsSlide({ titles }: { titles: TitleRef[] }) {
   const { highlights, loading, capped } = useWrappedCastHighlights(titles);
@@ -519,9 +721,11 @@ function CastHighlightsSlide({ titles }: { titles: TitleRef[] }) {
 
       {highlights?.actor && (
         <div className={`${CARD} flex items-center gap-3.5`}>
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-red-700 to-amber-800 text-white">
-            <PersonIcon size={20} />
-          </span>
+          <PersonAvatar
+            name={highlights.actor.name}
+            photoPath={highlights.actor.photoPath}
+            gradient="from-red-700 to-amber-800"
+          />
           <div className="min-w-0">
             <p className="text-[11px] font-bold uppercase tracking-wide text-zinc-400">
               Tu actor/actriz más repetido
@@ -541,9 +745,11 @@ function CastHighlightsSlide({ titles }: { titles: TitleRef[] }) {
 
       {highlights?.director && (
         <div className={`${CARD} flex items-center gap-3.5`}>
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-700 to-blue-950 text-white">
-            <PersonIcon size={20} />
-          </span>
+          <PersonAvatar
+            name={highlights.director.name}
+            photoPath={highlights.director.photoPath}
+            gradient="from-blue-700 to-blue-950"
+          />
           <div className="min-w-0">
             <p className="text-[11px] font-bold uppercase tracking-wide text-zinc-400">
               Tu director/a conocido
@@ -565,6 +771,113 @@ function CastHighlightsSlide({ titles }: { titles: TitleRef[] }) {
         <p className="text-[11px] text-zinc-500">
           Calculado sobre tus títulos más recientes del año.
         </p>
+      )}
+    </div>
+  );
+}
+
+function PosterThumb({ url }: { url?: string }) {
+  if (url) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={url}
+        alt=""
+        className="h-20 w-14 shrink-0 rounded-lg object-cover"
+      />
+    );
+  }
+
+  return (
+    <div className="h-20 w-14 shrink-0 rounded-lg bg-gradient-to-br from-zinc-700 to-zinc-900" />
+  );
+}
+
+/** "Trendy y joya oculta": cuánta gente de la app vio cada título del año, bajo demanda (hooks/useWrappedTrendy.ts). */
+function TrendySlide({
+  year,
+  yearRows,
+}: {
+  year: number;
+  yearRows: WatchedRow[];
+}) {
+  const { highlights, loading } = useWrappedTrendy(year, yearRows);
+
+  if (loading) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
+        <Eyebrow>Trendy y joya oculta</Eyebrow>
+        <p className="text-sm text-zinc-400">
+          Mirando qué ha visto el resto…
+        </p>
+      </div>
+    );
+  }
+
+  const trendy = highlights?.trendy;
+  const hiddenGem = highlights?.hiddenGem;
+
+  if (!trendy && !hiddenGem) {
+    return (
+      <div className="flex h-full flex-col justify-center gap-4">
+        <Eyebrow>Trendy y joya oculta</Eyebrow>
+        <p className="max-w-[30ch] text-base text-zinc-300">
+          Todavía no hay suficiente gente en {SITE_NAME} comparando
+          títulos contigo para calcular esto. Vuelve más adelante.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-full flex-col justify-center gap-4">
+      <Eyebrow>Trendy y joya oculta</Eyebrow>
+
+      {trendy && (
+        <div
+          className={`${CARD} flex items-center gap-3.5 border-red-500/25 bg-red-500/5`}
+        >
+          <PosterThumb url={trendy.posterUrl} />
+          <div className="min-w-0">
+            <p className="flex items-center gap-1 text-[11px] font-bold uppercase tracking-wide text-red-300">
+              <FireIcon size={12} /> Lo más trendy que viste
+            </p>
+            <p
+              className="marquee-font truncate text-xl text-white"
+              style={DISPLAY_TRACKING}
+            >
+              {trendy.title}
+            </p>
+            <p className="text-xs text-zinc-400">
+              La vieron {Math.max(0, trendy.watcherCount - 1)}{" "}
+              {trendy.watcherCount - 1 === 1 ? "persona más" : "personas más"}{" "}
+              en {SITE_NAME}.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {hiddenGem && (
+        <div
+          className={`${CARD} flex items-center gap-3.5 border-amber-400/25 bg-amber-400/5`}
+        >
+          <PosterThumb url={hiddenGem.posterUrl} />
+          <div className="min-w-0">
+            <p className="flex items-center gap-1 text-[11px] font-bold uppercase tracking-wide text-amber-300">
+              <GemIcon size={12} /> Tu joya oculta
+            </p>
+            <p
+              className="marquee-font truncate text-xl text-white"
+              style={DISPLAY_TRACKING}
+            >
+              {hiddenGem.title}
+            </p>
+            <p className="text-xs text-zinc-400">
+              Le diste {"★".repeat(Math.round(hiddenGem.rating))} y casi
+              nadie más la ha visto.
+            </p>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -712,18 +1025,26 @@ export default function WrappedScreen({ year, onClose }: Props) {
   const slides = stats ? buildSlides(stats) : [];
 
   if (stats) {
-    const yearTitles: TitleRef[] = watched
-      .filter((row) => new Date(row.seenAt).getFullYear() === year)
-      .map((row) => ({ tmdbId: row.tmdbId, mediaType: row.mediaType }));
+    const yearRows = watched.filter(
+      (row) => new Date(row.seenAt).getFullYear() === year
+    );
+    const yearTitles: TitleRef[] = yearRows.map((row) => ({
+      tmdbId: row.tmdbId,
+      mediaType: row.mediaType,
+    }));
 
-    // "Repetiste con ellos" va justo después del género (como en el
-    // mockup: Género → Actor), antes de que el progreso cierre el
-    // bloque de datos del año.
+    // "Repetiste con ellos" y "Trendy y joya oculta" van justo después
+    // del género (como en el mockup: Género → Actor → … → Trendy),
+    // antes de que el progreso cierre el bloque de datos del año.
     const genreIndex = slides.findIndex((s) => s.id === "genero");
-    slides.splice(genreIndex === -1 ? slides.length : genreIndex + 1, 0, {
-      id: "cara",
-      node: <CastHighlightsSlide titles={yearTitles} />,
-    });
+    const insertAt = genreIndex === -1 ? slides.length : genreIndex + 1;
+
+    slides.splice(
+      insertAt,
+      0,
+      { id: "cara", node: <CastHighlightsSlide titles={yearTitles} /> },
+      { id: "trendy", node: <TrendySlide year={year} yearRows={yearRows} /> }
+    );
 
     if (session) {
       slides.push({
@@ -794,7 +1115,7 @@ export default function WrappedScreen({ year, onClose }: Props) {
           {!loading && stats && index < slides.length && slides[index].node}
 
           {!loading && stats && index === slides.length && (
-            <ShareSlide stats={stats} onShared={() => track("share_done", { screen: "wrapped" })} />
+            <FinalShareCard stats={stats} watched={watched} />
           )}
 
           {!loading && !stats && (

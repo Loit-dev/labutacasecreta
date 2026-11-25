@@ -2,19 +2,21 @@ import { describe, test } from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  pickTrendyAndHiddenGem,
   summarizeGroupCompatibility,
   topCastHighlights,
+  type CastCredit,
   type GroupCompatInput,
+  type TitleWithCount,
 } from "@/lib/wrappedExtras";
-import type { TitleCredits } from "@/lib/compatibilityExtras";
 
-function credit(overrides: Partial<TitleCredits>): TitleCredits {
+function credit(overrides: Partial<CastCredit>): CastCredit {
   return { director: null, cast: [], ...overrides };
 }
 
 describe("topCastHighlights", () => {
   test("elige el actor y el director que más se repiten, cada uno por su lado", () => {
-    const credits: TitleCredits[] = [
+    const credits: CastCredit[] = [
       credit({ director: "Christopher Nolan", cast: ["Cillian Murphy"] }),
       credit({ director: "Christopher Nolan", cast: ["Cillian Murphy"] }),
       credit({ director: "Greta Gerwig", cast: ["Cillian Murphy"] }),
@@ -22,12 +24,20 @@ describe("topCastHighlights", () => {
 
     const result = topCastHighlights(credits);
 
-    assert.deepEqual(result.director, { name: "Christopher Nolan", count: 2 });
-    assert.deepEqual(result.actor, { name: "Cillian Murphy", count: 3 });
+    assert.deepEqual(result.director, {
+      name: "Christopher Nolan",
+      count: 2,
+      photoPath: null,
+    });
+    assert.deepEqual(result.actor, {
+      name: "Cillian Murphy",
+      count: 3,
+      photoPath: null,
+    });
   });
 
   test("un solo título no cuenta como repetido", () => {
-    const credits: TitleCredits[] = [
+    const credits: CastCredit[] = [
       credit({ director: "Alguien", cast: ["Alguien más"] }),
     ];
 
@@ -45,7 +55,7 @@ describe("topCastHighlights", () => {
   });
 
   test("varios actores en el reparto de un mismo título cuentan cada uno por separado", () => {
-    const credits: TitleCredits[] = [
+    const credits: CastCredit[] = [
       credit({ cast: ["A", "B"] }),
       credit({ cast: ["A", "C"] }),
       credit({ cast: ["A"] }),
@@ -53,7 +63,98 @@ describe("topCastHighlights", () => {
 
     const result = topCastHighlights(credits);
 
-    assert.deepEqual(result.actor, { name: "A", count: 3 });
+    assert.deepEqual(result.actor, { name: "A", count: 3, photoPath: null });
+  });
+
+  test("se queda con la primera foto que encuentra para el nombre ganador", () => {
+    const credits: CastCredit[] = [
+      credit({
+        director: "Christopher Nolan",
+        directorPhoto: null,
+        cast: ["Cillian Murphy"],
+        castPhotos: ["/murphy.jpg"],
+      }),
+      credit({
+        director: "Christopher Nolan",
+        directorPhoto: "/nolan.jpg",
+        cast: ["Cillian Murphy"],
+        castPhotos: ["/murphy2.jpg"],
+      }),
+    ];
+
+    const result = topCastHighlights(credits);
+
+    assert.equal(result.director?.photoPath, "/nolan.jpg");
+    assert.equal(result.actor?.photoPath, "/murphy.jpg");
+  });
+});
+
+describe("pickTrendyAndHiddenGem", () => {
+  function title(overrides: Partial<TitleWithCount> & { tmdbId: number }): TitleWithCount {
+    return {
+      mediaType: "movie",
+      title: `Título ${overrides.tmdbId}`,
+      watcherCount: 1,
+      ...overrides,
+    };
+  }
+
+  test("elige el título que más gente de la app vio como trendy", () => {
+    const rows = [
+      title({ tmdbId: 1, watcherCount: 2 }),
+      title({ tmdbId: 2, watcherCount: 40 }),
+      title({ tmdbId: 3, watcherCount: 5 }),
+    ];
+
+    const result = pickTrendyAndHiddenGem(rows);
+
+    assert.equal(result.trendy?.tmdbId, 2);
+  });
+
+  test("si nadie más vio nada, no hay trendy", () => {
+    const rows = [title({ tmdbId: 1, watcherCount: 1 })];
+
+    const result = pickTrendyAndHiddenGem(rows);
+
+    assert.equal(result.trendy, undefined);
+  });
+
+  test("la joya oculta es la mejor valorada entre las que menos vio nadie más", () => {
+    const rows = [
+      title({ tmdbId: 1, watcherCount: 1, rating: 5 }),
+      title({ tmdbId: 2, watcherCount: 1, rating: 4 }),
+      title({ tmdbId: 3, watcherCount: 50, rating: 5 }),
+    ];
+
+    const result = pickTrendyAndHiddenGem(rows);
+
+    assert.equal(result.hiddenGem?.tmdbId, 1);
+  });
+
+  test("sin valoraciones altas, no hay joya oculta", () => {
+    const rows = [title({ tmdbId: 1, watcherCount: 1, rating: 3 })];
+
+    const result = pickTrendyAndHiddenGem(rows);
+
+    assert.equal(result.hiddenGem, undefined);
+  });
+
+  test("el mismo título no puede ser trendy y joya oculta a la vez", () => {
+    const rows = [
+      title({ tmdbId: 1, watcherCount: 50, rating: 5 }),
+      title({ tmdbId: 2, watcherCount: 1, rating: 2 }),
+    ];
+
+    const result = pickTrendyAndHiddenGem(rows);
+
+    assert.equal(result.trendy?.tmdbId, 1);
+    assert.equal(result.hiddenGem, undefined);
+  });
+
+  test("sin títulos, no rompe", () => {
+    const result = pickTrendyAndHiddenGem([]);
+
+    assert.deepEqual(result, {});
   });
 });
 
