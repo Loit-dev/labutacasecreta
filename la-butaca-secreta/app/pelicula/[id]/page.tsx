@@ -6,6 +6,7 @@ import PosterWall from "@/components/layout/PosterWall";
 import TitlePageBody from "@/components/title/TitlePageBody";
 import { SITE_NAME } from "@/lib/site";
 import { getTitleDetails } from "@/lib/tmdb/shared";
+import { getProductionTrivia } from "@/lib/wikipedia";
 
 // No se pre-generan en el build (no hay una lista cerrada de ids):
 // se generan a demanda en la primera visita y se cachean 6h (21600 s,
@@ -64,6 +65,10 @@ export default async function Page({
 
   if (!movie) notFound();
 
+  // Si Wikipedia no tiene nada aprovechable, trivia es null y la
+  // ficha sencillamente no muestra el bloque de curiosidades.
+  const trivia = await getProductionTrivia(movie.title, movie.year);
+
   return (
     <>
       <PosterWall />
@@ -107,7 +112,7 @@ export default async function Page({
             ← Volver
           </Link>
 
-          <TitlePageBody type="movie" title={movie} />
+          <TitlePageBody type="movie" title={movie} trivia={trivia} />
         </section>
       </main>
     </>
