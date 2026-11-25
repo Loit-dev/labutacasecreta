@@ -35,11 +35,15 @@ type Slide = { id: string; node: React.ReactNode };
 const CARD =
   "rounded-3xl border border-white/10 bg-white/[0.04] p-5 backdrop-blur-sm";
 
-// Fondo del Resumen = el mismo de toda la web (app/globals.css, body),
-// no uno propio: mismos tonos (rojo arriba-izquierda, azul
-// arriba-derecha) para que el Wrapped se sienta parte de la app.
+// Fondo del Resumen, detrás de todas las pantallas: el mismo degradado
+// oscuro difuso de toda la web (app/globals.css, body — rojo
+// arriba-izquierda, azul arriba-derecha, mantenido tal cual) más un
+// lazo de cinta cruzado (dos bandas diagonales doradas/rojas de bordes
+// muy suaves, sin filo duro, para que siga leyéndose como un degradado
+// difuso y no como un patrón nítido) — el Resumen como un regalo
+// envuelto.
 const SITE_BACKGROUND =
-  "radial-gradient(circle at top left, rgba(220,38,38,0.18), transparent 30%), radial-gradient(circle at top right, rgba(59,130,246,0.12), transparent 30%), linear-gradient(180deg, #050505 0%, #09090b 40%, #050505 100%)";
+  "linear-gradient(135deg, transparent 36%, rgba(251,191,36,0.18) 46%, rgba(220,38,38,0.16) 50%, rgba(251,191,36,0.18) 54%, transparent 64%), linear-gradient(45deg, transparent 36%, rgba(251,191,36,0.18) 46%, rgba(220,38,38,0.16) 50%, rgba(251,191,36,0.18) 54%, transparent 64%), radial-gradient(circle at top left, rgba(220,38,38,0.18), transparent 30%), radial-gradient(circle at top right, rgba(59,130,246,0.12), transparent 30%), linear-gradient(180deg, #050505 0%, #09090b 40%, #050505 100%)";
 
 /** Números/titulares grandes: Bebas Neue pero con el tracking apretado del mockup (marquee-font de la app lo abre 0.04em para rótulos cortos; aquí buscamos el golpe visual de una cifra enorme). */
 const DISPLAY_TRACKING = { letterSpacing: "0.01em" } as const;
@@ -398,20 +402,68 @@ function buildSlides(stats: WrappedStats): Slide[] {
 
 type ShareSession = { user: { id: string } } | null;
 
-/** Lógica de compartir común a la pantalla final y al botón rápido de la cabecera. */
-async function performShare(
+/** Pósters del año (los que tienen portada), para la imagen de compartir. */
+function yearPosterUrls(watched: WatchedRow[], year: number, limit = 12): string[] {
+  return watched
+    .filter((row) => new Date(row.seenAt).getFullYear() === year && row.posterUrl)
+    .slice(0, limit)
+    .map((row) => row.posterUrl as string);
+}
+
+/**
+ * Comparte el Resumen como imagen (no solo texto) desde cualquier
+ * pantalla, no solo la tarjeta final: genera la misma imagen de
+ * cierre (lib/wrappedShareImage.ts) y la comparte como archivo si el
+ * dispositivo lo permite; si no, cae a compartir solo el texto, y si
+ * tampoco hay `navigator.share`, lo copia al portapapeles.
+ */
+async function shareWrappedImage(
   stats: WrappedStats,
+  watched: WatchedRow[],
   session: ShareSession,
   onShared: () => void
-): Promise<"shared" | "copied" | "failed"> {
+): Promise<"shared-image" | "shared-text" | "copied" | "failed"> {
   const text = shareText(stats);
+
+  try {
+    const profile = session ? await fetchMyProfile(session.user.id) : null;
+
+    const blob = await createWrappedShareImage({
+      siteName: SITE_NAME,
+      siteUrl: SITE_URL,
+      year: stats.year,
+      displayName: profile?.displayName ?? undefined,
+      totalWatched: stats.totalWatched,
+      topGenreName: stats.topGenres[0]?.name,
+      longestStreak: stats.longestStreak,
+      posterUrls: yearPosterUrls(watched, stats.year),
+      fontFamily: siteFont(),
+    });
+
+    const file = new File([blob], `wrapped-${stats.year}-la-butaca-secreta.png`, {
+      type: "image/png",
+    });
+
+    if (navigator.canShare?.({ files: [file] })) {
+      await navigator.share({
+        files: [file],
+        title: `${SITE_NAME} · Resumen ${stats.year}`,
+        text,
+      });
+      onShared();
+      if (session) recordShareEvent(session.user.id, "wrapped");
+      return "shared-image";
+    }
+  } catch {
+    // La imagen falló o se canceló el share con archivo: se intenta el texto debajo.
+  }
 
   if (navigator.share) {
     try {
       await navigator.share({ text, title: `Mi ${stats.year} en ${SITE_NAME}` });
       onShared();
       if (session) recordShareEvent(session.user.id, "wrapped");
-      return "shared";
+      return "shared-text";
     } catch {
       // cancelado por el usuario: no pasa nada
       return "failed";
@@ -472,13 +524,7 @@ function FinalShareCard({
       const userId = session?.user.id;
       const profile = userId ? await fetchMyProfile(userId) : null;
 
-      const posterUrls = watched
-        .filter(
-          (row) =>
-            new Date(row.seenAt).getFullYear() === stats.year && row.posterUrl
-        )
-        .slice(0, 12)
-        .map((row) => row.posterUrl as string);
+      const posterUrls = yearPosterUrls(watched, stats.year);
 
       try {
         const blob = await createWrappedShareImage({
@@ -626,30 +672,48 @@ function FinalShareCard({
 }
 
 /** Botón discreto en la cabecera: comparte el texto del resumen completo desde cualquier pantalla, no solo la última. */
-function HeaderShareButton({ stats }: { stats: WrappedStats }) {
+function HeaderShareButton({
+  stats,
+  watched,
+}: {
+  stats: WrappedStats;
+  watched: WatchedRow[];
+}) {
   const { session } = useAuth();
-  const [justCopied, setJustCopied] = useState(false);
+  const [status, setStatus] = useState<"idle" | "working" | "copied">("idle");
 
   async function handleShare() {
-    const result = await performShare(stats, session, () =>
+    setStatus("working");
+
+    const result = await shareWrappedImage(stats, watched, session, () =>
       track("share_done", { screen: "wrapped" })
     );
 
     if (result === "copied") {
-      setJustCopied(true);
-      setTimeout(() => setJustCopied(false), 2000);
+      setStatus("copied");
+      setTimeout(() => setStatus("idle"), 2000);
+    } else {
+      setStatus("idle");
     }
   }
+
+  const label =
+    status === "working"
+      ? "Generando…"
+      : status === "copied"
+        ? "¡Copiado!"
+        : "Compartir";
 
   return (
     <button
       type="button"
       onClick={handleShare}
+      disabled={status === "working"}
       aria-label="Compartir tu Resumen Anual"
-      className="absolute left-4 top-4 z-20 flex items-center gap-1.5 rounded-full bg-black/40 px-3 py-1.5 text-xs font-bold text-white/80 hover:text-white"
+      className="absolute left-4 top-4 z-20 flex items-center gap-1.5 rounded-full bg-black/40 px-3 py-1.5 text-xs font-bold text-white/80 hover:text-white disabled:opacity-60"
     >
       <ShareIcon size={13} />
-      {justCopied ? "¡Copiado!" : "Compartir"}
+      {label}
     </button>
   );
 }
@@ -1092,7 +1156,7 @@ export default function WrappedScreen({ year, onClose }: Props) {
           </div>
 
           {!loading && stats && index !== slides.length && (
-            <HeaderShareButton stats={stats} />
+            <HeaderShareButton stats={stats} watched={watched} />
           )}
 
           <button
