@@ -3,13 +3,17 @@ import Link from "next/link";
 
 import TitleActions from "./TitleActions";
 
-import { BoltIcon, MasksIcon, StarFilledIcon } from "@/components/icons/Icons";
+import { BoltIcon, BulbIcon, MasksIcon, StarFilledIcon } from "@/components/icons/Icons";
 import { genreSlugForLabel, platformKeyForName } from "@/lib/catalog";
 import type { Recommendation } from "@/lib/tmdb/mapper";
+import type { ProductionTrivia } from "@/lib/wikipedia";
 
 type Props = {
   type: "movie" | "tv";
   title: Recommendation;
+  // Solo en /pelicula/[id] por ahora (ver app/pelicula/[id]/page.tsx).
+  // null cuando Wikipedia no tiene nada aprovechable para este título.
+  trivia?: ProductionTrivia | null;
 };
 
 /**
@@ -17,7 +21,7 @@ type Props = {
  * datos que DetailsModal (reparto, plataformas, tráiler...), pero en
  * una página propia e indexable en vez de un diálogo.
  */
-export default function TitlePageBody({ type, title }: Props) {
+export default function TitlePageBody({ type, title, trivia }: Props) {
   const castMembers = title.castMembers ?? [];
 
   const platforms = title.platforms ?? [];
@@ -96,10 +100,39 @@ export default function TitlePageBody({ type, title }: Props) {
       </p>
 
       {title.director && (
-        <p className="mt-3 text-sm leading-relaxed text-zinc-400">
-          <span className="text-zinc-500">Dirige:</span>{" "}
-          {title.director}
-        </p>
+        <div className="mt-5">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+            Dirige
+          </h2>
+
+          <Link
+            href={`/director/${title.director.id}`}
+            className="mt-2 inline-flex w-16 flex-col items-center gap-1.5 rounded-xl text-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-20"
+          >
+            <div className="relative aspect-square w-16 shrink-0 overflow-hidden rounded-full bg-zinc-800 sm:w-20">
+              {title.director.photo ? (
+                <Image
+                  src={title.director.photo}
+                  alt={title.director.name}
+                  fill
+                  className="object-cover"
+                  sizes="80px"
+                />
+              ) : (
+                <span
+                  aria-hidden="true"
+                  className="flex h-full w-full items-center justify-center text-zinc-500"
+                >
+                  <MasksIcon size={26} />
+                </span>
+              )}
+            </div>
+
+            <span className="w-full truncate text-[11px] font-semibold text-zinc-200">
+              {title.director.name}
+            </span>
+          </Link>
+        </div>
       )}
 
       {castMembers.length > 0 && (
@@ -186,6 +219,28 @@ export default function TitlePageBody({ type, title }: Props) {
           </p>
         )}
       </div>
+
+      {trivia && (
+        <div className="mt-6">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+            Datos curiosos
+          </h2>
+
+          <p className="mt-2 text-sm leading-relaxed text-zinc-300">
+            <BulbIcon size={13} className="inline -translate-y-px text-yellow-300" />{" "}
+            {trivia.text}
+          </p>
+
+          <a
+            href={trivia.sourceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-1 inline-block text-xs text-zinc-500 underline underline-offset-2 hover:text-zinc-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          >
+            Fuente: Wikipedia, &quot;{trivia.heading}&quot;
+          </a>
+        </div>
+      )}
 
       <div className="mt-6 flex flex-wrap items-center gap-3">
         <TitleActions type={type} title={title} />

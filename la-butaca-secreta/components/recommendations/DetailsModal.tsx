@@ -170,10 +170,39 @@ export default function DetailsModal({
             </p>
 
             {movie.director && (
-              <p className="text-xs leading-relaxed text-zinc-400">
-                <span className="text-zinc-400">Dirige:</span>{" "}
-                {movie.director}
-              </p>
+              <div>
+                <h3 className="marquee-font text-sm text-zinc-400">
+                  Dirige
+                </h3>
+
+                <Link
+                  href={`/director/${movie.director.id}`}
+                  className="mt-1.5 inline-flex w-14 flex-col items-center gap-1 rounded-xl text-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                >
+                  <div className="relative aspect-square w-14 shrink-0 overflow-hidden rounded-full bg-zinc-800">
+                    {movie.director.photo ? (
+                      <Image
+                        src={movie.director.photo}
+                        alt={movie.director.name}
+                        fill
+                        className="object-cover"
+                        sizes="56px"
+                      />
+                    ) : (
+                      <span
+                        aria-hidden="true"
+                        className="flex h-full w-full items-center justify-center text-zinc-500"
+                      >
+                        <MasksIcon size={22} />
+                      </span>
+                    )}
+                  </div>
+
+                  <span className="w-full truncate text-[10px] font-semibold text-zinc-200">
+                    {movie.director.name}
+                  </span>
+                </Link>
+              </div>
             )}
 
             {castMembers.length > 0 && (

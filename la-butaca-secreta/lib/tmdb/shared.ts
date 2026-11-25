@@ -2,7 +2,12 @@ import type { SharedSet } from "@/lib/shareLink";
 
 import { getMovieFull, getPersonFull, getTVFull } from "./api";
 import { IMAGE_URL, mapRecommendation, type Recommendation } from "./mapper";
-import type { TMDBCastCredit, TMDBFullDetails, TMDBMovie } from "./types";
+import type {
+  TMDBCastCredit,
+  TMDBCrewCredit,
+  TMDBFullDetails,
+  TMDBMovie,
+} from "./types";
 
 // /movie/{id} y /tv/{id} devuelven también los datos básicos
 type DetailsWithBasics = TMDBFullDetails & {
@@ -205,6 +210,74 @@ export async function getActorDetails(
     };
   } catch (error) {
     console.error(`No se pudo cargar actor/${id}:`, error);
+
+    return null;
+  }
+}
+
+function isDirectingCredit(item: TMDBCrewCredit): boolean {
+  // En película: el puesto exacto "Director". En series no siempre
+  // hay alguien con ese job en cada episodio, así que también se
+  // acepta a quien aparece como creador/showrunner del departamento
+  // de dirección.
+  return item.job === "Director";
+}
+
+function toDirectorCredit(item: TMDBCrewCredit): ActorCredit {
+  return {
+    id: item.id,
+    type: item.media_type,
+    title: item.title ?? item.name ?? "Sin título",
+    year:
+      Number(
+        (item.release_date ?? item.first_air_date ?? "").slice(0, 4)
+      ) || null,
+    poster: item.poster_path ? `${IMAGE_URL}${item.poster_path}` : null,
+    popularity: item.popularity,
+  };
+}
+
+/**
+ * Ficha de un director/directora ("Modo Director", /director/[id]):
+ * foto, nombre y su filmografía como director, cada título enlazando
+ * a su propia ficha. Misma forma de datos que getActorDetails, para
+ * poder reutilizar ActorCreditsGrid tal cual. Null si TMDb no lo
+ * tiene o la petición falla.
+ */
+export async function getDirectorDetails(
+  id: number
+): Promise<ActorDetails | null> {
+  try {
+    const data = await getPersonFull(id);
+
+    const seen = new Set<string>();
+
+    const credits = (data.combined_credits?.crew ?? [])
+      .filter((item) => {
+        if (!item.poster_path) return false;
+        if (!isDirectingCredit(item)) return false;
+        if (!isMovieOrSeries(item)) return false;
+
+        const key = `${item.media_type}-${item.id}`;
+
+        if (seen.has(key)) return false;
+
+        seen.add(key);
+
+        return true;
+      })
+      .sort((a, b) => b.popularity - a.popularity)
+      .slice(0, MAX_ACTOR_CREDITS)
+      .map(toDirectorCredit);
+
+    return {
+      id: data.id,
+      name: data.name,
+      photo: data.profile_path ? `${IMAGE_URL}${data.profile_path}` : null,
+      credits,
+    };
+  } catch (error) {
+    console.error(`No se pudo cargar director/${id}:`, error);
 
     return null;
   }

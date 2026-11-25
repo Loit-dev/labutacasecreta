@@ -206,13 +206,16 @@ describe("mapRecommendation", () => {
       {
         id: 10,
         genres: [],
-        created_by: [{ id: 1, name: "Vince Gilligan" }],
+        created_by: [
+          { id: 1, name: "Vince Gilligan", profile_path: null },
+        ],
       },
       undefined,
       { cast: [], crew: [] }
     );
 
-    assert.equal(result.director, "Vince Gilligan");
+    assert.equal(result.director?.name, "Vince Gilligan");
+    assert.equal(result.director?.id, 1);
   });
 
   test("guarda el enlace de dónde verla y el reparto", () => {
@@ -239,7 +242,8 @@ describe("mapRecommendation", () => {
 
     assert.equal(result.watchLink, "https://example.test/es");
     assert.deepEqual(result.cast, ["A", "B"]);
-    assert.equal(result.director, "Director X");
+    assert.equal(result.director?.name, "Director X");
+    assert.equal(result.director?.id, 3);
 
     assert.equal(result.castMembers.length, 2);
     assert.equal(result.castMembers[0].character, "Uno");

@@ -62,7 +62,11 @@ export interface TMDBMovieDetails {
   tagline?: string;
 
   // Solo series: creadores (las series no suelen tener "Director")
-  created_by?: { id: number; name: string }[];
+  created_by?: {
+    id: number;
+    name: string;
+    profile_path: string | null;
+  }[];
 
   // Vídeos (tráilers); solo si se pide con append_to_response=videos
   videos?: { results: TMDBVideo[] };
@@ -195,9 +199,39 @@ export interface TMDBCastCredit {
   genre_ids?: number[];
 }
 
+/**
+ * Una aparición en /person/{id}/combined_credits como equipo técnico
+ * (no reparto): misma forma que TMDBCastCredit pero con el trabajo
+ * (job/department) en vez del personaje. Se usa para sacar la
+ * filmografía de un director ("Modo Director").
+ */
+export interface TMDBCrewCredit {
+  id: number;
+
+  media_type: "movie" | "tv";
+
+  title?: string;
+  name?: string;
+
+  job: string;
+  department: string;
+
+  poster_path: string | null;
+
+  release_date?: string;
+  first_air_date?: string;
+
+  popularity: number;
+
+  vote_count: number;
+
+  genre_ids?: number[];
+}
+
 /** Respuesta de /person/{id}/combined_credits. */
 export interface TMDBCombinedCredits {
   cast: TMDBCastCredit[];
+  crew: TMDBCrewCredit[];
 }
 
 /**

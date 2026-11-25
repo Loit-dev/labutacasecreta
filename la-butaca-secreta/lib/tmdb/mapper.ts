@@ -175,7 +175,14 @@ export interface Recommendation {
     name: string;
     logo: string;
   }[];
-  director?: string;
+  // Objeto (no solo el nombre) para poder enlazar a su propia ficha,
+  // "Modo Director" (/director/[id]), igual que ya se hace con el
+  // reparto.
+  director?: {
+    id: number;
+    name: string;
+    photo: string | null;
+  };
   // Nombres solo (compatibilidad: modal de detalles, puntuación...)
   cast: string[];
   // Reparto con foto, para el carrusel de la ficha de título
@@ -276,12 +283,30 @@ export function mapRecommendation(
     ...(providers?.results?.ES?.ads ?? []),
   ].filter((provider) => provider.logo_path);
 
-  const director =
-    credits?.crew.find(
-      (person) => person.job === "Director"
-    )?.name ??
-    // Las series no suelen tener "Director": usamos el creador
-    details?.created_by?.[0]?.name;
+  const directorCrew = credits?.crew.find(
+    (person) => person.job === "Director"
+  );
+
+  // Las series no suelen tener "Director": usamos el creador
+  const creator = details?.created_by?.[0];
+
+  const director = directorCrew
+    ? {
+        id: directorCrew.id,
+        name: directorCrew.name,
+        photo: directorCrew.profile_path
+          ? `${IMAGE_URL}${directorCrew.profile_path}`
+          : null,
+      }
+    : creator
+      ? {
+          id: creator.id,
+          name: creator.name,
+          photo: creator.profile_path
+            ? `${IMAGE_URL}${creator.profile_path}`
+            : null,
+        }
+      : undefined;
 
   const platformsByName = new Map<
     string,
