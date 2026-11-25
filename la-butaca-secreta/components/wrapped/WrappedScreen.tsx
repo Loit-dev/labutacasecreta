@@ -54,8 +54,11 @@ type RibbonScheme = {
   color: string;
   shadow: string;
   highlight: string;
-  /** Tinte del motivo navideño del papel de fondo. */
-  paper: string;
+  /** Los dos brillos difusos del "papel" (mismo estilo que el fondo de
+   * la web: un resplandor arriba-izquierda y otro arriba-derecha sobre
+   * la base oscura), distintos en cada pantalla. */
+  glowA: string;
+  glowB: string;
   /** Esquina donde se cruza el lazo. */
   corner: "tl" | "tr" | "bl" | "br";
 };
@@ -65,70 +68,76 @@ const GIFT_WRAPS: Record<string, RibbonScheme> = {
     color: "#dc2626",
     shadow: "#7f1d1d",
     highlight: "#fca5a5",
-    paper: "#fbbf24",
+    glowA: "rgba(220,38,38,0.28)",
+    glowB: "rgba(59,130,246,0.18)",
     corner: "tl",
   },
   total: {
     color: "#d97706",
     shadow: "#78350f",
     highlight: "#fde68a",
-    paper: "#dc2626",
+    glowA: "rgba(251,191,36,0.26)",
+    glowB: "rgba(220,38,38,0.2)",
     corner: "tr",
   },
   genero: {
     color: "#15803d",
     shadow: "#052e16",
     highlight: "#86efac",
-    paper: "#f5f5dc",
+    glowA: "rgba(59,130,246,0.22)",
+    glowB: "rgba(21,128,61,0.24)",
     corner: "bl",
   },
   cara: {
     color: "#9d174d",
     shadow: "#500724",
     highlight: "#f9a8d4",
-    paper: "#fbbf24",
+    glowA: "rgba(157,23,77,0.26)",
+    glowB: "rgba(251,191,36,0.16)",
     corner: "br",
   },
   trendy: {
     color: "#ea580c",
     shadow: "#7c2d12",
     highlight: "#fdba74",
-    paper: "#15803d",
+    glowA: "rgba(234,88,12,0.26)",
+    glowB: "rgba(21,128,61,0.2)",
     corner: "tl",
   },
   amigos: {
     color: "#0f766e",
     shadow: "#042f2e",
     highlight: "#5eead4",
-    paper: "#fbbf24",
+    glowA: "rgba(15,118,110,0.26)",
+    glowB: "rgba(251,191,36,0.18)",
     corner: "tr",
   },
   progreso: {
     color: "#d97706",
     shadow: "#78350f",
     highlight: "#fde68a",
-    paper: "#15803d",
+    glowA: "rgba(251,191,36,0.24)",
+    glowB: "rgba(234,88,12,0.2)",
     corner: "bl",
   },
   final: {
     color: "#dc2626",
     shadow: "#7f1d1d",
     highlight: "#fca5a5",
-    paper: "#fbbf24",
+    glowA: "rgba(220,38,38,0.26)",
+    glowB: "rgba(251,191,36,0.2)",
     corner: "br",
   },
 };
 
-/** Patrón de papel con motivos navideños (copos/estrellas), teñido con el color del esquema, tileable. */
-function paperPattern(hex: string): string {
-  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64'>
-    <g fill='none' stroke='${hex}' stroke-opacity='0.5' stroke-width='1.6' stroke-linecap='round'>
-      <path d='M32 6 L32 26 M24 10 L40 22 M40 10 L24 22'/>
-      <path d='M0 38 L14 48 M14 38 L0 48'/>
-      <path d='M50 48 L64 58 M64 48 L50 58'/>
-    </g>
-  </svg>`;
-  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+/**
+ * El "papel" de cada pantalla: el mismo estilo de fondo que usa toda la
+ * web (dos resplandores difusos sobre una base oscura), a tamaño
+ * completo de la tarjeta, con sus propios colores por pantalla — no un
+ * patrón pequeño en mosaico.
+ */
+function paperBackground(scheme: RibbonScheme): string {
+  return `radial-gradient(circle at top left, ${scheme.glowA}, transparent 55%), radial-gradient(circle at top right, ${scheme.glowB}, transparent 55%), linear-gradient(180deg, #050505 0%, #09090b 40%, #050505 100%)`;
 }
 
 /** Lazo de cinta en una esquina: dos bandas de raso (con sombra/brillo) que se cruzan bajo un lazo. */
@@ -202,10 +211,7 @@ function GiftWrapLayer({ wrap }: { wrap: RibbonScheme }) {
     <div
       aria-hidden
       className="pointer-events-none absolute inset-0 overflow-hidden"
-      style={{
-        backgroundImage: paperPattern(wrap.paper),
-        backgroundSize: "64px 64px",
-      }}
+      style={{ background: paperBackground(wrap) }}
     >
       <RibbonCorner scheme={wrap} />
     </div>
