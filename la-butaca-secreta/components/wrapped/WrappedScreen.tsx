@@ -261,135 +261,115 @@ function buildSlides(stats: WrappedStats): Slide[] {
     });
   }
 
-  if (stats.peakDay) {
+  if (stats.peakDay || stats.lastOfYear) {
     slides.push({
-      id: "dia",
+      id: "momentos",
       node: (
         <div className="flex h-full flex-col justify-center gap-4">
-          <Eyebrow>Tu pico del año</Eyebrow>
-          <h2 className="marquee-font text-5xl leading-[0.95] text-white">
-            {new Date(stats.peakDay.date).toLocaleDateString("es-ES", {
-              day: "numeric",
-              month: "long",
-            })}
-          </h2>
-          <p className="max-w-[30ch] text-base text-zinc-300">
-            Fue tu día más visto: {stats.peakDay.count} títulos en una
-            sola sesión.
-          </p>
-          <div className="flex flex-col gap-1.5">
-            {stats.peakDay.titles.slice(0, 5).map((title, i) => (
-              <div
-                key={`${title}-${i}`}
-                className="truncate rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-zinc-200"
-              >
-                {title}
-              </div>
-            ))}
-          </div>
-          <p className="rounded-2xl border border-amber-400/25 bg-amber-400/10 p-3 text-sm text-amber-200">
-            🍿 Maratón en toda regla.
-          </p>
-        </div>
-      ),
-    });
-  }
+          <Eyebrow>Momentos</Eyebrow>
 
-  if (stats.canonTotalProgress > 0) {
-    slides.push({
-      id: "canon",
-      node: (
-        <div className="flex h-full flex-col justify-center gap-4">
-          <Eyebrow>El Canon</Eyebrow>
-          <h2 className="marquee-font text-5xl leading-[0.95] text-white">
-            {stats.canonThisYear} clásicos
-            <br />
-            más este año.
-          </h2>
-          <p className="max-w-[30ch] text-base text-zinc-300">
-            Sumaste {stats.canonThisYear} películas nuevas a El Canon —
-            vas construyendo tu cultura cinéfila poco a poco.
-          </p>
-          <div className={`${CARD} flex items-center gap-4`}>
-            <div className="flex-1">
-              <p className="text-xs text-zinc-400">Tu progreso total</p>
-              <p className="marquee-font text-3xl text-white">
-                {stats.canonTotalProgress} / {stats.canonTotal}
+          {stats.peakDay && (
+            <div className={CARD}>
+              <p className="text-xs font-bold uppercase tracking-wide text-zinc-400">
+                🍿 Tu pico del año
               </p>
-              <p className="text-xs font-bold text-amber-300">
-                +{stats.canonThisYear} este año
+              <p className="marquee-font mt-1 text-3xl text-white">
+                {new Date(stats.peakDay.date).toLocaleDateString("es-ES", {
+                  day: "numeric",
+                  month: "long",
+                })}
+              </p>
+              <p className="mt-1 text-sm text-zinc-300">
+                {stats.peakDay.count} títulos en una sola sesión —
+                maratón en toda regla.
+              </p>
+              <div className="mt-3 flex flex-col gap-1">
+                {stats.peakDay.titles.slice(0, 3).map((title, i) => (
+                  <p
+                    key={`${title}-${i}`}
+                    className="truncate text-xs text-zinc-400"
+                  >
+                    · {title}
+                  </p>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {stats.lastOfYear && (
+            <div className={`${CARD} border-amber-400/20 bg-amber-400/5`}>
+              <p className="text-xs font-bold uppercase tracking-wide text-amber-300">
+                Así cerraste el año
+              </p>
+              <p className="marquee-font mt-1 text-2xl text-white">
+                {stats.lastOfYear.title}
+              </p>
+              <p className="mt-1 text-xs text-zinc-400">
+                {new Date(stats.lastOfYear.seenAt).toLocaleDateString(
+                  "es-ES",
+                  { day: "numeric", month: "long" }
+                )}
+                {stats.lastOfYear.rating &&
+                  ` · ${"★".repeat(Math.round(stats.lastOfYear.rating))}`}
               </p>
             </div>
-          </div>
+          )}
         </div>
       ),
     });
   }
 
-  if (stats.achievementsThisYear.length > 0) {
+  if (stats.canonTotalProgress > 0 || stats.achievementsThisYear.length > 0) {
     slides.push({
-      id: "logros",
+      id: "progreso",
       node: (
         <div className="flex h-full flex-col justify-center gap-4">
-          <Eyebrow>Tus logros</Eyebrow>
-          <h2 className="marquee-font text-5xl leading-[0.95] text-white">
-            {stats.achievementsThisYear.length} insignias
-            <br />
-            nuevas este año.
-          </h2>
-          <div className="flex flex-col gap-2">
-            {stats.achievementsThisYear.map((a) => (
-              <div
-                key={`${a.key}-${a.level}`}
-                className={`${CARD} flex items-center gap-3`}
-              >
-                <div>
-                  <p className="text-sm font-extrabold text-white">
-                    {a.familyName}
-                  </p>
-                  <p className="text-xs text-amber-300">
-                    {a.tierName} · nivel {a.level} de 5
-                  </p>
-                </div>
+          <Eyebrow>Tu progreso</Eyebrow>
+
+          {stats.canonTotalProgress > 0 && (
+            <div className={`${CARD} flex items-center gap-4`}>
+              <div className="flex-1">
+                <p className="text-xs text-zinc-400">El Canon</p>
+                <p className="marquee-font text-3xl text-white">
+                  {stats.canonTotalProgress} / {stats.canonTotal}
+                </p>
+                <p className="text-xs font-bold text-amber-300">
+                  +{stats.canonThisYear} películas este año
+                </p>
               </div>
-            ))}
-          </div>
+            </div>
+          )}
+
+          {stats.achievementsThisYear.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <p className="text-sm text-zinc-300">
+                <span className="marquee-font text-xl text-white">
+                  {stats.achievementsThisYear.length}
+                </span>{" "}
+                insignias nuevas este año:
+              </p>
+              {stats.achievementsThisYear.map((a) => (
+                <div
+                  key={`${a.key}-${a.level}`}
+                  className={`${CARD} flex items-center gap-3 !p-3`}
+                >
+                  <div>
+                    <p className="text-sm font-extrabold text-white">
+                      {a.familyName}
+                    </p>
+                    <p className="text-xs text-amber-300">
+                      {a.tierName} · nivel {a.level} de 5
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
           <p className="rounded-2xl border border-amber-400/25 bg-amber-400/10 p-3 text-sm text-amber-200">
             ⭐ En total llevas {stats.achievementsTotalUnlocked} niveles
             desbloqueados desde que usas {SITE_NAME}.
           </p>
-        </div>
-      ),
-    });
-  }
-
-  if (stats.lastOfYear) {
-    slides.push({
-      id: "ultima",
-      node: (
-        <div className="flex h-full flex-col justify-center gap-4">
-          <Eyebrow>Así cerraste el año</Eyebrow>
-          <h2 className="marquee-font text-5xl leading-[0.95] text-white">
-            Lo último
-            <br />
-            que viste.
-          </h2>
-          <div className={`${CARD}`}>
-            <p className="marquee-font text-2xl text-white">
-              {stats.lastOfYear.title}
-            </p>
-            <p className="mt-1 text-xs text-zinc-400">
-              {new Date(stats.lastOfYear.seenAt).toLocaleDateString(
-                "es-ES",
-                { day: "numeric", month: "long" }
-              )}
-            </p>
-            {stats.lastOfYear.rating && (
-              <p className="mt-1 text-sm text-amber-300">
-                {"★".repeat(Math.round(stats.lastOfYear.rating))}
-              </p>
-            )}
-          </div>
         </div>
       ),
     });
@@ -477,12 +457,13 @@ export default function WrappedScreen({ year, onClose }: Props) {
         aria-modal="true"
         aria-label={`Resumen Anual ${year}`}
         tabIndex={-1}
-        className="relative flex h-[100dvh] w-full max-w-md flex-col overflow-hidden bg-gradient-to-b from-zinc-950 via-zinc-950 to-black sm:h-[90dvh] sm:rounded-[2rem] sm:border sm:border-white/10"
-      >
-        <div className="relative" style={{
+        className="relative flex h-[100dvh] w-full max-w-md flex-col overflow-hidden sm:h-[90dvh] sm:rounded-[2rem] sm:border sm:border-white/10"
+        style={{
           background:
-            "radial-gradient(circle at 15% 8%, rgba(220,38,38,0.25), transparent 38%), radial-gradient(circle at 88% 6%, rgba(251,191,36,0.12), transparent 30%)",
-        }}>
+            "radial-gradient(circle at 15% 8%, rgba(220,38,38,0.30), transparent 38%), radial-gradient(circle at 88% 6%, rgba(251,191,36,0.14), transparent 32%), linear-gradient(180deg, #18181b 0%, #0c0c0d 45%, #050505 100%)",
+        }}
+      >
+        <div className="relative shrink-0">
           <div className="flex gap-1.5 px-5 pt-5">
             {Array.from({ length: Math.max(total, 1) }).map((_, i) => (
               <div
