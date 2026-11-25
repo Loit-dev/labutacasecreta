@@ -584,12 +584,21 @@ export default function MiResumenScreen({ onNavigateTab }: Props) {
       )}
 
       <div className="flex justify-center gap-3">
-        <button
-          onClick={() => setShowWrapped(true)}
-          className="rounded-xl border border-amber-400/40 bg-amber-400/10 px-6 py-3 text-sm font-semibold text-amber-200 transition-colors hover:bg-amber-400/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-        >
-          Mi Resumen Anual
-        </button>
+        {/*
+          "Mi Resumen Anual" (components/wrapped/WrappedScreen.tsx) ya
+          está construido y probado, pero todavía no se enseña en
+          producción a propósito (pendiente de dar el visto bueno) —
+          ver claude/resumen-anual-wrapped.md. Para activarlo: quitar
+          este comentario y volver a poner el botón de abajo.
+        */}
+        {false && (
+          <button
+            onClick={() => setShowWrapped(true)}
+            className="rounded-xl border border-amber-400/40 bg-amber-400/10 px-6 py-3 text-sm font-semibold text-amber-200 transition-colors hover:bg-amber-400/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          >
+            Mi Resumen Anual
+          </button>
+        )}
 
         <button
           onClick={() => setSharing(true)}
