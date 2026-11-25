@@ -266,13 +266,89 @@ function FestiveBokeh({ seed, scheme }: { seed: string; scheme: RibbonScheme }) 
   );
 }
 
-function GiftWrapLayer({ wrap, slideId }: { wrap: RibbonScheme; slideId: string }) {
+/** Elige `count` elementos de `arr` de forma pseudoaleatoria pero estable a partir de `seed`, sin repetir. */
+function seededPick<T>(seed: string, arr: T[], count: number): T[] {
+  if (arr.length === 0) return [];
+
+  let s = 0;
+  for (let i = 0; i < seed.length; i++) s = (s * 31 + seed.charCodeAt(i)) >>> 0;
+
+  function next(): number {
+    s = (s * 1103515245 + 12345) >>> 0;
+    return (s >>> 8) / 16777216;
+  }
+
+  const copy = [...arr];
+  const picked: T[] = [];
+
+  for (let i = 0; i < count && copy.length > 0; i++) {
+    const idx = Math.floor(next() * copy.length);
+    picked.push(copy.splice(idx, 1)[0]);
+  }
+
+  return picked;
+}
+
+const POSTER_SLOTS = [
+  { top: "-8%", left: "-22%", w: 200, h: 280, rotate: -14 },
+  { top: "58%", left: "62%", w: 180, h: 250, rotate: 10 },
+  { top: "74%", left: "-18%", w: 190, h: 260, rotate: 9 },
+] as const;
+
+/**
+ * El mismo "fondo difuminado" que el resto de la web (PosterWall):
+ * pósters reales —aquí, los que el usuario vio ese año— girados, a
+ * baja opacidad y con blur, en las esquinas. Cada pantalla elige sus
+ * propios pósters y posiciones a partir de su id, así que el papel es
+ * distinto en cada una sin dejar de ser "pósters de tu año".
+ */
+function PosterBackdrop({ posters, seed }: { posters: string[]; seed: string }) {
+  const chosen = seededPick(seed, posters, POSTER_SLOTS.length);
+
+  return (
+    <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+      {chosen.map((url, i) => {
+        const slot = POSTER_SLOTS[i % POSTER_SLOTS.length];
+
+        return (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            key={`${url}-${i}`}
+            src={url}
+            alt=""
+            className="absolute rounded-2xl object-cover opacity-25 blur-[2px]"
+            style={{
+              top: slot.top,
+              left: slot.left,
+              width: slot.w,
+              height: slot.h,
+              transform: `rotate(${slot.rotate}deg)`,
+            }}
+          />
+        );
+      })}
+
+      <div className="absolute inset-0 bg-black/40" />
+    </div>
+  );
+}
+
+function GiftWrapLayer({
+  wrap,
+  slideId,
+  posterUrls,
+}: {
+  wrap: RibbonScheme;
+  slideId: string;
+  posterUrls: string[];
+}) {
   return (
     <div
       aria-hidden
       className="pointer-events-none absolute inset-0 overflow-hidden"
       style={{ background: paperBackground(wrap) }}
     >
+      <PosterBackdrop posters={posterUrls} seed={slideId} />
       <FestiveBokeh seed={slideId} scheme={wrap} />
       <RibbonCorner scheme={wrap} />
     </div>
@@ -1357,6 +1433,7 @@ export default function WrappedScreen({ year, onClose }: Props) {
   const currentWrapId =
     index < slides.length ? slides[index]?.id : "final";
   const currentWrap = GIFT_WRAPS[currentWrapId ?? "portada"] ?? GIFT_WRAPS.portada;
+  const wrapPosterUrls = stats ? yearPosterUrls(watched, stats.year, 24) : [];
 
   function go(delta: 1 | -1) {
     setIndex((current) => {
@@ -1408,7 +1485,11 @@ export default function WrappedScreen({ year, onClose }: Props) {
         </div>
 
         <div className="relative flex-1 overflow-hidden px-6 py-4">
-          <GiftWrapLayer wrap={currentWrap} slideId={currentWrapId ?? "portada"} />
+          <GiftWrapLayer
+            wrap={currentWrap}
+            slideId={currentWrapId ?? "portada"}
+            posterUrls={wrapPosterUrls}
+          />
 
           {loading && (
             <p className="flex h-full items-center justify-center text-sm text-zinc-400">
