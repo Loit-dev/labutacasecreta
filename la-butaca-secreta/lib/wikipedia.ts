@@ -33,7 +33,7 @@ const SECTION_NEEDLES = [
 // Para no colarnos con un artículo que no es el de la película (un
 // libro, una serie homónima...), o con una sección casi vacía.
 const MIN_TEXT_LENGTH = 60;
-const MAX_TEXT_LENGTH = 650;
+const MAX_TEXT_LENGTH = 480;
 
 export type ProductionTrivia = {
   heading: string;
@@ -86,20 +86,45 @@ async function wikiFetch<T>(params: Record<string, string>): Promise<T> {
  * secciones con subsecciones, ni los pies de foto o tablas, que en el
  * HTML renderizado quedan todos mezclados como texto plano.
  */
+const HEADING_LINE = /^[ \t]*=+[^=\n]+=+[ \t]*$/;
+
 function leadParagraphOf(wikitext: string): string {
-  // Quita la línea de cabecera ("== Producción ==") si viene incluida.
-  let body = wikitext.replace(/^\s*=+[^=\n]+=+[ \t]*\n/, "");
+  const lines = wikitext.split("\n");
 
-  // Corta justo antes de la primera subsección (p. ej. "=== Guion
-  // ==="), para quedarnos solo con el párrafo introductorio y no con
-  // toda la sección entera (que puede ser larguísima).
-  const subsectionAt = body.search(/\n[ \t]*=+[^=\n]+=+[ \t]*\n/);
+  // Quita la cabecera de la sección ("== Producción =="), y si no
+  // tiene párrafo propio (va directa a su primera subsección, p. ej.
+  // "=== Guion ==="), también esa, y así sucesivamente, hasta dar con
+  // la primera línea que ya sea contenido de verdad.
+  let start = 0;
 
-  if (subsectionAt !== -1) {
-    body = body.slice(0, subsectionAt);
+  while (start < lines.length && HEADING_LINE.test(lines[start])) {
+    start += 1;
   }
 
-  return body;
+  // Corta justo antes de la siguiente cabecera (de cualquier nivel),
+  // para quedarnos solo con ese primer bloque de contenido y no con
+  // toda la sección entera (que puede ser larguísima).
+  const relativeIdx = lines.slice(start).findIndex((line) => HEADING_LINE.test(line));
+  const end = relativeIdx === -1 ? lines.length : start + relativeIdx;
+
+  return lines.slice(start, end).join("\n");
+}
+
+/** Corta por la última frase u, si no hay ninguna, la última palabra
+ * completa antes del límite, para no dejar nunca una palabra a medias. */
+function truncateCleanly(text: string, maxLength: number): string {
+  if (text.length <= maxLength) return text;
+
+  const cut = text.slice(0, maxLength);
+  const lastDot = cut.lastIndexOf(". ");
+
+  if (lastDot > maxLength * 0.4) {
+    return cut.slice(0, lastDot + 1);
+  }
+
+  const lastSpace = cut.lastIndexOf(" ");
+
+  return `${cut.slice(0, lastSpace > 0 ? lastSpace : cut.length)}…`;
 }
 
 function stripWikitext(wikitext: string): string {
@@ -206,8 +231,8 @@ export async function getProductionTrivia(
 
     if (!rawWikitext) return null;
 
-    const text = stripWikitext(leadParagraphOf(rawWikitext)).slice(
-      0,
+    const text = truncateCleanly(
+      stripWikitext(leadParagraphOf(rawWikitext)),
       MAX_TEXT_LENGTH
     );
 

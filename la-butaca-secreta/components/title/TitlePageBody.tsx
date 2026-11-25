@@ -226,19 +226,21 @@ export default function TitlePageBody({ type, title, trivia }: Props) {
             Datos curiosos
           </h2>
 
-          <p className="mt-2 text-sm leading-relaxed text-zinc-300">
-            <BulbIcon size={13} className="inline -translate-y-px text-yellow-300" />{" "}
-            {trivia.text}
-          </p>
+          <div className="mt-2 rounded-xl bg-yellow-400/10 px-3.5 py-3">
+            <p className="text-sm italic leading-relaxed text-yellow-200">
+              <BulbIcon size={13} className="inline -translate-y-px" />{" "}
+              {trivia.text}
+            </p>
 
-          <a
-            href={trivia.sourceUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-1 inline-block text-xs text-zinc-500 underline underline-offset-2 hover:text-zinc-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-          >
-            Fuente: Wikipedia, &quot;{trivia.heading}&quot;
-          </a>
+            <a
+              href={trivia.sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2 inline-block text-[11px] not-italic text-yellow-200/60 underline underline-offset-2 hover:text-yellow-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            >
+              Fuente: Wikipedia, &quot;{trivia.heading}&quot;
+            </a>
+          </div>
         </div>
       )}
 
