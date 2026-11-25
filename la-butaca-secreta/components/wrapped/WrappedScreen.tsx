@@ -337,11 +337,14 @@ function FestiveBokeh({ seed, scheme }: { seed: string; scheme: RibbonScheme }) 
 
 function GiftWrapLayer({ wrap, slideId }: { wrap: RibbonScheme; slideId: string }) {
   return (
-    <div
-      aria-hidden
-      className="pointer-events-none absolute inset-0 overflow-hidden"
-      style={{ background: paperBackground(wrap) }}
-    >
+    <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+      {/* el papel (color + estampado), difuminado como el resto de la
+          web: se pinta más grande que la tarjeta y con blur, para que
+          no queden bordes nítidos al recortarlo con overflow-hidden */}
+      <div
+        className="absolute -inset-6"
+        style={{ background: paperBackground(wrap), filter: "blur(10px)" }}
+      />
       <FestiveBokeh seed={slideId} scheme={wrap} />
       <RibbonCorner scheme={wrap} />
     </div>
