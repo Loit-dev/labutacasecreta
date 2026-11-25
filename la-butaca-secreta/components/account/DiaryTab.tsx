@@ -6,16 +6,18 @@ import Link from "next/link";
 import type { Session } from "@supabase/supabase-js";
 
 import RatingPrompt from "@/components/recommendations/RatingPrompt";
-import { ClapperIcon } from "@/components/icons/Icons";
+import { ClapperIcon, PencilIcon } from "@/components/icons/Icons";
 import { dateInputToISO, isoToDateInput } from "@/lib/dateInput";
 import type { Rating } from "@/lib/rating";
 import {
   deleteWatched,
   updateWatchedRating,
+  updateWatchedReview,
   updateWatchedSeenAt,
 } from "@/lib/supabase/watched";
 import { fetchWatchedHistory, type WatchedRow } from "@/lib/supabase/summary";
 
+import EditReviewDialog from "./EditReviewDialog";
 import EditSeenDateDialog from "./EditSeenDateDialog";
 import StarDisplay from "./StarDisplay";
 
@@ -48,6 +50,13 @@ type DateEditTarget = {
   seenAt: string;
 };
 
+type ReviewEditTarget = {
+  tmdbId: number;
+  mediaType: "movie" | "tv";
+  title: string;
+  review?: string;
+};
+
 function monthLabel(dateStr: string): string {
   const date = new Date(dateStr);
 
@@ -72,6 +81,9 @@ export default function DiaryTab({ session }: { session: Session }) {
   const [rows, setRows] = useState<WatchedRow[] | null>(null);
   const [editing, setEditing] = useState<EditTarget | null>(null);
   const [editingDate, setEditingDate] = useState<DateEditTarget | null>(null);
+  const [editingReview, setEditingReview] = useState<ReviewEditTarget | null>(
+    null
+  );
   const [busyKey, setBusyKey] = useState<string | null>(null);
 
   useEffect(() => {
@@ -156,6 +168,37 @@ export default function DiaryTab({ session }: { session: Session }) {
     }
   };
 
+  const confirmReview = async (review: string) => {
+    const target = editingReview;
+
+    setEditingReview(null);
+
+    if (!target) return;
+
+    const key = `${target.mediaType}-${target.tmdbId}`;
+
+    setBusyKey(key);
+
+    const trimmed = review.trim();
+
+    const ok = await updateWatchedReview(
+      { userId: session.user.id, tmdbId: target.tmdbId, mediaType: target.mediaType },
+      trimmed
+    );
+
+    setBusyKey(null);
+
+    if (ok) {
+      setRows((prev) =>
+        prev?.map((row) =>
+          row.tmdbId === target.tmdbId && row.mediaType === target.mediaType
+            ? { ...row, review: trimmed || undefined }
+            : row
+        ) ?? null
+      );
+    }
+  };
+
   const removeEntry = async (row: WatchedRow) => {
     if (!window.confirm(`¿Borrar "${row.title}" de tu diario?`)) return;
 
@@ -184,7 +227,7 @@ export default function DiaryTab({ session }: { session: Session }) {
     return (
       <p className="rounded-2xl bg-black/30 px-4 py-8 text-center text-sm text-zinc-300">
         Todavía no hay nada en tu diario. Marca alguna película o serie
-        como "Ya la vi" y aparecerá aquí.
+        como &quot;Ya la vi&quot; y aparecerá aquí.
       </p>
     );
   }
@@ -220,8 +263,9 @@ export default function DiaryTab({ session }: { session: Session }) {
               return (
                 <li
                   key={key}
-                  className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/30 p-3"
+                  className="flex flex-col gap-2 rounded-2xl border border-white/10 bg-black/30 p-3"
                 >
+                <div className="flex items-center gap-3">
                   <button
                     type="button"
                     disabled={busyKey === key}
@@ -296,12 +340,54 @@ export default function DiaryTab({ session }: { session: Session }) {
                   <button
                     type="button"
                     disabled={busyKey === key}
+                    onClick={() =>
+                      setEditingReview({
+                        tmdbId: row.tmdbId,
+                        mediaType: row.mediaType,
+                        title: row.title,
+                        review: row.review,
+                      })
+                    }
+                    aria-label={
+                      row.review
+                        ? `Editar tu reseña de ${row.title}`
+                        : `Escribir una reseña de ${row.title}`
+                    }
+                    title={row.review ? "Editar reseña" : "Escribir reseña"}
+                    className={`shrink-0 rounded-lg p-1.5 disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
+                      row.review ? "text-amber-300" : "text-zinc-500 hover:text-zinc-300"
+                    }`}
+                  >
+                    <PencilIcon size={15} />
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={busyKey === key}
                     onClick={() => removeEntry(row)}
                     aria-label={`Borrar del diario: ${row.title}`}
                     className="shrink-0 rounded-lg border border-zinc-700 px-2 py-1.5 text-xs text-zinc-300 hover:border-red-500/60 hover:text-red-300 disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                   >
                     ✕
                   </button>
+                </div>
+
+                  {row.review && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setEditingReview({
+                          tmdbId: row.tmdbId,
+                          mediaType: row.mediaType,
+                          title: row.title,
+                          review: row.review,
+                        })
+                      }
+                      className="rounded-xl bg-black/20 px-3 py-2 text-left text-xs italic leading-relaxed text-zinc-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                    >
+                      «{row.review}»
+                    </button>
+                  )}
                 </li>
               );
             })}
@@ -325,6 +411,15 @@ export default function DiaryTab({ session }: { session: Session }) {
           initial={isoToDateInput(editingDate.seenAt)}
           onConfirm={confirmDate}
           onCancel={() => setEditingDate(null)}
+        />
+      )}
+
+      {editingReview && (
+        <EditReviewDialog
+          title={editingReview.title}
+          initial={editingReview.review}
+          onConfirm={confirmReview}
+          onCancel={() => setEditingReview(null)}
         />
       )}
     </div>

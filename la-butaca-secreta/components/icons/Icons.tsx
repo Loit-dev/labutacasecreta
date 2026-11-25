@@ -94,6 +94,25 @@ export function EyeIcon({ size = 16, className }: IconProps) {
   );
 }
 
+export function PencilIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
+      <path
+        d="M4 20l.9-4 10.6-10.6a1.8 1.8 0 012.5 0l1.6 1.6a1.8 1.8 0 010 2.5L8.9 20H4v-.1L4 20z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M13.7 6.2l4 4"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 export function PinIcon({ size = 16, className }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>

@@ -118,6 +118,38 @@ export async function updateWatchedSeenAt(
   }
 }
 
+// Una crítica larga en el diario no debería poder reventar la fila ni
+// la tarjeta: se corta por si acaso, aunque el textarea ya limite.
+const MAX_REVIEW_LENGTH = 2000;
+
+/**
+ * Cambia solo la reseña escrita de un "visto" ya guardado (el Diario
+ * del cinéfilo). `undefined`/cadena vacía la borra.
+ */
+export async function updateWatchedReview(
+  { userId, tmdbId, mediaType }: WatchedKey,
+  review: string | undefined
+): Promise<boolean> {
+  if (!supabase) return false;
+
+  const trimmed = review?.trim().slice(0, MAX_REVIEW_LENGTH);
+
+  try {
+    const { error } = await supabase
+      .from("watched")
+      .update({ review: trimmed || null })
+      .eq("user_id", userId)
+      .eq("tmdb_id", tmdbId)
+      .eq("media_type", mediaType);
+
+    return !error;
+  } catch (error) {
+    console.error("No se pudo guardar la reseña:", error);
+
+    return false;
+  }
+}
+
 /** Borra una entrada del historial de "vistos" (el diario). */
 export async function deleteWatched({
   userId,

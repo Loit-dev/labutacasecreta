@@ -11,6 +11,8 @@ export type WatchedRow = {
   genres: string[];
   seenAt: string;
   posterUrl?: string;
+  /** Reseña escrita a mano por el usuario, para el Diario. */
+  review?: string;
 };
 
 // De sobra para 14 días de gráfico + géneros + mejor valorada, sin
@@ -26,7 +28,9 @@ export async function fetchWatchedHistory(
   try {
     const { data, error } = await supabase
       .from("watched")
-      .select("tmdb_id, media_type, title, rating, genres, seen_at, poster_url")
+      .select(
+        "tmdb_id, media_type, title, rating, genres, seen_at, poster_url, review"
+      )
       .eq("user_id", userId)
       .order("seen_at", { ascending: false })
       .limit(HISTORY_LIMIT);
@@ -41,6 +45,7 @@ export async function fetchWatchedHistory(
       genres: row.genres ?? [],
       seenAt: row.seen_at,
       posterUrl: row.poster_url ?? undefined,
+      review: row.review ?? undefined,
     }));
   } catch (error) {
     console.error("No se pudo leer el historial (watched):", error);
