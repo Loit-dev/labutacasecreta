@@ -54,6 +54,47 @@ export async function fetchWatchedHistory(
   }
 }
 
+/**
+ * Igual que fetchWatchedHistory pero SIN el límite de 400 filas, para
+ * el Resumen Anual: El Canon y Logros son progreso acumulado de
+ * siempre, así que una cuenta con mucho historial no puede quedarse
+ * corta de filas (mismo motivo que fetchAchievementWatchedRows en
+ * lib/supabase/achievements.ts, pero con título/póster para poder
+ * enseñarlos).
+ */
+export async function fetchWatchedHistoryFull(
+  userId: string
+): Promise<WatchedRow[]> {
+  if (!supabase) return [];
+
+  try {
+    const { data, error } = await supabase
+      .from("watched")
+      .select(
+        "tmdb_id, media_type, title, rating, genres, seen_at, poster_url, review"
+      )
+      .eq("user_id", userId)
+      .order("seen_at", { ascending: false });
+
+    if (error || !data) return [];
+
+    return data.map((row) => ({
+      tmdbId: row.tmdb_id,
+      mediaType: row.media_type,
+      title: row.title,
+      rating: row.rating ?? undefined,
+      genres: row.genres ?? [],
+      seenAt: row.seen_at,
+      posterUrl: row.poster_url ?? undefined,
+      review: row.review ?? undefined,
+    }));
+  } catch (error) {
+    console.error("No se pudo leer el historial completo (watched):", error);
+
+    return [];
+  }
+}
+
 export type MonthRank = {
   mine: number;
   percentile: number;

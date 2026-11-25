@@ -65,3 +65,20 @@ create policy "user_share_events: insertar lo propio"
 
 alter table public.watched
   add column if not exists tmdb_vote_average numeric(3, 1);
+
+-- ─────────────────────────────────────────────────────────────────
+-- 2026-11 · Resumen Anual ("Wrapped"): su pantalla de compartir
+-- también cuenta para el logro "Compartir", así que "wrapped" se
+-- añade a los valores permitidos de user_share_events.screen. El
+-- check no se creó con nombre propio, así que toma el nombre por
+-- defecto de Postgres (tabla_columna_check) — si esto no encuentra el
+-- constraint en una instancia ya migrada, comprobar su nombre real con
+-- \d user_share_events antes de repetir el alter.
+-- ─────────────────────────────────────────────────────────────────
+
+alter table public.user_share_events
+  drop constraint if exists user_share_events_screen_check;
+
+alter table public.user_share_events
+  add constraint user_share_events_screen_check
+  check (screen in ('profile', 'compatibility', 'summary', 'watched', 'wrapped'));

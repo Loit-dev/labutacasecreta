@@ -151,3 +151,18 @@ export function removeFromList(id: number, type: SavedType) {
 export function clearList() {
   write([]);
 }
+
+/**
+ * El título que lleva más tiempo esperando en "Mi lista" ahora mismo
+ * (para el Resumen Anual). readList() ya va del más reciente al más
+ * antiguo, así que es el último elemento.
+ */
+export function oldestPending(): { title: string; savedAt: number } | undefined {
+  const list = readList();
+
+  if (list.length === 0) return undefined;
+
+  const last = list[list.length - 1];
+
+  return { title: last.title, savedAt: last.savedAt };
+}

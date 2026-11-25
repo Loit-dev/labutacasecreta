@@ -273,7 +273,7 @@ ya existía, pero solo va a Vercel Analytics agregado, no por cuenta).
 | ------------ | ----------- | ----- |
 | `id`         | uuid (PK)    |       |
 | `user_id`    | uuid (FK `auth.users`) |  |
-| `screen`     | text         | `'profile'` \| `'compatibility'` \| `'summary'` \| `'watched'` |
+| `screen`     | text         | `'profile'` \| `'compatibility'` \| `'summary'` \| `'watched'` \| `'wrapped'` |
 | `created_at` | timestamptz  |       |
 
 Solo lectura/inserción de lo propio. No guarda qué se compartió, solo

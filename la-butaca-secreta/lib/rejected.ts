@@ -142,3 +142,10 @@ export function clearRejected() {
 export function countRejected(): number {
   return parseRejected(readRejectedRaw()).length;
 }
+
+/** Nº de "no me apetece" descartados dentro de un año concreto (para el Resumen Anual). */
+export function countRejectedThisYear(year: number): number {
+  return parseRejected(readRejectedRaw()).filter(
+    (item) => new Date(item.rejectedAt).getFullYear() === year
+  ).length;
+}

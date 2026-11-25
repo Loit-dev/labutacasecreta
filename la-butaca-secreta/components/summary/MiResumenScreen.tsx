@@ -25,6 +25,8 @@ import { useAchievementsContext } from "@/components/achievements/AchievementsPr
 import ProfileAchievementsRow from "@/components/achievements/ProfileAchievementsRow";
 import CanonProfileRow from "@/components/canon/CanonProfileRow";
 
+import WrappedScreen from "@/components/wrapped/WrappedScreen";
+
 import DiscardedDialog from "./DiscardedDialog";
 import FavoriteCard from "./FavoriteCard";
 import FavoritePickerDialog from "./FavoritePickerDialog";
@@ -161,6 +163,8 @@ export default function MiResumenScreen({ onNavigateTab }: Props) {
   const rejected = useRejected();
 
   const [showDiscarded, setShowDiscarded] = useState(false);
+
+  const [showWrapped, setShowWrapped] = useState(false);
 
   async function loadSummary(
     userId: string,
@@ -579,12 +583,28 @@ export default function MiResumenScreen({ onNavigateTab }: Props) {
         </div>
       )}
 
-      <button
-        onClick={() => setSharing(true)}
-        className="mx-auto rounded-xl bg-red-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-      >
-        Compartir
-      </button>
+      <div className="flex justify-center gap-3">
+        <button
+          onClick={() => setShowWrapped(true)}
+          className="rounded-xl border border-amber-400/40 bg-amber-400/10 px-6 py-3 text-sm font-semibold text-amber-200 transition-colors hover:bg-amber-400/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+        >
+          Mi Resumen Anual
+        </button>
+
+        <button
+          onClick={() => setSharing(true)}
+          className="rounded-xl bg-red-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+        >
+          Compartir
+        </button>
+      </div>
+
+      {showWrapped && (
+        <WrappedScreen
+          year={new Date().getFullYear()}
+          onClose={() => setShowWrapped(false)}
+        />
+      )}
 
       {picking && (
         <FavoritePickerDialog

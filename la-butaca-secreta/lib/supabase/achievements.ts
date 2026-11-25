@@ -70,6 +70,37 @@ export async function fetchStoredAchievementLevels(
   }
 }
 
+/**
+ * Todos los niveles desbloqueados alguna vez, con fecha — a diferencia
+ * de fetchStoredAchievementLevels (que solo da el nivel MÁX. por
+ * familia, para comparar contra lo recién calculado), el Resumen Anual
+ * necesita saber CUÁNDO se desbloqueó cada uno para filtrar "este año".
+ */
+export async function fetchAchievementUnlocks(
+  userId: string
+): Promise<{ key: string; level: number; unlockedAt: string }[]> {
+  if (!supabase) return [];
+
+  try {
+    const { data, error } = await supabase
+      .from("user_achievements")
+      .select("achievement_key, level, unlocked_at")
+      .eq("user_id", userId);
+
+    if (error || !data) return [];
+
+    return data.map((row) => ({
+      key: row.achievement_key,
+      level: row.level,
+      unlockedAt: row.unlocked_at,
+    }));
+  } catch (error) {
+    console.error("No se pudieron leer los logros desbloqueados:", error);
+
+    return [];
+  }
+}
+
 /** Inserta los niveles nuevos detectados. Ignora los que ya existan. */
 export async function insertUnlockedLevels(
   userId: string,
@@ -91,7 +122,12 @@ export async function insertUnlockedLevels(
   }
 }
 
-export type ShareScreen = "profile" | "compatibility" | "summary" | "watched";
+export type ShareScreen =
+  | "profile"
+  | "compatibility"
+  | "summary"
+  | "watched"
+  | "wrapped";
 
 /** Registra un "compartir" por cuenta, para el logro "Compartir" (ver ShareDialog*). */
 export async function recordShareEvent(
