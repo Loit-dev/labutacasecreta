@@ -35,15 +35,123 @@ type Slide = { id: string; node: React.ReactNode };
 const CARD =
   "rounded-3xl border border-white/10 bg-white/[0.04] p-5 backdrop-blur-sm";
 
-// Fondo del Resumen, detrás de todas las pantallas: el mismo degradado
-// oscuro difuso de toda la web (app/globals.css, body — rojo
-// arriba-izquierda, azul arriba-derecha, mantenido tal cual) más un
-// lazo de cinta cruzado (dos bandas diagonales doradas/rojas de bordes
-// muy suaves, sin filo duro, para que siga leyéndose como un degradado
-// difuso y no como un patrón nítido) — el Resumen como un regalo
-// envuelto.
+// Fondo base del Resumen, detrás de todas las pantallas: el mismo
+// degradado oscuro difuso de toda la web (app/globals.css, body — rojo
+// arriba-izquierda, azul arriba-derecha, mantenido tal cual). Encima de
+// esta base, cada tarjeta añade su propio "papel de regalo" (ver
+// GIFT_WRAPS / GiftWrapLayer más abajo), distinto en cada pantalla.
 const SITE_BACKGROUND =
-  "linear-gradient(135deg, transparent 36%, rgba(251,191,36,0.18) 46%, rgba(220,38,38,0.16) 50%, rgba(251,191,36,0.18) 54%, transparent 64%), linear-gradient(45deg, transparent 36%, rgba(251,191,36,0.18) 46%, rgba(220,38,38,0.16) 50%, rgba(251,191,36,0.18) 54%, transparent 64%), radial-gradient(circle at top left, rgba(220,38,38,0.18), transparent 30%), radial-gradient(circle at top right, rgba(59,130,246,0.12), transparent 30%), linear-gradient(180deg, #050505 0%, #09090b 40%, #050505 100%)";
+  "radial-gradient(circle at top left, rgba(220,38,38,0.18), transparent 30%), radial-gradient(circle at top right, rgba(59,130,246,0.12), transparent 30%), linear-gradient(180deg, #050505 0%, #09090b 40%, #050505 100%)";
+
+/**
+ * Un "papel de regalo" por pantalla: su propio tinte de papel, el color
+ * del lazo que la cruza y dónde cae ese cruce — así cada tarjeta del
+ * Resumen se siente envuelta de un modo distinto, no todas con el mismo
+ * patrón. Todo con blur real (nunca un filo nítido) para que siga
+ * leyéndose como un degradado difuso, igual que el resto de la web.
+ */
+type GiftWrap = {
+  paper: string;
+  ribbon: string;
+  top: string;
+  left: string;
+  size: number;
+  angle: number;
+};
+
+const GIFT_WRAPS: Record<string, GiftWrap> = {
+  portada: {
+    paper: "rgba(251,191,36,0.14)",
+    ribbon: "rgba(220,38,38,0.6)",
+    top: "6%",
+    left: "50%",
+    size: 70,
+    angle: 32,
+  },
+  total: {
+    paper: "rgba(220,38,38,0.12)",
+    ribbon: "rgba(251,191,36,0.6)",
+    top: "22%",
+    left: "18%",
+    size: 65,
+    angle: 52,
+  },
+  genero: {
+    paper: "rgba(59,130,246,0.1)",
+    ribbon: "rgba(226,232,240,0.5)",
+    top: "68%",
+    left: "80%",
+    size: 75,
+    angle: 40,
+  },
+  cara: {
+    paper: "rgba(168,85,247,0.11)",
+    ribbon: "rgba(251,191,36,0.55)",
+    top: "48%",
+    left: "50%",
+    size: 60,
+    angle: 26,
+  },
+  trendy: {
+    paper: "rgba(249,115,22,0.13)",
+    ribbon: "rgba(220,38,38,0.55)",
+    top: "10%",
+    left: "86%",
+    size: 60,
+    angle: 46,
+  },
+  amigos: {
+    paper: "rgba(20,184,166,0.11)",
+    ribbon: "rgba(251,191,36,0.55)",
+    top: "84%",
+    left: "16%",
+    size: 75,
+    angle: 36,
+  },
+  progreso: {
+    paper: "rgba(251,191,36,0.13)",
+    ribbon: "rgba(220,38,38,0.55)",
+    top: "32%",
+    left: "84%",
+    size: 75,
+    angle: 42,
+  },
+  final: {
+    paper: "rgba(220,38,38,0.15)",
+    ribbon: "rgba(251,191,36,0.6)",
+    top: "50%",
+    left: "50%",
+    size: 80,
+    angle: 30,
+  },
+};
+
+function GiftWrapLayer({ wrap }: { wrap: GiftWrap }) {
+  const band: React.CSSProperties = {
+    position: "absolute",
+    top: wrap.top,
+    left: wrap.left,
+    width: "190%",
+    height: wrap.size,
+    filter: "blur(14px)",
+    background: `linear-gradient(90deg, transparent 0%, ${wrap.ribbon} 32%, ${wrap.ribbon} 68%, transparent 100%)`,
+  };
+
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none absolute inset-0 overflow-hidden"
+      style={{ background: wrap.paper }}
+    >
+      <div
+        style={{ ...band, transform: `translate(-50%, -50%) rotate(${wrap.angle}deg)` }}
+      />
+      <div
+        style={{ ...band, transform: `translate(-50%, -50%) rotate(${-wrap.angle}deg)` }}
+      />
+    </div>
+  );
+}
 
 /** Números/titulares grandes: Bebas Neue pero con el tracking apretado del mockup (marquee-font de la app lo abre 0.04em para rótulos cortos; aquí buscamos el golpe visual de una cifra enorme). */
 const DISPLAY_TRACKING = { letterSpacing: "0.01em" } as const;
@@ -1120,6 +1228,10 @@ export default function WrappedScreen({ year, onClose }: Props) {
 
   const total = slides.length + (stats ? 1 : 0); // +1 por la pantalla de compartir
 
+  const currentWrapId =
+    index < slides.length ? slides[index]?.id : "final";
+  const currentWrap = GIFT_WRAPS[currentWrapId ?? "portada"] ?? GIFT_WRAPS.portada;
+
   function go(delta: 1 | -1) {
     setIndex((current) => {
       const next = current + delta;
@@ -1170,6 +1282,8 @@ export default function WrappedScreen({ year, onClose }: Props) {
         </div>
 
         <div className="relative flex-1 overflow-hidden px-6 py-4">
+          <GiftWrapLayer wrap={currentWrap} />
+
           {loading && (
             <p className="flex h-full items-center justify-center text-sm text-zinc-400">
               Preparando tu año…
