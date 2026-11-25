@@ -6,11 +6,20 @@ import { createPortal } from "react-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useDialog } from "@/hooks/useDialog";
 import { useWrapped } from "@/hooks/useWrapped";
+import { useWrappedCastHighlights } from "@/hooks/useWrappedCastHighlights";
+import { useWrappedFriendsGroup } from "@/hooks/useWrappedFriendsGroup";
 import { track } from "@/lib/analytics";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { recordShareEvent } from "@/lib/supabase/achievements";
+import type { WatchedRow } from "@/lib/supabase/summary";
 import type { WrappedStats } from "@/lib/wrapped";
-import { DiscardIcon, FireIcon, PinIcon } from "@/components/icons/Icons";
+import {
+  DiscardIcon,
+  FireIcon,
+  PersonIcon,
+  PinIcon,
+  ShareIcon,
+} from "@/components/icons/Icons";
 
 type Props = {
   year: number;
@@ -21,6 +30,15 @@ type Slide = { id: string; node: React.ReactNode };
 
 const CARD =
   "rounded-3xl border border-white/10 bg-white/[0.04] p-5 backdrop-blur-sm";
+
+// Fondo del Resumen = el mismo de toda la web (app/globals.css, body),
+// no uno propio: mismos tonos (rojo arriba-izquierda, azul
+// arriba-derecha) para que el Wrapped se sienta parte de la app.
+const SITE_BACKGROUND =
+  "radial-gradient(circle at top left, rgba(220,38,38,0.18), transparent 30%), radial-gradient(circle at top right, rgba(59,130,246,0.12), transparent 30%), linear-gradient(180deg, #050505 0%, #09090b 40%, #050505 100%)";
+
+/** Números/titulares grandes: Bebas Neue pero con el tracking apretado del mockup (marquee-font de la app lo abre 0.04em para rótulos cortos; aquí buscamos el golpe visual de una cifra enorme). */
+const DISPLAY_TRACKING = { letterSpacing: "0.01em" } as const;
 
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
@@ -57,7 +75,10 @@ function buildSlides(stats: WrappedStats): Slide[] {
     node: (
       <div className="flex h-full flex-col items-start justify-center gap-5">
         <Eyebrow>Resumen {stats.year}</Eyebrow>
-        <h1 className="marquee-font text-6xl leading-[0.92] text-white">
+        <h1
+          className="marquee-font text-[64px] leading-[0.9] text-white"
+          style={DISPLAY_TRACKING}
+        >
           Tu año
           <br />
           en butaca.
@@ -65,6 +86,36 @@ function buildSlides(stats: WrappedStats): Slide[] {
         <p className="max-w-[28ch] text-base leading-relaxed text-zinc-300">
           Esto es lo que ha dado de sí tu {stats.year} en {SITE_NAME}.
         </p>
+        <div className="flex w-full gap-3">
+          <div className={`${CARD} !p-3 flex-1 text-center`}>
+            <p
+              className="marquee-font text-3xl text-amber-300"
+              style={DISPLAY_TRACKING}
+            >
+              {stats.totalWatched}
+            </p>
+            <p className="text-[11px] text-zinc-400">títulos</p>
+          </div>
+          <div className={`${CARD} !p-3 flex-1 text-center`}>
+            <p
+              className="marquee-font truncate text-3xl text-amber-300"
+              style={DISPLAY_TRACKING}
+            >
+              {stats.topGenres[0]?.name ?? "—"}
+            </p>
+            <p className="text-[11px] text-zinc-400">tu género</p>
+          </div>
+          <div className={`${CARD} !p-3 flex-1 text-center`}>
+            <p
+              className="marquee-font text-3xl text-amber-300"
+              style={DISPLAY_TRACKING}
+            >
+              {stats.longestStreak || "—"}
+            </p>
+            <p className="text-[11px] text-zinc-400">racha</p>
+          </div>
+        </div>
+        <p className="text-xs text-zinc-500">Toca los lados para avanzar →</p>
       </div>
     ),
   });
@@ -79,7 +130,10 @@ function buildSlides(stats: WrappedStats): Slide[] {
       <div className="flex h-full flex-col justify-center gap-3">
         <Eyebrow>Tu año en cifras</Eyebrow>
         <div>
-          <span className="marquee-font text-7xl leading-[0.85] text-white">
+          <span
+            className="marquee-font text-[90px] leading-[0.82] text-white"
+            style={DISPLAY_TRACKING}
+          >
             {stats.totalWatched}
           </span>
           <span className="ml-1 text-lg font-extrabold text-zinc-300">
@@ -209,7 +263,10 @@ function buildSlides(stats: WrappedStats): Slide[] {
 
           {first && (
             <>
-              <h2 className="marquee-font text-4xl leading-[0.95] text-white">
+              <h2
+                className="marquee-font text-[42px] leading-[0.92] text-white"
+                style={DISPLAY_TRACKING}
+              >
                 {first.name}, sin duda.
               </h2>
               <div className="flex flex-col gap-1.5">
@@ -335,39 +392,55 @@ function buildSlides(stats: WrappedStats): Slide[] {
   return slides;
 }
 
+type ShareSession = { user: { id: string } } | null;
+
+/** Lógica de compartir común a la pantalla final y al botón rápido de la cabecera. */
+async function performShare(
+  stats: WrappedStats,
+  session: ShareSession,
+  onShared: () => void
+): Promise<"shared" | "copied" | "failed"> {
+  const text = shareText(stats);
+
+  if (navigator.share) {
+    try {
+      await navigator.share({ text, title: `Mi ${stats.year} en ${SITE_NAME}` });
+      onShared();
+      if (session) recordShareEvent(session.user.id, "wrapped");
+      return "shared";
+    } catch {
+      // cancelado por el usuario: no pasa nada
+      return "failed";
+    }
+  }
+
+  try {
+    await navigator.clipboard.writeText(text);
+    onShared();
+    if (session) recordShareEvent(session.user.id, "wrapped");
+    return "copied";
+  } catch {
+    // sin clipboard disponible: no se puede hacer nada más
+    return "failed";
+  }
+}
+
 function ShareSlide({ stats, onShared }: { stats: WrappedStats; onShared: () => void }) {
   const { session } = useAuth();
   const [copied, setCopied] = useState(false);
 
   async function share() {
-    const text = shareText(stats);
-
-    if (navigator.share) {
-      try {
-        await navigator.share({ text, title: `Mi ${stats.year} en ${SITE_NAME}` });
-        onShared();
-        if (session) recordShareEvent(session.user.id, "wrapped");
-        return;
-      } catch {
-        // cancelado por el usuario: no pasa nada
-        return;
-      }
-    }
-
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      onShared();
-      if (session) recordShareEvent(session.user.id, "wrapped");
-    } catch {
-      // sin clipboard disponible: no se puede hacer nada más
-    }
+    const result = await performShare(stats, session, onShared);
+    if (result === "copied") setCopied(true);
   }
 
   return (
     <div className="flex h-full flex-col items-center justify-center gap-5 text-center">
       <Eyebrow>Tu {stats.year}, en una frase</Eyebrow>
-      <h2 className="marquee-font text-4xl leading-[0.95] text-white">
+      <h2
+        className="marquee-font text-4xl leading-[0.95] text-white"
+        style={DISPLAY_TRACKING}
+      >
         {stats.totalWatched} títulos.
         <br />
         {stats.topGenres[0]?.name ?? "Un año"} de cine.
@@ -386,12 +459,280 @@ function ShareSlide({ stats, onShared }: { stats: WrappedStats; onShared: () => 
   );
 }
 
+/** Botón discreto en la cabecera: comparte el texto del resumen completo desde cualquier pantalla, no solo la última. */
+function HeaderShareButton({ stats }: { stats: WrappedStats }) {
+  const { session } = useAuth();
+  const [justCopied, setJustCopied] = useState(false);
+
+  async function handleShare() {
+    const result = await performShare(stats, session, () =>
+      track("share_done", { screen: "wrapped" })
+    );
+
+    if (result === "copied") {
+      setJustCopied(true);
+      setTimeout(() => setJustCopied(false), 2000);
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleShare}
+      aria-label="Compartir tu Resumen Anual"
+      className="absolute left-4 top-4 z-20 flex items-center gap-1.5 rounded-full bg-black/40 px-3 py-1.5 text-xs font-bold text-white/80 hover:text-white"
+    >
+      <ShareIcon size={13} />
+      {justCopied ? "¡Copiado!" : "Compartir"}
+    </button>
+  );
+}
+
+type TitleRef = { tmdbId: number; mediaType: "movie" | "tv" };
+
+/** "Repetiste con ellos": agrega el reparto de los títulos del año bajo demanda (hooks/useWrappedCastHighlights.ts). */
+function CastHighlightsSlide({ titles }: { titles: TitleRef[] }) {
+  const { highlights, loading, capped } = useWrappedCastHighlights(titles);
+
+  if (loading) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
+        <Eyebrow>Repetiste con ellos</Eyebrow>
+        <p className="text-sm text-zinc-400">Mirando el reparto de tus títulos…</p>
+      </div>
+    );
+  }
+
+  const hasActor = Boolean(highlights?.actor);
+  const hasDirector = Boolean(highlights?.director);
+
+  return (
+    <div className="flex h-full flex-col justify-center gap-4">
+      <Eyebrow>Repetiste con ellos</Eyebrow>
+
+      {!hasActor && !hasDirector && (
+        <p className="max-w-[30ch] text-base text-zinc-300">
+          Este año no se repitió ningún actor, actriz o director lo bastante
+          como para hablar de un patrón. Año de variedad.
+        </p>
+      )}
+
+      {highlights?.actor && (
+        <div className={`${CARD} flex items-center gap-3.5`}>
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-red-700 to-amber-800 text-white">
+            <PersonIcon size={20} />
+          </span>
+          <div className="min-w-0">
+            <p className="text-[11px] font-bold uppercase tracking-wide text-zinc-400">
+              Tu actor/actriz más repetido
+            </p>
+            <p
+              className="marquee-font truncate text-2xl text-white"
+              style={DISPLAY_TRACKING}
+            >
+              {highlights.actor.name}
+            </p>
+            <p className="text-xs font-bold text-amber-300">
+              {highlights.actor.count} títulos distintos este año
+            </p>
+          </div>
+        </div>
+      )}
+
+      {highlights?.director && (
+        <div className={`${CARD} flex items-center gap-3.5`}>
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-700 to-blue-950 text-white">
+            <PersonIcon size={20} />
+          </span>
+          <div className="min-w-0">
+            <p className="text-[11px] font-bold uppercase tracking-wide text-zinc-400">
+              Tu director/a conocido
+            </p>
+            <p
+              className="marquee-font truncate text-2xl text-white"
+              style={DISPLAY_TRACKING}
+            >
+              {highlights.director.name}
+            </p>
+            <p className="text-xs font-bold text-amber-300">
+              {highlights.director.count} títulos suyos este año
+            </p>
+          </div>
+        </div>
+      )}
+
+      {capped && (
+        <p className="text-[11px] text-zinc-500">
+          Calculado sobre tus títulos más recientes del año.
+        </p>
+      )}
+    </div>
+  );
+}
+
+/** "Tu grupo de cine": compatibilidad con cada amigo aceptado, agregada bajo demanda (hooks/useWrappedFriendsGroup.ts). */
+function FriendsGroupSlide({
+  userId,
+  myHistory,
+}: {
+  userId: string;
+  myHistory: WatchedRow[];
+}) {
+  const { summary, friendCount, loading } = useWrappedFriendsGroup(
+    userId,
+    myHistory
+  );
+
+  if (loading) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
+        <Eyebrow>Tu grupo de cine</Eyebrow>
+        <p className="text-sm text-zinc-400">Comparando con tus amigos…</p>
+      </div>
+    );
+  }
+
+  if (friendCount === 0) {
+    return (
+      <div className="flex h-full flex-col justify-center gap-4">
+        <Eyebrow>Tu grupo de cine</Eyebrow>
+        <h2
+          className="marquee-font text-4xl leading-[0.95] text-white"
+          style={DISPLAY_TRACKING}
+        >
+          Todavía vas solo.
+        </h2>
+        <p className="max-w-[30ch] text-base text-zinc-300">
+          Añade amigos desde tu perfil para ver cuánto coincidís este año.
+        </p>
+      </div>
+    );
+  }
+
+  if (!summary || summary.groupAveragePercent === null) {
+    return (
+      <div className="flex h-full flex-col justify-center gap-4">
+        <Eyebrow>Tu grupo de cine</Eyebrow>
+        <p className="max-w-[30ch] text-base text-zinc-300">
+          Tienes {friendCount} {friendCount === 1 ? "amigo" : "amigos"}, pero
+          todavía no hay suficientes valoraciones en común para calcular la
+          compatibilidad.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-full flex-col justify-center gap-4">
+      <Eyebrow>Tu grupo de cine</Eyebrow>
+      <h2
+        className="marquee-font text-4xl leading-[0.95] text-white"
+        style={DISPLAY_TRACKING}
+      >
+        {friendCount} {friendCount === 1 ? "amigo" : "amigos"}.
+        <br />
+        ¿Mismo gusto?
+      </h2>
+      <div
+        className={`${CARD} flex items-center gap-4 border-amber-400/25 bg-amber-400/5`}
+      >
+        <p
+          className="marquee-font text-4xl text-amber-300"
+          style={DISPLAY_TRACKING}
+        >
+          {summary.groupAveragePercent}%
+        </p>
+        <p className="text-sm text-zinc-300">
+          Compatibilidad media con tu grupo ({summary.readyCount} de{" "}
+          {friendCount})
+        </p>
+      </div>
+
+      {summary.top.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <p className="text-xs font-bold uppercase tracking-wide text-zinc-400">
+            Tus mejores coincidencias
+          </p>
+          {summary.top.map((entry, i) => (
+            <div
+              key={entry.userId}
+              className={`flex items-center gap-3 rounded-xl border px-3 py-2 ${
+                i === 0
+                  ? "border-amber-400/40 bg-amber-400/10"
+                  : "border-white/10 bg-white/[0.03]"
+              }`}
+            >
+              <span className="marquee-font w-5 text-base text-zinc-400">
+                {i + 1}
+              </span>
+              <span className="flex-1 truncate text-sm font-bold text-white">
+                {entry.name}
+              </span>
+              <span className="marquee-font text-lg text-amber-300">
+                {entry.percent}%
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Flechita fina a un lado, solo para indicar que hay que tocar/deslizar; no capta toques (el tapzone de debajo sigue haciéndolo). */
+function SideArrow({ side }: { side: "left" | "right" }) {
+  return (
+    <svg
+      className={`pointer-events-none absolute top-1/2 z-10 -translate-y-1/2 text-white/20 ${
+        side === "left" ? "left-1" : "right-1"
+      }`}
+      width="7"
+      height="22"
+      viewBox="0 0 7 22"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d={side === "left" ? "M6 1L1 11L6 21" : "M1 1L6 11L1 21"}
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export default function WrappedScreen({ year, onClose }: Props) {
   const dialogRef = useDialog<HTMLDivElement>(onClose);
-  const { stats, loading } = useWrapped(year);
+  const { session } = useAuth();
+  const { stats, loading, watched } = useWrapped(year);
   const [index, setIndex] = useState(0);
 
   const slides = stats ? buildSlides(stats) : [];
+
+  if (stats) {
+    const yearTitles: TitleRef[] = watched
+      .filter((row) => new Date(row.seenAt).getFullYear() === year)
+      .map((row) => ({ tmdbId: row.tmdbId, mediaType: row.mediaType }));
+
+    // "Repetiste con ellos" va justo después del género (como en el
+    // mockup: Género → Actor), antes de que el progreso cierre el
+    // bloque de datos del año.
+    const genreIndex = slides.findIndex((s) => s.id === "genero");
+    slides.splice(genreIndex === -1 ? slides.length : genreIndex + 1, 0, {
+      id: "cara",
+      node: <CastHighlightsSlide titles={yearTitles} />,
+    });
+
+    if (session) {
+      slides.push({
+        id: "amigos",
+        node: <FriendsGroupSlide userId={session.user.id} myHistory={watched} />,
+      });
+    }
+  }
+
   const total = slides.length + (stats ? 1 : 0); // +1 por la pantalla de compartir
 
   function go(delta: 1 | -1) {
@@ -415,10 +756,7 @@ export default function WrappedScreen({ year, onClose }: Props) {
         aria-label={`Resumen Anual ${year}`}
         tabIndex={-1}
         className="relative flex h-[100dvh] w-full max-w-md flex-col overflow-hidden sm:h-[90dvh] sm:rounded-[2rem] sm:border sm:border-white/10"
-        style={{
-          background:
-            "radial-gradient(circle at 15% 8%, rgba(220,38,38,0.30), transparent 38%), radial-gradient(circle at 88% 6%, rgba(251,191,36,0.14), transparent 32%), linear-gradient(180deg, #18181b 0%, #0c0c0d 45%, #050505 100%)",
-        }}
+        style={{ background: SITE_BACKGROUND }}
       >
         <div className="relative shrink-0">
           <div className="flex gap-1.5 px-5 pt-5">
@@ -431,6 +769,10 @@ export default function WrappedScreen({ year, onClose }: Props) {
               />
             ))}
           </div>
+
+          {!loading && stats && index !== slides.length && (
+            <HeaderShareButton stats={stats} />
+          )}
 
           <button
             type="button"
@@ -463,6 +805,8 @@ export default function WrappedScreen({ year, onClose }: Props) {
 
           {!loading && stats && (
             <>
+              {index > 0 && <SideArrow side="left" />}
+              {index < total - 1 && <SideArrow side="right" />}
               <button
                 type="button"
                 aria-label="Pantalla anterior"

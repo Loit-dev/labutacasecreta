@@ -6,7 +6,7 @@ import { buildWrapped, type WrappedStats } from "@/lib/wrapped";
 import {
   fetchAchievementUnlocks,
 } from "@/lib/supabase/achievements";
-import { fetchWatchedHistoryFull } from "@/lib/supabase/summary";
+import { fetchWatchedHistoryFull, type WatchedRow } from "@/lib/supabase/summary";
 import { countRejectedThisYear } from "@/lib/rejected";
 import { oldestPending } from "@/lib/watchlist";
 import type { CanonResult } from "@/lib/canon";
@@ -15,6 +15,8 @@ import { useAuth } from "./useAuth";
 type WrappedResult = {
   stats: WrappedStats | null;
   loading: boolean;
+  /** Historial completo (no solo el año del resumen): lo necesitan las pantallas de "cara conocida" y "grupo de amigos", que agregan por su cuenta. */
+  watched: WatchedRow[];
 };
 
 /**
@@ -27,6 +29,7 @@ type WrappedResult = {
 export function useWrapped(year: number): WrappedResult {
   const { session } = useAuth();
   const [stats, setStats] = useState<WrappedStats | null>(null);
+  const [watched, setWatched] = useState<WatchedRow[]>([]);
   const [loading, setLoading] = useState(true);
   const userId = session?.user.id;
   const cancelledRef = useRef(false);
@@ -70,6 +73,7 @@ export function useWrapped(year: number): WrappedResult {
     });
 
     setStats(computed);
+    setWatched(watched);
     setLoading(false);
   }, [userId, year]);
 
@@ -83,5 +87,5 @@ export function useWrapped(year: number): WrappedResult {
     };
   }, [load]);
 
-  return { stats, loading };
+  return { stats, loading, watched };
 }
