@@ -10,6 +10,7 @@ import { track } from "@/lib/analytics";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { recordShareEvent } from "@/lib/supabase/achievements";
 import type { WrappedStats } from "@/lib/wrapped";
+import { DiscardIcon, FireIcon, PinIcon } from "@/components/icons/Icons";
 
 type Props = {
   year: number;
@@ -148,18 +149,22 @@ function buildSlides(stats: WrappedStats): Slide[] {
     });
   }
 
-  if (stats.longestStreak > 1 || stats.peakMonth) {
+  const hasPendingOrRejected =
+    stats.oldestPendingTitle || stats.rejectedThisYearCount > 0;
+
+  if (stats.longestStreak > 1 || stats.peakMonth || hasPendingOrRejected) {
     slides.push({
       id: "racha",
       node: (
         <div className="flex h-full flex-col justify-center gap-4">
           <Eyebrow>Constancia</Eyebrow>
           {stats.longestStreak > 1 && (
-            <div>
-              <span className="marquee-font text-8xl leading-[0.85] text-white">
+            <div className="flex items-end gap-2">
+              <span className="marquee-font text-7xl leading-[0.85] text-white">
                 {stats.longestStreak}
               </span>
-              <span className="ml-1 text-sm font-extrabold text-zinc-300">
+              <span className="flex items-center gap-1 pb-1.5 text-sm font-extrabold text-zinc-300">
+                <FireIcon size={16} className="text-orange-400" />
                 días seguidos, tu racha más larga
               </span>
             </div>
@@ -171,21 +176,40 @@ function buildSlides(stats: WrappedStats): Slide[] {
               {stats.peakMonth.count === 1 ? "título" : "títulos"}.
             </p>
           )}
-          <div className="flex h-24 items-end gap-1">
-            {stats.monthlyCounts.map((m) => {
-              const max = Math.max(1, ...stats.monthlyCounts.map((x) => x.count));
-              return (
-                <div key={m.monthIndex} className="flex flex-1 flex-col items-center gap-1">
-                  <div
-                    className={`w-full rounded-t ${
-                      stats.peakMonth?.monthIndex === m.monthIndex
-                        ? "bg-gradient-to-t from-red-600 to-amber-400"
-                        : "bg-white/15"
-                    }`}
-                    style={{ height: `${Math.max(6, (m.count / max) * 100)}%` }}
-                  />
+          {stats.monthlyCounts.some((m) => m.count > 0) && (
+            <div className={`${CARD} !p-4`}>
+              <div className="flex h-20 items-end gap-1">
+                {stats.monthlyCounts.map((m) => {
+                  const max = Math.max(
+                    1,
+                    ...stats.monthlyCounts.map((x) => x.count)
+                  );
+                  const isPeak = stats.peakMonth?.monthIndex === m.monthIndex;
+
+                  return (
+                    <div
+                      key={m.monthIndex}
+                      className="flex h-full flex-1 flex-col items-center justify-end gap-1"
+                    >
+                      <div
+                        className={`w-full rounded-t ${
+                          isPeak
+                            ? "bg-gradient-to-t from-red-600 to-amber-400"
+                            : "bg-white/15"
+                        }`}
+                        style={{
+                          height: `${Math.max(6, (m.count / max) * 100)}%`,
+                        }}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="mt-1.5 flex gap-1">
+                {stats.monthlyCounts.map((m) => (
                   <span
-                    className={`text-[9px] ${
+                    key={m.monthIndex}
+                    className={`flex-1 text-center text-[9px] ${
                       stats.peakMonth?.monthIndex === m.monthIndex
                         ? "font-bold text-amber-300"
                         : "text-zinc-500"
@@ -193,10 +217,45 @@ function buildSlides(stats: WrappedStats): Slide[] {
                   >
                     {m.label.charAt(0).toUpperCase()}
                   </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {hasPendingOrRejected && (
+            <div className="flex flex-col gap-2">
+              {stats.oldestPendingTitle && (
+                <div className={`${CARD} flex items-center gap-3 border-amber-400/25 bg-amber-400/5`}>
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-400/15 text-amber-300">
+                    <PinIcon size={16} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold text-white">
+                      {stats.oldestPendingTitle}
+                    </p>
+                    <p className="text-xs text-zinc-400">
+                      lleva {stats.oldestPendingMonths ?? 0} meses esperando
+                      en Pendientes
+                    </p>
+                  </div>
                 </div>
-              );
-            })}
-          </div>
+              )}
+
+              {stats.rejectedThisYearCount > 0 && (
+                <div className={`${CARD} flex items-center gap-3`}>
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 text-zinc-300">
+                    <DiscardIcon size={16} />
+                  </span>
+                  <p className="text-sm text-zinc-300">
+                    <span className="font-extrabold text-white">
+                      {stats.rejectedThisYearCount}
+                    </span>{" "}
+                    descartados este año con &ldquo;No me apetece&rdquo;
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       ),
     });
@@ -231,42 +290,6 @@ function buildSlides(stats: WrappedStats): Slide[] {
           <p className="rounded-2xl border border-amber-400/25 bg-amber-400/10 p-3 text-sm text-amber-200">
             🍿 Maratón en toda regla.
           </p>
-        </div>
-      ),
-    });
-  }
-
-  if (stats.oldestPendingTitle || stats.rejectedThisYearCount > 0) {
-    slides.push({
-      id: "pendientes",
-      node: (
-        <div className="flex h-full flex-col justify-center gap-4">
-          {stats.oldestPendingTitle && (
-            <div className={`${CARD} flex items-center gap-3 border-amber-400/30`}>
-              <div>
-                <p className="text-[11px] font-bold uppercase tracking-wide text-amber-300">
-                  ⏳ Lleva más tiempo esperando
-                </p>
-                <p className="marquee-font text-xl text-white">
-                  {stats.oldestPendingTitle}
-                </p>
-                <p className="text-xs text-zinc-400">
-                  En tus Pendientes desde hace{" "}
-                  {stats.oldestPendingMonths ?? 0} meses.
-                </p>
-              </div>
-            </div>
-          )}
-
-          <div className={`${CARD} flex items-center gap-4`}>
-            <span className="marquee-font text-5xl text-white">
-              {stats.rejectedThisYearCount}
-            </span>
-            <p className="text-sm text-zinc-300">
-              títulos que descartaste con &ldquo;No me apetece&rdquo; este
-              año — de lo que te recomendamos, estos no te apetecían.
-            </p>
-          </div>
         </div>
       ),
     });
