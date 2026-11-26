@@ -427,6 +427,15 @@ function buildSlides(stats: WrappedStats): Slide[] {
   if (stats.topGenres.length > 0 || stats.peakDay || stats.lastOfYear) {
     const [first, ...rest] = stats.topGenres;
 
+    // "Dato curioso" del pico del año: cuántas veces por encima de tu
+    // media diaria fue ese día (con 365 como aproximación de los días
+    // del año, sin pedir nada nuevo).
+    const avgPerDay = stats.totalWatched / 365;
+    const peakDayMultiplier =
+      stats.peakDay && avgPerDay > 0
+        ? Math.round(stats.peakDay.count / avgPerDay)
+        : null;
+
     slides.push({
       id: "genero",
       node: (
@@ -481,6 +490,11 @@ function buildSlides(stats: WrappedStats): Slide[] {
                 {stats.peakDay.count} títulos en una sola sesión — maratón
                 en toda regla.
               </p>
+              {peakDayMultiplier !== null && peakDayMultiplier >= 2 && (
+                <p className="mt-1 text-xs text-zinc-400">
+                  🔥 {peakDayMultiplier}x tu media diaria de títulos.
+                </p>
+              )}
             </div>
           )}
 
@@ -508,6 +522,14 @@ function buildSlides(stats: WrappedStats): Slide[] {
   }
 
   if (stats.canonTotalProgress > 0 || stats.achievementsThisYear.length > 0) {
+    // "Dato curioso" de El Canon: a este ritmo (lo visto ESTE año),
+    // cuántos años más haría falta para terminarlo.
+    const canonRemaining = stats.canonTotal - stats.canonTotalProgress;
+    const canonYearsLeft =
+      canonRemaining > 0 && stats.canonThisYear > 0
+        ? Math.ceil(canonRemaining / stats.canonThisYear)
+        : null;
+
     slides.push({
       id: "progreso",
       node: (
@@ -524,6 +546,15 @@ function buildSlides(stats: WrappedStats): Slide[] {
                 <p className="text-xs font-bold text-amber-300">
                   +{stats.canonThisYear} películas este año
                 </p>
+                {canonYearsLeft !== null && (
+                  <p className="mt-1 text-xs text-zinc-400">
+                    📚 A este ritmo, lo terminas en{" "}
+                    {canonYearsLeft === 1
+                      ? "1 año más"
+                      : `${canonYearsLeft} años más`}
+                    .
+                  </p>
+                )}
               </div>
             </div>
           )}
@@ -1240,6 +1271,13 @@ function FriendsGroupSlide({
           <p className="text-xs font-bold uppercase tracking-wide text-zinc-400">
             Tus mejores coincidencias
           </p>
+          {summary.top[0].percent > summary.groupAveragePercent && (
+            <p className="-mt-1 text-xs text-zinc-400">
+              🤝 Con {summary.top[0].name},{" "}
+              {summary.top[0].percent - summary.groupAveragePercent} puntos
+              por encima de tu media de grupo.
+            </p>
+          )}
           {summary.top.map((entry, i) => (
             <div
               key={entry.userId}
