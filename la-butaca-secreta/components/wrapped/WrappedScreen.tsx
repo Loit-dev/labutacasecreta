@@ -37,7 +37,7 @@ type Slide = { id: string; node: React.ReactNode };
 // pósters detrás, una tarjeta casi transparente se perdía contra el
 // ruido del fondo. Así destaca de verdad pase lo que pase detrás.
 const CARD =
-  "rounded-3xl border border-white/10 bg-black/45 p-5 backdrop-blur-md";
+  "rounded-3xl border border-white/10 bg-black/60 p-5 backdrop-blur-md";
 
 // Fondo base del Resumen, detrás de todas las pantallas: el mismo
 // degradado oscuro difuso de toda la web (app/globals.css, body — rojo
@@ -115,7 +115,7 @@ function PosterBackdrop({ posters, seed }: { posters: string[]; seed: string }) 
             key={`${url}-${i}`}
             src={url}
             alt=""
-            className="absolute rounded-2xl object-cover opacity-55"
+            className="absolute rounded-2xl object-cover opacity-40"
             style={{
               top: slot.top,
               left: slot.left,
@@ -149,7 +149,7 @@ function GiftWrapLayer({
       <div
         className="absolute inset-0"
         style={{
-          background: `radial-gradient(circle at top left, ${wrap.glowA}, transparent 55%), radial-gradient(circle at top right, ${wrap.glowB}, transparent 55%), rgba(5,5,5,0.55)`,
+          background: `radial-gradient(circle at top left, ${wrap.glowA}, transparent 55%), radial-gradient(circle at top right, ${wrap.glowB}, transparent 55%), rgba(5,5,5,0.7)`,
         }}
       />
     </div>
@@ -161,7 +161,7 @@ const DISPLAY_TRACKING = { letterSpacing: "0.01em" } as const;
 
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-xs font-bold uppercase tracking-widest text-amber-300">
+    <p className="text-sm font-bold uppercase tracking-widest text-amber-300">
       {children}
     </p>
   );
@@ -336,7 +336,7 @@ function buildSlides(stats: WrappedStats): Slide[] {
         {hasPendingOrRejected && (
           <div className="flex flex-col gap-1.5">
             {stats.oldestPendingTitle && (
-              <div className={`${CARD} !p-3 flex items-center gap-3 border-amber-400/25 bg-amber-400/15`}>
+              <div className={`${CARD} !p-3 flex items-center gap-3 border-amber-400/25 bg-amber-400/22`}>
                 <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-400/15 text-amber-300">
                   <PinIcon size={14} />
                 </span>
@@ -395,16 +395,18 @@ function buildSlides(stats: WrappedStats): Slide[] {
                     className={`flex items-center gap-3 rounded-xl border px-3 py-1.5 ${
                       i === 0
                         ? "border-amber-400/40 bg-amber-400/10"
-                        : "border-white/10 bg-white/[0.07]"
+                        : "border-white/10 bg-white/[0.1]"
                     }`}
                   >
-                    <span className="marquee-font w-5 text-base text-zinc-400">
+                    <span className="marquee-font w-5 text-lg text-zinc-400">
                       {i + 1}
                     </span>
-                    <span className="flex-1 text-sm font-bold text-white">
+                    <span className="flex-1 text-base font-bold text-white">
                       {g.name}
                     </span>
-                    <span className="text-sm text-zinc-400">{g.percent}%</span>
+                    <span className="marquee-font text-lg text-amber-300">
+                      {g.percent}%
+                    </span>
                   </div>
                 ))}
               </div>
@@ -430,7 +432,7 @@ function buildSlides(stats: WrappedStats): Slide[] {
           )}
 
           {stats.lastOfYear && (
-            <div className={`${CARD} !p-3 border-amber-400/20 bg-amber-400/15`}>
+            <div className={`${CARD} !p-3 border-amber-400/20 bg-amber-400/22`}>
               <p className="text-xs font-bold uppercase tracking-wide text-amber-300">
                 Así cerraste el año
               </p>
@@ -890,9 +892,22 @@ function titlesLine(titles: string[]): string {
   return `${shown.join(", ")} y ${rest} más`;
 }
 
+/** "Dato curioso": qué parte de todo lo que viste este año llevaba a esta persona. */
+function sharePercent(count: number, total: number): number | null {
+  if (total <= 0) return null;
+
+  return Math.round((count / total) * 100);
+}
+
 /** "Repetiste con ellos": agrega el reparto de los títulos del año bajo demanda (hooks/useWrappedCastHighlights.ts). */
 function CastHighlightsSlide({ titles }: { titles: TitleRef[] }) {
   const { highlights, loading, capped } = useWrappedCastHighlights(titles);
+  const actorPercent = highlights?.actor
+    ? sharePercent(highlights.actor.count, titles.length)
+    : null;
+  const directorPercent = highlights?.director
+    ? sharePercent(highlights.director.count, titles.length)
+    : null;
 
   if (loading) {
     return (
@@ -925,11 +940,11 @@ function CastHighlightsSlide({ titles }: { titles: TitleRef[] }) {
             gradient="from-red-700 to-amber-800"
           />
           <div className="min-w-0">
-            <p className="text-[11px] font-bold uppercase tracking-wide text-zinc-400">
+            <p className="text-xs font-bold uppercase tracking-wide text-zinc-400">
               Tu actor/actriz más repetido
             </p>
             <p
-              className="marquee-font truncate text-3xl text-white"
+              className="marquee-font truncate text-4xl text-white"
               style={DISPLAY_TRACKING}
             >
               {highlights.actor.name}
@@ -940,6 +955,12 @@ function CastHighlightsSlide({ titles }: { titles: TitleRef[] }) {
             {highlights.actor.titles.length > 0 && (
               <p className="mt-1 truncate text-xs text-zinc-400">
                 En {titlesLine(highlights.actor.titles)}
+              </p>
+            )}
+            {actorPercent !== null && (
+              <p className="mt-1.5 text-xs text-zinc-300">
+                🍿 Apareció en el {actorPercent}% de todo lo que viste este
+                año.
               </p>
             )}
           </div>
@@ -954,11 +975,11 @@ function CastHighlightsSlide({ titles }: { titles: TitleRef[] }) {
             gradient="from-blue-700 to-blue-950"
           />
           <div className="min-w-0">
-            <p className="text-[11px] font-bold uppercase tracking-wide text-zinc-400">
+            <p className="text-xs font-bold uppercase tracking-wide text-zinc-400">
               Tu director/a conocido
             </p>
             <p
-              className="marquee-font truncate text-3xl text-white"
+              className="marquee-font truncate text-4xl text-white"
               style={DISPLAY_TRACKING}
             >
               {highlights.director.name}
@@ -969,6 +990,12 @@ function CastHighlightsSlide({ titles }: { titles: TitleRef[] }) {
             {highlights.director.titles.length > 0 && (
               <p className="mt-1 truncate text-xs text-zinc-400">
                 En {titlesLine(highlights.director.titles)}
+              </p>
+            )}
+            {directorPercent !== null && (
+              <p className="mt-1.5 text-xs text-zinc-300">
+                🎬 El {directorPercent}% de lo que viste este año lleva su
+                firma.
               </p>
             )}
           </div>
@@ -1048,7 +1075,7 @@ function TrendySlide({
 
       {trendy && (
         <div
-          className={`${CARD} flex items-center gap-3.5 border-red-500/25 bg-red-500/15`}
+          className={`${CARD} flex items-center gap-3.5 border-red-500/25 bg-red-500/22`}
         >
           <PosterThumb url={trendy.posterUrl} />
           <div className="min-w-0">
@@ -1072,7 +1099,7 @@ function TrendySlide({
 
       {hiddenGem && (
         <div
-          className={`${CARD} flex items-center gap-3.5 border-amber-400/25 bg-amber-400/15`}
+          className={`${CARD} flex items-center gap-3.5 border-amber-400/25 bg-amber-400/22`}
         >
           <PosterThumb url={hiddenGem.posterUrl} />
           <div className="min-w-0">
@@ -1160,7 +1187,7 @@ function FriendsGroupSlide({
         ¿Mismo gusto?
       </h2>
       <div
-        className={`${CARD} flex items-center gap-4 border-amber-400/25 bg-amber-400/15`}
+        className={`${CARD} flex items-center gap-4 border-amber-400/25 bg-amber-400/22`}
       >
         <p
           className="marquee-font text-4xl text-amber-300"
@@ -1185,7 +1212,7 @@ function FriendsGroupSlide({
               className={`flex items-center gap-3 rounded-xl border px-3 py-2 ${
                 i === 0
                   ? "border-amber-400/40 bg-amber-400/10"
-                  : "border-white/10 bg-white/[0.07]"
+                  : "border-white/10 bg-white/[0.1]"
               }`}
             >
               <span className="marquee-font w-5 text-base text-zinc-400">
