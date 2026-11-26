@@ -91,9 +91,10 @@ function seededPick<T>(seed: string, arr: T[], count: number): T[] {
 }
 
 const POSTER_SLOTS = [
-  { top: "-10%", left: "-24%", w: 210, h: 290, rotate: -13 },
-  { top: "56%", left: "64%", w: 190, h: 260, rotate: 11 },
-  { top: "76%", left: "-20%", w: 200, h: 270, rotate: 8 },
+  { top: "-16%", left: "-32%", w: 280, h: 380, rotate: -12 },
+  { top: "-8%", left: "52%", w: 250, h: 340, rotate: 9 },
+  { top: "46%", left: "66%", w: 270, h: 360, rotate: 10 },
+  { top: "72%", left: "-28%", w: 260, h: 350, rotate: 8 },
 ] as const;
 
 /** Pósters reales (de lo visto ese año), girados y a baja opacidad, con blur — igual que el PosterWall del resto de la web. Cada pantalla elige sus pósters y posiciones a partir de su id. */
@@ -144,13 +145,13 @@ function GiftWrapLayer({
     <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
       {/* el fondo se pinta más grande que la tarjeta y con blur, para
           que no queden bordes nítidos al recortarlo con overflow-hidden */}
-      <div className="absolute -inset-8" style={{ filter: "blur(9px)" }}>
+      <div className="absolute -inset-10" style={{ filter: "blur(6px)" }}>
         <PosterBackdrop posters={posterUrls} seed={slideId} />
       </div>
       <div
         className="absolute inset-0"
         style={{
-          background: `radial-gradient(circle at top left, ${wrap.glowA}, transparent 55%), radial-gradient(circle at top right, ${wrap.glowB}, transparent 55%), rgba(5,5,5,0.55)`,
+          background: `radial-gradient(circle at top left, ${wrap.glowA}, transparent 55%), radial-gradient(circle at top right, ${wrap.glowB}, transparent 55%), rgba(5,5,5,0.38)`,
         }}
       />
     </div>
@@ -848,11 +849,16 @@ function PersonAvatar({
   photoPath?: string | null;
   gradient: string;
 }) {
-  if (photoPath) {
+  // Igual que los pósters de fondo: una foto de TMDb solo se puede
+  // pintar pasando por nuestro propio dominio (/api/poster), por la
+  // política de seguridad del sitio.
+  const src = posterSource(photoPath ?? undefined);
+
+  if (src) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
-        src={photoPath}
+        src={src}
         alt=""
         className="h-12 w-12 shrink-0 rounded-full object-cover"
       />
