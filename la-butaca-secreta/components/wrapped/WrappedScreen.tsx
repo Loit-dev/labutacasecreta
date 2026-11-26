@@ -654,6 +654,86 @@ function yearPosterUrls(watched: WatchedRow[], year: number, limit = 12): string
 }
 
 /**
+ * Los 3 pósters "destacados" de la imagen de compartir (ya no el muro
+ * de 8): la mejor valorada, la última que viste y con la que empezaste
+ * el año — principio y fin del año, más lo mejor que viste, sin pedir
+ * nada nuevo (ya viene en `watched`). Si por duplicados (p. ej. la
+ * mejor valorada es también la última) faltan para llegar a 3, se
+ * rellena con otros títulos del año que tengan póster.
+ */
+function shareSpotlightPosters(
+  watched: WatchedRow[],
+  year: number
+): { url: string; label: string; detail?: string }[] {
+  const yearRows = watched.filter(
+    (row) => new Date(row.seenAt).getFullYear() === year && row.posterUrl
+  );
+
+  if (yearRows.length === 0) return [];
+
+  const byRecency = [...yearRows].sort(
+    (a, b) => new Date(b.seenAt).getTime() - new Date(a.seenAt).getTime()
+  );
+
+  const last = byRecency[0];
+  const first = byRecency[byRecency.length - 1];
+
+  const bestRated = [...yearRows]
+    .filter((row) => row.rating !== undefined)
+    .sort(
+      (a, b) =>
+        (b.rating ?? 0) - (a.rating ?? 0) ||
+        new Date(b.seenAt).getTime() - new Date(a.seenAt).getTime()
+    )[0];
+
+  const keyOf = (row: WatchedRow) => `${row.mediaType}-${row.tmdbId}`;
+  const used = new Set<string>();
+  const picks: { row: WatchedRow; label: string; detail?: string }[] = [];
+
+  function add(row: WatchedRow | undefined, label: string, detail?: string) {
+    if (!row || used.has(keyOf(row))) return;
+    used.add(keyOf(row));
+    picks.push({ row, label, detail });
+  }
+
+  add(
+    bestRated,
+    "Mejor valorada",
+    bestRated?.rating ? "★".repeat(Math.round(bestRated.rating)) : undefined
+  );
+  add(
+    last,
+    "Lo último que viste",
+    new Date(last.seenAt).toLocaleDateString("es-ES", {
+      day: "numeric",
+      month: "long",
+    })
+  );
+  add(
+    first,
+    "Así empezaste el año",
+    new Date(first.seenAt).toLocaleDateString("es-ES", {
+      day: "numeric",
+      month: "long",
+    })
+  );
+
+  for (const row of byRecency) {
+    if (picks.length >= 3) break;
+    add(row, "Visto este año");
+  }
+
+  return picks
+    .slice(0, 3)
+    .map((pick) => ({
+      url: posterSource(pick.row.posterUrl) ?? "",
+      label: pick.label,
+      detail: pick.detail,
+    }))
+    .filter((pick) => Boolean(pick.url));
+}
+
+/**
  * Comparte el Resumen como imagen (no solo texto) desde cualquier
  * pantalla, no solo la tarjeta final: genera la misma imagen de
  * cierre (lib/wrappedShareImage.ts) y la comparte como archivo si el
@@ -685,7 +765,9 @@ async function shareWrappedImage(
       communityPercentile: yearRank?.percentile,
       communityTotalUsers: yearRank?.totalUsers,
       communityMine: yearRank?.mine,
-      posterUrls: yearPosterUrls(watched, stats.year),
+      monthlyCounts: stats.monthlyCounts,
+      peakMonthIndex: stats.peakMonth?.monthIndex,
+      spotlightPosters: shareSpotlightPosters(watched, stats.year),
       fontFamily: siteFont(),
     });
 
@@ -774,7 +856,7 @@ function FinalShareCard({
       const profile = userId ? await fetchMyProfile(userId) : null;
       const yearRank = await fetchYearRank(stats.year);
 
-      const posterUrls = yearPosterUrls(watched, stats.year);
+      const spotlightPosters = shareSpotlightPosters(watched, stats.year);
 
       try {
         const blob = await createWrappedShareImage({
@@ -790,7 +872,9 @@ function FinalShareCard({
           communityPercentile: yearRank?.percentile,
           communityTotalUsers: yearRank?.totalUsers,
           communityMine: yearRank?.mine,
-          posterUrls,
+          monthlyCounts: stats.monthlyCounts,
+          peakMonthIndex: stats.peakMonth?.monthIndex,
+          spotlightPosters,
           fontFamily: siteFont(),
         });
 

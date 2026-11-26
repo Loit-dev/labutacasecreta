@@ -3,10 +3,13 @@
  * canvas: mismo formato 9:16 (1080×1920) y mismo fondo cinematográfico
  * que el resto de imágenes para compartir de la web (lib/shareImage.ts,
  * de donde se reutiliza el fondo/viñeteado y la carga de imágenes),
- * para que se reconozca de un vistazo que es de la web. Dos filas de
- * cifras: títulos/género/racha (lo primero que se ve) y, debajo, horas
- * de pantalla y logros — más contexto sin meter todas las cifras del
- * Resumen. El muro de pósters baja de 3 a 2 filas para hacerle sitio.
+ * para que se reconozca de un vistazo que es de la web. En vez del
+ * muro de 8 pósters, 3 "destacados" (mejor valorada, última vista,
+ * primera del año) con su etiqueta encima; debajo, un gráfico de
+ * barras con los meses del año; luego dos filas de cifras (títulos/
+ * género/racha y horas de pantalla/logros); y el "dato curioso" de
+ * comparativa con la comunidad como tarjeta (no texto suelto), con el
+ * mismo tratamiento de más presencia que el resto del Resumen.
  */
 
 import {
@@ -20,6 +23,20 @@ import {
 } from "./shareImage";
 import { yearCommunityLine } from "./wrappedExtras";
 
+export type SpotlightPoster = {
+  url: string;
+  /** Etiqueta corta sobre el póster, p. ej. "Mejor valorada". */
+  label: string;
+  /** Detalle opcional bajo la etiqueta (fecha, estrellas…). */
+  detail?: string;
+};
+
+export type ShareMonthCount = {
+  monthIndex: number;
+  label: string;
+  count: number;
+};
+
 export type WrappedShareOptions = {
   siteName: string;
   siteUrl: string;
@@ -32,14 +49,20 @@ export type WrappedShareOptions = {
   approxHours?: number;
   /** Insignias desbloqueadas de siempre (no solo este año). */
   achievementsTotalUnlocked?: number;
-  /** Datos de my_year_rank (supabase/resumen.sql) para el "dato curioso" de comparativa con la comunidad; sin los tres, se omite esa línea. */
+  /** Datos de my_year_rank (supabase/resumen.sql) para el "dato curioso" de comparativa con la comunidad; sin los tres, se omite esa tarjeta. */
   communityPercentile?: number;
   communityTotalUsers?: number;
   communityMine?: number;
-  posterUrls: string[];
+  /** Los 12 meses del año (WrappedStats.monthlyCounts) para el gráfico de barras. */
+  monthlyCounts?: ShareMonthCount[];
+  /** monthIndex del mes más visto (WrappedStats.peakMonth), para resaltar su barra. */
+  peakMonthIndex?: number;
+  /** Hasta 3 pósters destacados (no el muro completo), con su etiqueta. */
+  spotlightPosters: SpotlightPoster[];
   fontFamily?: string;
   logo?: DrawableImage | null;
   backdrops?: (DrawableImage | null)[];
+  /** Imágenes ya cargadas de spotlightPosters, mismo orden (las rellena createWrappedShareImage). */
   posters?: (DrawableImage | null)[];
 };
 
@@ -158,62 +181,149 @@ export function drawWrappedShareImage(
     titleBottom + 52
   );
 
-  // ---------- Muro de pósters del año ----------
-  // 2 filas (no 3): deja sitio para la segunda fila de cifras de más
-  // abajo sin que la imagen necesite crecer de alto.
-  const gridTop = titleBottom + 110;
+  // ---------- Pósters destacados (3, no el muro completo) ----------
   const gridX = 70;
   const gridW = W - 140;
-  const cols = 4;
-  const rows = 2;
-  const gap = 14;
-  const cellW = (gridW - gap * (cols - 1)) / cols;
-  const cellH = cellW * 1.5;
+  const spotlightTop = titleBottom + 96;
+  const spotlightGap = 20;
+  const spotlightPosters = options.spotlightPosters;
+  const spotlightCount = spotlightPosters.length;
+  // El tamaño de cada póster se calcula siempre a 3 columnas, aunque
+  // haya menos (cuentas nuevas con pocos títulos vistos): si no, un
+  // único póster ocuparía todo el ancho y saldría desproporcionado,
+  // empujando el resto de la imagen mucho más abajo.
+  const SPOTLIGHT_REFERENCE_COLS = 3;
+  const spotlightW =
+    (gridW - spotlightGap * (SPOTLIGHT_REFERENCE_COLS - 1)) /
+    SPOTLIGHT_REFERENCE_COLS;
+  const posterH = spotlightCount > 0 ? spotlightW * 1.5 : 0;
+  const spotlightRowW =
+    spotlightCount * spotlightW + (spotlightCount - 1) * spotlightGap;
+  const spotlightRowX = gridX + (gridW - spotlightRowW) / 2;
 
-  const posters = (options.posters ?? []).slice(0, cols * rows);
+  const loadedPosters = options.posters ?? [];
 
-  posters.forEach((poster, i) => {
-    const col = i % cols;
-    const row = Math.floor(i / cols);
-    const x = gridX + col * (cellW + gap);
-    const y = gridTop + row * (cellH + gap);
+  spotlightPosters.forEach((pick, i) => {
+    const x = spotlightRowX + i * (spotlightW + spotlightGap);
+    const y = spotlightTop;
+    const poster = loadedPosters[i];
 
     ctx.save();
-    roundedRect(ctx, x, y, cellW, cellH, 16);
+    roundedRect(ctx, x, y, spotlightW, posterH, 20);
     ctx.clip();
 
     if (poster && poster.width > 0 && poster.height > 0) {
-      const scale = Math.max(cellW / poster.width, cellH / poster.height);
+      const scale = Math.max(spotlightW / poster.width, posterH / poster.height);
 
       ctx.drawImage(
         poster,
-        x + cellW / 2 - (poster.width * scale) / 2,
-        y + cellH / 2 - (poster.height * scale) / 2,
+        x + spotlightW / 2 - (poster.width * scale) / 2,
+        y + posterH / 2 - (poster.height * scale) / 2,
         poster.width * scale,
         poster.height * scale
       );
     } else {
-      const fallback = ctx.createLinearGradient(0, y, 0, y + cellH);
+      const fallback = ctx.createLinearGradient(0, y, 0, y + posterH);
 
       fallback.addColorStop(0, "#27272a");
       fallback.addColorStop(1, "#18181b");
 
       ctx.fillStyle = fallback;
-      ctx.fillRect(x, y, cellW, cellH);
+      ctx.fillRect(x, y, spotlightW, posterH);
     }
+
+    // Sombreado inferior para que la etiqueta se lea encima del póster.
+    const shadeH = 104;
+    const shade = ctx.createLinearGradient(
+      0,
+      y + posterH - shadeH,
+      0,
+      y + posterH
+    );
+
+    shade.addColorStop(0, "rgba(0,0,0,0)");
+    shade.addColorStop(1, "rgba(0,0,0,0.78)");
+    ctx.fillStyle = shade;
+    ctx.fillRect(x, y + posterH - shadeH, spotlightW, shadeH);
 
     ctx.restore();
 
-    roundedRect(ctx, x + 1, y + 1, cellW - 2, cellH - 2, 16);
+    roundedRect(ctx, x + 1, y + 1, spotlightW - 2, posterH - 2, 20);
     ctx.strokeStyle = "rgba(255,255,255,0.12)";
     ctx.lineWidth = 1.5;
     ctx.stroke();
+
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#fcd34d";
+    ctx.font = `800 19px ${font}`;
+
+    const [labelLine = pick.label] = wrapLines(
+      (text) => ctx.measureText(text).width,
+      pick.label.toUpperCase(),
+      spotlightW - 20,
+      1
+    );
+
+    ctx.fillText(labelLine, x + spotlightW / 2, y + posterH - 56);
+
+    if (pick.detail) {
+      ctx.fillStyle = "#e4e4e7";
+      ctx.font = `600 18px ${font}`;
+      ctx.fillText(pick.detail, x + spotlightW / 2, y + posterH - 28);
+    }
   });
 
-  const gridBottom = gridTop + rows * cellH + (rows - 1) * gap;
+  const spotlightBottom = spotlightTop + posterH;
+
+  // ---------- Gráfico: meses del año ----------
+  let chartBottom = spotlightBottom;
+
+  const monthlyCounts = options.monthlyCounts ?? [];
+
+  if (monthlyCounts.length > 0) {
+    const chartTop = spotlightBottom + 64;
+    const chartH = 110;
+    const barGap = 10;
+    const barW = (gridW - barGap * (monthlyCounts.length - 1)) / monthlyCounts.length;
+    const max = Math.max(1, ...monthlyCounts.map((m) => m.count));
+
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#a1a1aa";
+    ctx.font = `700 22px ${font}`;
+    ctx.fillText("TU AÑO MES A MES", W / 2, chartTop - 20);
+
+    const barLabelY = chartTop + chartH + 30;
+
+    monthlyCounts.forEach((m, i) => {
+      const x = gridX + i * (barW + barGap);
+      const h = Math.max(6, (m.count / max) * chartH);
+      const y = chartTop + chartH - h;
+      const isPeak = options.peakMonthIndex === m.monthIndex;
+
+      roundedRect(ctx, x, y, barW, h, 6);
+
+      if (isPeak) {
+        const barGradient = ctx.createLinearGradient(0, y, 0, y + h);
+
+        barGradient.addColorStop(0, "#dc2626");
+        barGradient.addColorStop(1, "#f59e0b");
+        ctx.fillStyle = barGradient;
+      } else {
+        ctx.fillStyle = "rgba(255,255,255,0.18)";
+      }
+
+      ctx.fill();
+
+      ctx.fillStyle = isPeak ? "#fcd34d" : "#71717a";
+      ctx.font = `700 18px ${font}`;
+      ctx.fillText(m.label.charAt(0).toUpperCase(), x + barW / 2, barLabelY);
+    });
+
+    chartBottom = barLabelY + 14;
+  }
 
   // ---------- Lo más importante: 3 cifras ----------
-  const statsY = gridBottom + 36;
+  const statsY = chartBottom + 36;
   const statsGap = 14;
   const statsCols = 3;
   const statsW = (gridW - statsGap * (statsCols - 1)) / statsCols;
@@ -317,24 +427,40 @@ export function drawWrappedShareImage(
   let afterStatsY = stats2Y + stats2H;
 
   if (communityLine) {
-    ctx.fillStyle = "#fcd34d";
-    ctx.font = `700 28px ${font}`;
+    const cardTop = afterStatsY + 24;
+    const cardPadX = 44;
+
+    ctx.font = `800 30px ${font}`;
 
     const lines = wrapLines(
       (text) => ctx.measureText(text).width,
       `📊 ${communityLine}.`,
-      gridW - 40,
+      gridW - cardPadX * 2,
       2
     );
 
-    const lineH = 36;
-    const blockTop = afterStatsY + 44;
+    const lineH = 40;
+    const cardH = 44 + lines.length * lineH;
+
+    roundedRect(ctx, gridX, cardTop, gridW, cardH, 26);
+
+    const cardGradient = ctx.createLinearGradient(gridX, 0, gridX + gridW, 0);
+
+    cardGradient.addColorStop(0, "rgba(251,191,36,0.18)");
+    cardGradient.addColorStop(1, "rgba(251,146,60,0.14)");
+    ctx.fillStyle = cardGradient;
+    ctx.fill();
+    ctx.strokeStyle = "rgba(252,211,77,0.4)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.fillStyle = "#fde68a";
 
     lines.forEach((line, i) => {
-      ctx.fillText(line, W / 2, blockTop + i * lineH);
+      ctx.fillText(line, W / 2, cardTop + 42 + i * lineH);
     });
 
-    afterStatsY = blockTop + (lines.length - 1) * lineH + 20;
+    afterStatsY = cardTop + cardH;
   }
 
   // ---------- Pie ----------
@@ -372,7 +498,7 @@ export async function createWrappedShareImage(
   options: WrappedShareOptions
 ): Promise<Blob> {
   const [posters, logo, backdrops] = await Promise.all([
-    Promise.all(options.posterUrls.map((url) => loadImage(url))),
+    Promise.all(options.spotlightPosters.map((pick) => loadImage(pick.url))),
     loadImage("/Logo.png"),
     Promise.all(BACKDROP_FILES.map((file) => loadImage(file))),
   ]);
