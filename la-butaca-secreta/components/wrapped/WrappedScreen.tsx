@@ -195,7 +195,7 @@ function buildSlides(stats: WrappedStats): Slide[] {
       <div className="flex h-full flex-col items-start justify-center gap-5">
         <Eyebrow>Resumen {stats.year}</Eyebrow>
         <h1
-          className="marquee-font text-[64px] leading-[0.9] text-white"
+          className="marquee-font text-[72px] leading-[0.9] text-white"
           style={DISPLAY_TRACKING}
         >
           Tu año
@@ -208,7 +208,7 @@ function buildSlides(stats: WrappedStats): Slide[] {
         <div className="flex w-full gap-3">
           <div className={`${CARD} !p-3 flex-1 text-center`}>
             <p
-              className="marquee-font text-3xl text-amber-300"
+              className="marquee-font text-[34px] leading-none text-amber-300"
               style={DISPLAY_TRACKING}
             >
               {stats.totalWatched}
@@ -217,7 +217,7 @@ function buildSlides(stats: WrappedStats): Slide[] {
           </div>
           <div className={`${CARD} !p-3 flex-1 text-center`}>
             <p
-              className="marquee-font truncate text-3xl text-amber-300"
+              className="marquee-font truncate text-[34px] leading-none text-amber-300"
               style={DISPLAY_TRACKING}
             >
               {stats.topGenres[0]?.name ?? "—"}
@@ -226,7 +226,7 @@ function buildSlides(stats: WrappedStats): Slide[] {
           </div>
           <div className={`${CARD} !p-3 flex-1 text-center`}>
             <p
-              className="marquee-font text-3xl text-amber-300"
+              className="marquee-font text-[34px] leading-none text-amber-300"
               style={DISPLAY_TRACKING}
             >
               {stats.longestStreak || "—"}
@@ -250,7 +250,7 @@ function buildSlides(stats: WrappedStats): Slide[] {
         <Eyebrow>Tu año en cifras</Eyebrow>
         <div>
           <span
-            className="marquee-font text-[90px] leading-[0.82] text-white"
+            className="marquee-font text-[118px] leading-[0.82] text-white"
             style={DISPLAY_TRACKING}
           >
             {stats.totalWatched}
@@ -383,7 +383,7 @@ function buildSlides(stats: WrappedStats): Slide[] {
           {first && (
             <>
               <h2
-                className="marquee-font text-[42px] leading-[0.92] text-white"
+                className="marquee-font text-[56px] leading-[0.92] text-white"
                 style={DISPLAY_TRACKING}
               >
                 {first.name}, sin duda.
@@ -418,7 +418,7 @@ function buildSlides(stats: WrappedStats): Slide[] {
               <p className="text-xs font-bold uppercase tracking-wide text-zinc-400">
                 🍿 Tu pico del año
               </p>
-              <p className="marquee-font mt-0.5 text-2xl text-white">
+              <p className="marquee-font mt-0.5 text-3xl text-white">
                 {new Date(stats.peakDay.date).toLocaleDateString("es-ES", {
                   day: "numeric",
                   month: "long",
@@ -436,7 +436,7 @@ function buildSlides(stats: WrappedStats): Slide[] {
               <p className="text-xs font-bold uppercase tracking-wide text-amber-300">
                 Así cerraste el año
               </p>
-              <p className="marquee-font mt-0.5 text-xl text-white">
+              <p className="marquee-font mt-0.5 text-2xl text-white">
                 {stats.lastOfYear.title}
               </p>
               <p className="mt-0.5 text-xs text-zinc-400">
@@ -478,7 +478,7 @@ function buildSlides(stats: WrappedStats): Slide[] {
           {stats.achievementsThisYear.length > 0 && (
             <div className="flex flex-col gap-2">
               <p className="text-sm text-zinc-300">
-                <span className="marquee-font text-xl text-white">
+                <span className="marquee-font text-2xl text-white">
                   {stats.achievementsThisYear.length}
                 </span>{" "}
                 insignias nuevas este año:
@@ -944,7 +944,7 @@ function CastHighlightsSlide({ titles }: { titles: TitleRef[] }) {
               Tu actor/actriz más repetido
             </p>
             <p
-              className="marquee-font truncate text-4xl text-white"
+              className="marquee-font truncate text-2xl text-white"
               style={DISPLAY_TRACKING}
             >
               {highlights.actor.name}
@@ -979,7 +979,7 @@ function CastHighlightsSlide({ titles }: { titles: TitleRef[] }) {
               Tu director/a conocido
             </p>
             <p
-              className="marquee-font truncate text-4xl text-white"
+              className="marquee-font truncate text-2xl text-white"
               style={DISPLAY_TRACKING}
             >
               {highlights.director.name}
@@ -1083,7 +1083,7 @@ function TrendySlide({
               <FireIcon size={12} /> Lo más trendy que viste
             </p>
             <p
-              className="marquee-font truncate text-xl text-white"
+              className="marquee-font truncate text-2xl text-white"
               style={DISPLAY_TRACKING}
             >
               {trendy.title}
@@ -1107,7 +1107,7 @@ function TrendySlide({
               <GemIcon size={12} /> Tu joya oculta
             </p>
             <p
-              className="marquee-font truncate text-xl text-white"
+              className="marquee-font truncate text-2xl text-white"
               style={DISPLAY_TRACKING}
             >
               {hiddenGem.title}
@@ -1150,7 +1150,7 @@ function FriendsGroupSlide({
       <div className="flex h-full flex-col justify-center gap-4">
         <Eyebrow>Tu grupo de cine</Eyebrow>
         <h2
-          className="marquee-font text-4xl leading-[0.95] text-white"
+          className="marquee-font text-[42px] leading-[0.95] text-white"
           style={DISPLAY_TRACKING}
         >
           Todavía vas solo.
@@ -1179,7 +1179,7 @@ function FriendsGroupSlide({
     <div className="flex h-full flex-col justify-center gap-4">
       <Eyebrow>Tu grupo de cine</Eyebrow>
       <h2
-        className="marquee-font text-4xl leading-[0.95] text-white"
+        className="marquee-font text-[42px] leading-[0.95] text-white"
         style={DISPLAY_TRACKING}
       >
         {friendCount} {friendCount === 1 ? "amigo" : "amigos"}.
@@ -1190,7 +1190,7 @@ function FriendsGroupSlide({
         className={`${CARD} flex items-center gap-4 border-amber-400/25 bg-amber-400/22`}
       >
         <p
-          className="marquee-font text-4xl text-amber-300"
+          className="marquee-font text-[40px] text-amber-300"
           style={DISPLAY_TRACKING}
         >
           {summary.groupAveragePercent}%
