@@ -1340,23 +1340,32 @@ export default function WrappedScreen({ year, onClose }: Props) {
             posterUrls={wrapPosterUrls}
           />
 
-          {loading && (
-            <p className="flex h-full items-center justify-center text-sm text-zinc-400">
-              Preparando tu año…
-            </p>
-          )}
+          {/* relative + z-10: el fondo de pósters (GiftWrapLayer, arriba)
+              lleva position:absolute, así que sin esto el contenido —al
+              ser estático, no "positioned"— se pinta por DEBAJO de él
+              pese a ir después en el DOM (así es como ordena el stacking
+              CSS los elementos posicionados frente a los que no lo son).
+              Esto es lo que hacía que el texto se viera "descolorido":
+              el fondo tapaba parcialmente las letras. */}
+          <div className="relative z-10 h-full">
+            {loading && (
+              <p className="flex h-full items-center justify-center text-sm text-zinc-400">
+                Preparando tu año…
+              </p>
+            )}
 
-          {!loading && stats && index < slides.length && slides[index].node}
+            {!loading && stats && index < slides.length && slides[index].node}
 
-          {!loading && stats && index === slides.length && (
-            <FinalShareCard stats={stats} watched={watched} />
-          )}
+            {!loading && stats && index === slides.length && (
+              <FinalShareCard stats={stats} watched={watched} />
+            )}
 
-          {!loading && !stats && (
-            <p className="flex h-full items-center justify-center text-sm text-zinc-400">
-              Todavía no hay nada que resumir de {year}.
-            </p>
-          )}
+            {!loading && !stats && (
+              <p className="flex h-full items-center justify-center text-sm text-zinc-400">
+                Todavía no hay nada que resumir de {year}.
+              </p>
+            )}
+          </div>
 
           {!loading && stats && (
             <>
