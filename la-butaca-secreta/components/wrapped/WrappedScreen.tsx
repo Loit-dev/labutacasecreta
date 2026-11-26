@@ -899,9 +899,25 @@ function sharePercent(count: number, total: number): number | null {
   return Math.round((count / total) * 100);
 }
 
-/** "Repetiste con ellos": agrega el reparto de los títulos del año bajo demanda (hooks/useWrappedCastHighlights.ts). */
-function CastHighlightsSlide({ titles }: { titles: TitleRef[] }) {
+/**
+ * "Repetiste con ellos" + "Trendy y joya oculta" en una sola pantalla:
+ * el reparto de los títulos del año (hooks/useWrappedCastHighlights.ts)
+ * y cuánta gente de la app ha visto cada título (hooks/useWrappedTrendy.ts),
+ * ambos bajo demanda, agrupados en una sola tanda de tarjetas.
+ */
+function CastHighlightsSlide({
+  titles,
+  year,
+  yearRows,
+}: {
+  titles: TitleRef[];
+  year: number;
+  yearRows: WatchedRow[];
+}) {
   const { highlights, loading, capped } = useWrappedCastHighlights(titles);
+  const { highlights: trendyHighlights, loading: trendyLoading } =
+    useWrappedTrendy(year, yearRows);
+
   const actorPercent = highlights?.actor
     ? sharePercent(highlights.actor.count, titles.length)
     : null;
@@ -909,38 +925,44 @@ function CastHighlightsSlide({ titles }: { titles: TitleRef[] }) {
     ? sharePercent(highlights.director.count, titles.length)
     : null;
 
-  if (loading) {
+  if (loading || trendyLoading) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
-        <Eyebrow>Repetiste con ellos</Eyebrow>
-        <p className="text-sm text-zinc-400">Mirando el reparto de tus títulos…</p>
+        <Eyebrow>Repetiste y descubriste</Eyebrow>
+        <p className="text-sm text-zinc-400">
+          Mirando tus títulos del año…
+        </p>
       </div>
     );
   }
 
   const hasActor = Boolean(highlights?.actor);
   const hasDirector = Boolean(highlights?.director);
+  const trendy = trendyHighlights?.trendy;
+  const hiddenGem = trendyHighlights?.hiddenGem;
+  const hasAnything = hasActor || hasDirector || trendy || hiddenGem;
 
   return (
-    <div className="flex h-full flex-col justify-center gap-4">
-      <Eyebrow>Repetiste con ellos</Eyebrow>
+    <div className="flex h-full flex-col justify-center gap-2.5">
+      <Eyebrow>Repetiste y descubriste</Eyebrow>
 
-      {!hasActor && !hasDirector && (
+      {!hasAnything && (
         <p className="max-w-[30ch] text-base text-zinc-300">
           Este año no se repitió ningún actor, actriz o director lo bastante
-          como para hablar de un patrón. Año de variedad.
+          como para hablar de un patrón, y todavía no hay suficiente gente en{" "}
+          {SITE_NAME} comparando títulos contigo. Vuelve más adelante.
         </p>
       )}
 
       {highlights?.actor && (
-        <div className={`${CARD} flex items-center gap-4 p-6`}>
+        <div className={`${CARD} flex items-center gap-3 !p-3`}>
           <PersonAvatar
             name={highlights.actor.name}
             photoPath={highlights.actor.photoPath}
             gradient="from-red-700 to-amber-800"
           />
           <div className="min-w-0">
-            <p className="text-xs font-bold uppercase tracking-wide text-zinc-400">
+            <p className="text-[11px] font-bold uppercase tracking-wide text-zinc-400">
               Tu actor/actriz más repetido
             </p>
             <p
@@ -953,14 +975,13 @@ function CastHighlightsSlide({ titles }: { titles: TitleRef[] }) {
               {highlights.actor.count} títulos distintos este año
             </p>
             {highlights.actor.titles.length > 0 && (
-              <p className="mt-1 truncate text-xs text-zinc-400">
+              <p className="mt-0.5 truncate text-xs text-zinc-400">
                 En {titlesLine(highlights.actor.titles)}
               </p>
             )}
             {actorPercent !== null && (
-              <p className="mt-1.5 text-xs text-zinc-300">
-                🍿 Apareció en el {actorPercent}% de todo lo que viste este
-                año.
+              <p className="mt-0.5 truncate text-xs text-zinc-300">
+                🍿 Apareció en el {actorPercent}% de todo lo que viste.
               </p>
             )}
           </div>
@@ -968,14 +989,14 @@ function CastHighlightsSlide({ titles }: { titles: TitleRef[] }) {
       )}
 
       {highlights?.director && (
-        <div className={`${CARD} flex items-center gap-4 p-6`}>
+        <div className={`${CARD} flex items-center gap-3 !p-3`}>
           <PersonAvatar
             name={highlights.director.name}
             photoPath={highlights.director.photoPath}
             gradient="from-blue-700 to-blue-950"
           />
           <div className="min-w-0">
-            <p className="text-xs font-bold uppercase tracking-wide text-zinc-400">
+            <p className="text-[11px] font-bold uppercase tracking-wide text-zinc-400">
               Tu director/a conocido
             </p>
             <p
@@ -988,16 +1009,62 @@ function CastHighlightsSlide({ titles }: { titles: TitleRef[] }) {
               {highlights.director.count} títulos suyos este año
             </p>
             {highlights.director.titles.length > 0 && (
-              <p className="mt-1 truncate text-xs text-zinc-400">
+              <p className="mt-0.5 truncate text-xs text-zinc-400">
                 En {titlesLine(highlights.director.titles)}
               </p>
             )}
             {directorPercent !== null && (
-              <p className="mt-1.5 text-xs text-zinc-300">
-                🎬 El {directorPercent}% de lo que viste este año lleva su
-                firma.
+              <p className="mt-0.5 truncate text-xs text-zinc-300">
+                🎬 El {directorPercent}% de lo que viste lleva su firma.
               </p>
             )}
+          </div>
+        </div>
+      )}
+
+      {trendy && (
+        <div
+          className={`${CARD} flex items-center gap-3 !p-3 border-red-500/25 bg-red-500/22`}
+        >
+          <PosterThumb url={trendy.posterUrl} />
+          <div className="min-w-0">
+            <p className="flex items-center gap-1 text-[11px] font-bold uppercase tracking-wide text-red-300">
+              <FireIcon size={12} /> Lo más trendy que viste
+            </p>
+            <p
+              className="marquee-font truncate text-2xl text-white"
+              style={DISPLAY_TRACKING}
+            >
+              {trendy.title}
+            </p>
+            <p className="truncate text-xs text-zinc-400">
+              La vieron {Math.max(0, trendy.watcherCount - 1)}{" "}
+              {trendy.watcherCount - 1 === 1 ? "persona más" : "personas más"}{" "}
+              en {SITE_NAME}.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {hiddenGem && (
+        <div
+          className={`${CARD} flex items-center gap-3 !p-3 border-amber-400/25 bg-amber-400/22`}
+        >
+          <PosterThumb url={hiddenGem.posterUrl} />
+          <div className="min-w-0">
+            <p className="flex items-center gap-1 text-[11px] font-bold uppercase tracking-wide text-amber-300">
+              <GemIcon size={12} /> Tu joya oculta
+            </p>
+            <p
+              className="marquee-font truncate text-2xl text-white"
+              style={DISPLAY_TRACKING}
+            >
+              {hiddenGem.title}
+            </p>
+            <p className="truncate text-xs text-zinc-400">
+              Le diste {"★".repeat(Math.round(hiddenGem.rating))} y casi
+              nadie más la ha visto.
+            </p>
           </div>
         </div>
       )}
@@ -1030,96 +1097,6 @@ function PosterThumb({ url }: { url?: string }) {
 
   return (
     <div className="h-20 w-14 shrink-0 rounded-lg bg-gradient-to-br from-zinc-700 to-zinc-900" />
-  );
-}
-
-/** "Trendy y joya oculta": cuánta gente de la app vio cada título del año, bajo demanda (hooks/useWrappedTrendy.ts). */
-function TrendySlide({
-  year,
-  yearRows,
-}: {
-  year: number;
-  yearRows: WatchedRow[];
-}) {
-  const { highlights, loading } = useWrappedTrendy(year, yearRows);
-
-  if (loading) {
-    return (
-      <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
-        <Eyebrow>Trendy y joya oculta</Eyebrow>
-        <p className="text-sm text-zinc-400">
-          Mirando qué ha visto el resto…
-        </p>
-      </div>
-    );
-  }
-
-  const trendy = highlights?.trendy;
-  const hiddenGem = highlights?.hiddenGem;
-
-  if (!trendy && !hiddenGem) {
-    return (
-      <div className="flex h-full flex-col justify-center gap-4">
-        <Eyebrow>Trendy y joya oculta</Eyebrow>
-        <p className="max-w-[30ch] text-base text-zinc-300">
-          Todavía no hay suficiente gente en {SITE_NAME} comparando
-          títulos contigo para calcular esto. Vuelve más adelante.
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex h-full flex-col justify-center gap-4">
-      <Eyebrow>Trendy y joya oculta</Eyebrow>
-
-      {trendy && (
-        <div
-          className={`${CARD} flex items-center gap-3.5 border-red-500/25 bg-red-500/22`}
-        >
-          <PosterThumb url={trendy.posterUrl} />
-          <div className="min-w-0">
-            <p className="flex items-center gap-1 text-[11px] font-bold uppercase tracking-wide text-red-300">
-              <FireIcon size={12} /> Lo más trendy que viste
-            </p>
-            <p
-              className="marquee-font truncate text-2xl text-white"
-              style={DISPLAY_TRACKING}
-            >
-              {trendy.title}
-            </p>
-            <p className="text-xs text-zinc-400">
-              La vieron {Math.max(0, trendy.watcherCount - 1)}{" "}
-              {trendy.watcherCount - 1 === 1 ? "persona más" : "personas más"}{" "}
-              en {SITE_NAME}.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {hiddenGem && (
-        <div
-          className={`${CARD} flex items-center gap-3.5 border-amber-400/25 bg-amber-400/22`}
-        >
-          <PosterThumb url={hiddenGem.posterUrl} />
-          <div className="min-w-0">
-            <p className="flex items-center gap-1 text-[11px] font-bold uppercase tracking-wide text-amber-300">
-              <GemIcon size={12} /> Tu joya oculta
-            </p>
-            <p
-              className="marquee-font truncate text-2xl text-white"
-              style={DISPLAY_TRACKING}
-            >
-              {hiddenGem.title}
-            </p>
-            <p className="text-xs text-zinc-400">
-              Le diste {"★".repeat(Math.round(hiddenGem.rating))} y casi
-              nadie más la ha visto.
-            </p>
-          </div>
-        </div>
-      )}
-    </div>
   );
 }
 
@@ -1274,18 +1251,23 @@ export default function WrappedScreen({ year, onClose }: Props) {
       title: row.title,
     }));
 
-    // "Repetiste con ellos" y "Trendy y joya oculta" van justo después
-    // del género (como en el mockup: Género → Actor → … → Trendy),
-    // antes de que el progreso cierre el bloque de datos del año.
+    // "Repetiste con ellos" + "Trendy y joya oculta" van, juntos en una
+    // sola pantalla, justo después del género (como en el mockup:
+    // Género → Actor → Trendy), antes de que el progreso cierre el
+    // bloque de datos del año.
     const genreIndex = slides.findIndex((s) => s.id === "genero");
     const insertAt = genreIndex === -1 ? slides.length : genreIndex + 1;
 
-    slides.splice(
-      insertAt,
-      0,
-      { id: "cara", node: <CastHighlightsSlide titles={yearTitles} /> },
-      { id: "trendy", node: <TrendySlide year={year} yearRows={yearRows} /> }
-    );
+    slides.splice(insertAt, 0, {
+      id: "cara",
+      node: (
+        <CastHighlightsSlide
+          titles={yearTitles}
+          year={year}
+          yearRows={yearRows}
+        />
+      ),
+    });
 
     if (session) {
       slides.push({
