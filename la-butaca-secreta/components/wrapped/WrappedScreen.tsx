@@ -427,13 +427,13 @@ function buildSlides(stats: WrappedStats): Slide[] {
   if (stats.topGenres.length > 0 || stats.peakDay || stats.lastOfYear) {
     const [first, ...rest] = stats.topGenres;
 
-    // "Dato curioso" del pico del año: cuántas veces por encima de tu
-    // media diaria fue ese día (con 365 como aproximación de los días
-    // del año, sin pedir nada nuevo).
-    const avgPerDay = stats.totalWatched / 365;
-    const peakDayMultiplier =
-      stats.peakDay && avgPerDay > 0
-        ? Math.round(stats.peakDay.count / avgPerDay)
+    // "Dato curioso" del pico del año: qué % de TODO lo visto ese año
+    // cayó en ese único día. (Antes comparaba con la media diaria —
+    // totalWatched/365 da un número tan pequeño que el múltiplo salía
+    // enorme y confuso, p. ej. "122x"; el % es mucho más legible.)
+    const peakDayPercent =
+      stats.peakDay && stats.totalWatched > 0
+        ? Math.round((stats.peakDay.count / stats.totalWatched) * 100)
         : null;
 
     slides.push({
@@ -490,9 +490,10 @@ function buildSlides(stats: WrappedStats): Slide[] {
                 {stats.peakDay.count} títulos en una sola sesión — maratón
                 en toda regla.
               </p>
-              {peakDayMultiplier !== null && peakDayMultiplier >= 2 && (
+              {peakDayPercent !== null && peakDayPercent >= 2 && (
                 <p className="mt-1 text-xs text-zinc-400">
-                  🔥 {peakDayMultiplier}x tu media diaria de títulos.
+                  🔥 Ese día fue el {peakDayPercent}% de todo lo que viste
+                  este año.
                 </p>
               )}
             </div>
