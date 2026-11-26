@@ -10,6 +10,7 @@ import { useWrappedCastHighlights } from "@/hooks/useWrappedCastHighlights";
 import { useWrappedFriendsGroup } from "@/hooks/useWrappedFriendsGroup";
 import { useWrappedTrendy } from "@/hooks/useWrappedTrendy";
 import { track } from "@/lib/analytics";
+import { posterSource } from "@/lib/share";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { recordShareEvent } from "@/lib/supabase/achievements";
 import { fetchMyProfile } from "@/lib/supabase/profiles";
@@ -97,7 +98,12 @@ const POSTER_SLOTS = [
 
 /** Pósters reales (de lo visto ese año), girados y a baja opacidad, con blur — igual que el PosterWall del resto de la web. Cada pantalla elige sus pósters y posiciones a partir de su id. */
 function PosterBackdrop({ posters, seed }: { posters: string[]; seed: string }) {
-  const chosen = seededPick(seed, posters, POSTER_SLOTS.length);
+  const chosen = seededPick(seed, posters, POSTER_SLOTS.length)
+    // Los pósters de TMDb solo se pueden pintar pasando por nuestro
+    // propio dominio (/api/poster): la política de seguridad del sitio
+    // (CSP) no permite cargar imágenes directamente desde fuera.
+    .map((url) => posterSource(url))
+    .filter((url): url is string => Boolean(url));
 
   return (
     <>
