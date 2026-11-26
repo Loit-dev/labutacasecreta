@@ -231,7 +231,7 @@ function RibbonCorner({ scheme }: { scheme: RibbonScheme }) {
       viewBox={`0 0 ${vb.w} ${vb.h}`}
       preserveAspectRatio="xMidYMid slice"
       className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.94]"
-      style={{ filter: "drop-shadow(0 10px 22px rgba(0,0,0,0.5))" }}
+      style={{ filter: "blur(3px) drop-shadow(0 10px 22px rgba(0,0,0,0.5))" }}
     >
       <defs>
         <linearGradient id={`rv-${uid}`} x1="0" y1="0" x2="1" y2="0">
