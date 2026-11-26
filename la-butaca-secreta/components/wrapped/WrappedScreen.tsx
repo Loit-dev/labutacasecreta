@@ -243,6 +243,18 @@ function buildSlides(stats: WrappedStats): Slide[] {
     stats.oldestPendingTitle || stats.rejectedThisYearCount > 0;
   const hasStreakInfo = stats.longestStreak > 1 || stats.peakMonth;
 
+  // Pelis vs. series como barra proporcional, no solo como texto.
+  const movieSeriesTotal = stats.movieCount + stats.seriesCount;
+  const moviePercent =
+    movieSeriesTotal > 0
+      ? Math.round((stats.movieCount / movieSeriesTotal) * 100)
+      : 0;
+  const seriesPercent = movieSeriesTotal > 0 ? 100 - moviePercent : 0;
+
+  // "Dato curioso" a partir de las horas aprox. (sin pedir nada nuevo):
+  // cuántos días seguidos de pantalla, sin dormir, representan.
+  const sleeplessDays = Math.round(stats.approxHours / 24);
+
   slides.push({
     id: "total",
     node: (
@@ -263,6 +275,43 @@ function buildSlides(stats: WrappedStats): Slide[] {
           {stats.movieCount} pelis · {stats.seriesCount} series · ~
           {stats.approxHours}h de pantalla (aprox)
         </p>
+
+        {movieSeriesTotal > 0 && (
+          <div className="flex flex-col gap-1">
+            <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-white/10">
+              <div
+                className="bg-red-500"
+                style={{ width: `${moviePercent}%` }}
+              />
+              <div
+                className="bg-sky-400"
+                style={{ width: `${seriesPercent}%` }}
+              />
+            </div>
+            <div className="flex justify-between text-[11px] text-zinc-400">
+              <span>
+                <span className="font-bold text-red-400">
+                  {stats.movieCount}
+                </span>{" "}
+                pelis ({moviePercent}%)
+              </span>
+              <span>
+                <span className="font-bold text-sky-300">
+                  {stats.seriesCount}
+                </span>{" "}
+                series ({seriesPercent}%)
+              </span>
+            </div>
+          </div>
+        )}
+
+        {sleeplessDays >= 1 && (
+          <p className="text-xs text-zinc-400">
+            🌙 Eso son casi {sleeplessDays}{" "}
+            {sleeplessDays === 1 ? "día seguido" : "días seguidos"} de
+            pantalla, sin dormir.
+          </p>
+        )}
 
         {(hasStreakInfo || stats.monthlyCounts.some((m) => m.count > 0)) && (
           <div className={`${CARD} !p-4`}>
@@ -286,6 +335,10 @@ function buildSlides(stats: WrappedStats): Slide[] {
             )}
             {stats.monthlyCounts.some((m) => m.count > 0) && (
               <>
+                <p className="mt-0.5 text-[11px] text-zinc-500">
+                  Media de {(stats.totalWatched / 12).toFixed(1)} títulos al
+                  mes.
+                </p>
                 <div className="mt-2 flex h-12 items-end gap-1">
                   {stats.monthlyCounts.map((m) => {
                     const max = Math.max(
