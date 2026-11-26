@@ -42,6 +42,16 @@ type Slide = { id: string; node: React.ReactNode };
 const CARD =
   "rounded-3xl border border-white/10 bg-black/60 p-5 backdrop-blur-md";
 
+// "Dato curioso": antes una línea de texto suelta (text-xs text-zinc-400,
+// sin fondo) que se perdía contra el resto. Ahora una píldora con borde
+// y fondo ámbar, igual en todos los datos curiosos del Resumen —
+// FACT_PILL para los que van solos en la pantalla, FACT_PILL_COMPACT
+// para los que van dentro de una tarjeta ya existente (menos sitio).
+const FACT_PILL =
+  "rounded-2xl border border-amber-400/25 bg-amber-400/10 p-3 text-sm text-amber-200";
+const FACT_PILL_COMPACT =
+  "mt-1.5 inline-block rounded-lg border border-amber-400/25 bg-amber-400/10 px-2 py-1 text-xs text-amber-200";
+
 // Fondo base del Resumen, detrás de todas las pantallas: el mismo
 // degradado oscuro difuso de toda la web (app/globals.css, body — rojo
 // arriba-izquierda, azul arriba-derecha, mantenido tal cual). Encima de
@@ -267,7 +277,7 @@ function TotalSlide({ stats }: { stats: WrappedStats }) {
       )}
 
       {sleeplessDays >= 1 && (
-        <p className="text-xs text-zinc-400">
+        <p className={FACT_PILL}>
           🌙 Eso son casi {sleeplessDays}{" "}
           {sleeplessDays === 1 ? "día seguido" : "días seguidos"} de
           pantalla, sin dormir.
@@ -275,7 +285,7 @@ function TotalSlide({ stats }: { stats: WrappedStats }) {
       )}
 
       {communityLine && (
-        <p className="text-xs text-zinc-400">📊 {communityLine}.</p>
+        <p className={FACT_PILL}>📊 {communityLine}.</p>
       )}
 
       {(hasStreakInfo || stats.monthlyCounts.some((m) => m.count > 0)) && (
@@ -518,7 +528,7 @@ function buildSlides(stats: WrappedStats): Slide[] {
                 en toda regla.
               </p>
               {peakDayPercent !== null && peakDayPercent >= 2 && (
-                <p className="mt-1 text-xs text-zinc-400">
+                <p className={FACT_PILL_COMPACT}>
                   🔥 Ese día fue el {peakDayPercent}% de todo lo que viste
                   este año.
                 </p>
@@ -575,7 +585,7 @@ function buildSlides(stats: WrappedStats): Slide[] {
                   +{stats.canonThisYear} películas este año
                 </p>
                 {canonYearsLeft !== null && (
-                  <p className="mt-1 text-xs text-zinc-400">
+                  <p className={FACT_PILL_COMPACT}>
                     📚 A este ritmo, lo terminas en{" "}
                     {canonYearsLeft === 1
                       ? "1 año más"
@@ -1104,7 +1114,7 @@ function CastHighlightsSlide({
               </p>
             )}
             {actorPercent !== null && (
-              <p className="mt-0.5 truncate text-xs text-zinc-300">
+              <p className={`${FACT_PILL_COMPACT} truncate`}>
                 🍿 Apareció en el {actorPercent}% de todo lo que viste.
               </p>
             )}
@@ -1138,7 +1148,7 @@ function CastHighlightsSlide({
               </p>
             )}
             {directorPercent !== null && (
-              <p className="mt-0.5 truncate text-xs text-zinc-300">
+              <p className={`${FACT_PILL_COMPACT} truncate`}>
                 🎬 El {directorPercent}% de lo que viste lleva su firma.
               </p>
             )}
@@ -1322,7 +1332,7 @@ function FriendsGroupSlide({
             Tus mejores coincidencias
           </p>
           {summary.top[0].percent > summary.groupAveragePercent && (
-            <p className="-mt-1 text-xs text-zinc-400">
+            <p className={FACT_PILL_COMPACT}>
               🤝 Con {summary.top[0].name},{" "}
               {summary.top[0].percent - summary.groupAveragePercent} puntos
               por encima de tu media de grupo.
