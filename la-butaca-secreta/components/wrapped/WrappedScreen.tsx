@@ -33,8 +33,11 @@ type Props = {
 
 type Slide = { id: string; node: React.ReactNode };
 
+// bg-black/45 + blur de verdad (no solo /[0.04]): con el fondo de
+// pósters detrás, una tarjeta casi transparente se perdía contra el
+// ruido del fondo. Así destaca de verdad pase lo que pase detrás.
 const CARD =
-  "rounded-3xl border border-white/10 bg-white/[0.04] p-5 backdrop-blur-sm";
+  "rounded-3xl border border-white/10 bg-black/45 p-5 backdrop-blur-md";
 
 // Fondo base del Resumen, detrás de todas las pantallas: el mismo
 // degradado oscuro difuso de toda la web (app/globals.css, body — rojo
@@ -97,14 +100,9 @@ const POSTER_SLOTS = [
   { top: "72%", left: "-28%", w: 260, h: 350, rotate: 8 },
 ] as const;
 
-/** Pósters reales (de lo visto ese año), girados y a baja opacidad, con blur — igual que el PosterWall del resto de la web. Cada pantalla elige sus pósters y posiciones a partir de su id. */
+/** Pósters reales (de lo visto ese año, ya pasados por yearPosterUrls → posterSource), girados y a baja opacidad, con blur — igual que el PosterWall del resto de la web. Cada pantalla elige sus pósters y posiciones a partir de su id. */
 function PosterBackdrop({ posters, seed }: { posters: string[]; seed: string }) {
-  const chosen = seededPick(seed, posters, POSTER_SLOTS.length)
-    // Los pósters de TMDb solo se pueden pintar pasando por nuestro
-    // propio dominio (/api/poster): la política de seguridad del sitio
-    // (CSP) no permite cargar imágenes directamente desde fuera.
-    .map((url) => posterSource(url))
-    .filter((url): url is string => Boolean(url));
+  const chosen = seededPick(seed, posters, POSTER_SLOTS.length);
 
   return (
     <>
@@ -117,7 +115,7 @@ function PosterBackdrop({ posters, seed }: { posters: string[]; seed: string }) 
             key={`${url}-${i}`}
             src={url}
             alt=""
-            className="absolute rounded-2xl object-cover"
+            className="absolute rounded-2xl object-cover opacity-55"
             style={{
               top: slot.top,
               left: slot.left,
@@ -151,7 +149,7 @@ function GiftWrapLayer({
       <div
         className="absolute inset-0"
         style={{
-          background: `radial-gradient(circle at top left, ${wrap.glowA}, transparent 55%), radial-gradient(circle at top right, ${wrap.glowB}, transparent 55%), rgba(5,5,5,0.38)`,
+          background: `radial-gradient(circle at top left, ${wrap.glowA}, transparent 55%), radial-gradient(circle at top right, ${wrap.glowB}, transparent 55%), rgba(5,5,5,0.55)`,
         }}
       />
     </div>
@@ -338,7 +336,7 @@ function buildSlides(stats: WrappedStats): Slide[] {
         {hasPendingOrRejected && (
           <div className="flex flex-col gap-1.5">
             {stats.oldestPendingTitle && (
-              <div className={`${CARD} !p-3 flex items-center gap-3 border-amber-400/25 bg-amber-400/5`}>
+              <div className={`${CARD} !p-3 flex items-center gap-3 border-amber-400/25 bg-amber-400/15`}>
                 <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-400/15 text-amber-300">
                   <PinIcon size={14} />
                 </span>
@@ -397,7 +395,7 @@ function buildSlides(stats: WrappedStats): Slide[] {
                     className={`flex items-center gap-3 rounded-xl border px-3 py-1.5 ${
                       i === 0
                         ? "border-amber-400/40 bg-amber-400/10"
-                        : "border-white/10 bg-white/[0.03]"
+                        : "border-white/10 bg-white/[0.07]"
                     }`}
                   >
                     <span className="marquee-font w-5 text-base text-zinc-400">
@@ -432,7 +430,7 @@ function buildSlides(stats: WrappedStats): Slide[] {
           )}
 
           {stats.lastOfYear && (
-            <div className={`${CARD} !p-3 border-amber-400/20 bg-amber-400/5`}>
+            <div className={`${CARD} !p-3 border-amber-400/20 bg-amber-400/15`}>
               <p className="text-xs font-bold uppercase tracking-wide text-amber-300">
                 Así cerraste el año
               </p>
@@ -515,12 +513,20 @@ function buildSlides(stats: WrappedStats): Slide[] {
 
 type ShareSession = { user: { id: string } } | null;
 
-/** Pósters del año (los que tienen portada), para la imagen de compartir. */
+/**
+ * Pósters del año (los que tienen portada): para la imagen de
+ * compartir y para el fondo de pósters de cada pantalla. Pasan por
+ * nuestro propio dominio (posterSource/ "/api/poster") porque un
+ * póster de TMDb directo ni se puede pintar (la política de seguridad
+ * del sitio) ni se puede usar luego en un <canvas> (CORS) para
+ * generar la imagen de compartir.
+ */
 function yearPosterUrls(watched: WatchedRow[], year: number, limit = 12): string[] {
   return watched
     .filter((row) => new Date(row.seenAt).getFullYear() === year && row.posterUrl)
     .slice(0, limit)
-    .map((row) => row.posterUrl as string);
+    .map((row) => posterSource(row.posterUrl))
+    .filter((url): url is string => Boolean(url));
 }
 
 /**
@@ -979,11 +985,16 @@ function CastHighlightsSlide({ titles }: { titles: TitleRef[] }) {
 }
 
 function PosterThumb({ url }: { url?: string }) {
-  if (url) {
+  // Mismo motivo que los demás pósters: solo se puede pintar pasando
+  // por nuestro propio dominio (/api/poster), por la política de
+  // seguridad del sitio.
+  const src = posterSource(url);
+
+  if (src) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
-        src={url}
+        src={src}
         alt=""
         className="h-20 w-14 shrink-0 rounded-lg object-cover"
       />
@@ -1037,7 +1048,7 @@ function TrendySlide({
 
       {trendy && (
         <div
-          className={`${CARD} flex items-center gap-3.5 border-red-500/25 bg-red-500/5`}
+          className={`${CARD} flex items-center gap-3.5 border-red-500/25 bg-red-500/15`}
         >
           <PosterThumb url={trendy.posterUrl} />
           <div className="min-w-0">
@@ -1061,7 +1072,7 @@ function TrendySlide({
 
       {hiddenGem && (
         <div
-          className={`${CARD} flex items-center gap-3.5 border-amber-400/25 bg-amber-400/5`}
+          className={`${CARD} flex items-center gap-3.5 border-amber-400/25 bg-amber-400/15`}
         >
           <PosterThumb url={hiddenGem.posterUrl} />
           <div className="min-w-0">
@@ -1149,7 +1160,7 @@ function FriendsGroupSlide({
         ¿Mismo gusto?
       </h2>
       <div
-        className={`${CARD} flex items-center gap-4 border-amber-400/25 bg-amber-400/5`}
+        className={`${CARD} flex items-center gap-4 border-amber-400/25 bg-amber-400/15`}
       >
         <p
           className="marquee-font text-4xl text-amber-300"
@@ -1174,7 +1185,7 @@ function FriendsGroupSlide({
               className={`flex items-center gap-3 rounded-xl border px-3 py-2 ${
                 i === 0
                   ? "border-amber-400/40 bg-amber-400/10"
-                  : "border-white/10 bg-white/[0.03]"
+                  : "border-white/10 bg-white/[0.07]"
               }`}
             >
               <span className="marquee-font w-5 text-base text-zinc-400">
