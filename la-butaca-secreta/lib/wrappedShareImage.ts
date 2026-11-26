@@ -185,51 +185,72 @@ export function drawWrappedShareImage(
     ctx.fillText(options.siteName.toUpperCase(), W / 2, 190);
   }
 
-  // ---------- Titular ----------
-  const headline = options.displayName
-    ? `El año de\n${options.displayName} en cine.`
-    : `Mi ${options.year}\nen cine.`;
+  // ---------- Titular: una sola línea, en mayúsculas, con el año en
+  // un tamaño mayor que el resto (no un logotype de 2 líneas). ----------
+  const yearText = String(options.year);
 
-  const headlineLines = headline.split("\n");
+  const headlineSegments: { text: string; big?: boolean }[] =
+    options.displayName
+      ? [
+          { text: "EL " },
+          { text: yearText, big: true },
+          { text: ` DE ${options.displayName.toUpperCase()}` },
+        ]
+      : [{ text: "MI " }, { text: yearText, big: true }, { text: " EN CINE." }];
 
-  let titleSize = 84;
+  const BIG_SCALE = 1.32;
 
-  ctx.font = `800 ${titleSize}px ${font}`;
+  const measureHeadline = (size: number) =>
+    headlineSegments.reduce((total, seg) => {
+      const segSize = seg.big ? size * BIG_SCALE : size;
 
-  const widestLine = () =>
-    Math.max(...headlineLines.map((line) => ctx.measureText(line).width));
+      ctx.font = `${seg.big ? 900 : 800} ${segSize}px ${font}`;
 
-  while (titleSize > 48 && widestLine() > W - 140) {
-    titleSize -= 4;
-    ctx.font = `800 ${titleSize}px ${font}`;
+      return total + ctx.measureText(seg.text).width;
+    }, 0);
+
+  let titleSize = 68;
+
+  while (titleSize > 32 && measureHeadline(titleSize) > W - 110) {
+    titleSize -= 2;
   }
 
-  const titleLineH = titleSize * 1.05;
-  const titleTop = 320;
+  const bigSize = titleSize * BIG_SCALE;
+  const titleTop = 330;
+  const titleBaselineY = titleTop + bigSize * 0.8;
+  const totalHeadlineWidth = measureHeadline(titleSize);
 
-  headlineLines.forEach((line, i) => {
-    const lineW = ctx.measureText(line).width;
+  const gradient = ctx.createLinearGradient(
+    W / 2 - totalHeadlineWidth / 2,
+    0,
+    W / 2 + totalHeadlineWidth / 2,
+    0
+  );
 
-    const gradient = ctx.createLinearGradient(
-      W / 2 - lineW / 2,
-      0,
-      W / 2 + lineW / 2,
-      0
-    );
+  gradient.addColorStop(0, "#ffffff");
+  gradient.addColorStop(0.55, "#ffffff");
+  gradient.addColorStop(1, "#fb923c");
 
-    gradient.addColorStop(0, "#ffffff");
-    gradient.addColorStop(0.55, "#ffffff");
-    gradient.addColorStop(1, "#fb923c");
+  ctx.save();
+  ctx.shadowColor = "rgba(0,0,0,0.6)";
+  ctx.shadowBlur = 24;
+  ctx.textAlign = "left";
+  ctx.fillStyle = gradient;
 
-    ctx.save();
-    ctx.shadowColor = "rgba(0,0,0,0.6)";
-    ctx.shadowBlur = 24;
-    ctx.fillStyle = gradient;
-    ctx.fillText(line, W / 2, titleTop + i * titleLineH);
-    ctx.restore();
+  let headlineCursorX = W / 2 - totalHeadlineWidth / 2;
+
+  headlineSegments.forEach((seg) => {
+    const segSize = seg.big ? bigSize : titleSize;
+
+    ctx.font = `${seg.big ? 900 : 800} ${segSize}px ${font}`;
+    ctx.fillText(seg.text, headlineCursorX, titleBaselineY);
+    headlineCursorX += ctx.measureText(seg.text).width;
   });
 
-  const titleBottom = titleTop + (headlineLines.length - 1) * titleLineH;
+  ctx.restore();
+  ctx.textAlign = "center";
+
+  const titleBottom = titleBaselineY;
 
   ctx.fillStyle = "#e4e4e7";
   ctx.font = `500 32px ${font}`;
@@ -242,7 +263,7 @@ export function drawWrappedShareImage(
   // ---------- Pósters destacados (3, no el muro completo) ----------
   const gridX = 70;
   const gridW = W - 140;
-  const spotlightTop = titleBottom + 72;
+  const spotlightTop = titleBottom + 86;
   const spotlightGap = 20;
   const spotlightPosters = options.spotlightPosters;
   const spotlightCount = spotlightPosters.length;
@@ -345,7 +366,7 @@ export function drawWrappedShareImage(
   const topGenres = (options.topGenres ?? []).slice(0, 3);
 
   if (topGenres.length > 0) {
-    const chartTop = spotlightBottom + 36;
+    const chartTop = spotlightBottom + 50;
     const rowH = 50;
     const rowGap = 12;
     const maxPercent = Math.max(...topGenres.map((g) => g.percent), 1);
@@ -420,7 +441,7 @@ export function drawWrappedShareImage(
   );
 
   if (achievementHighlights.length > 0) {
-    const medalsTop = chartBottom + 28;
+    const medalsTop = chartBottom + 42;
     const medalSize = 70;
     // Igual que los pósters: el tamaño de cada medalla se calcula
     // siempre a 3 columnas y se centran las que haya, para que una
@@ -496,7 +517,7 @@ export function drawWrappedShareImage(
   }
 
   // ---------- Lo más importante: 3 cifras ----------
-  const statsY = medalsBottom + 24;
+  const statsY = medalsBottom + 34;
   const statsGap = 14;
   const statsCols = 3;
   const statsW = (gridW - statsGap * (statsCols - 1)) / statsCols;
@@ -540,7 +561,7 @@ export function drawWrappedShareImage(
   });
 
   // ---------- Segunda fila: horas de pantalla y logros ----------
-  const stats2Y = statsY + statsH + 10;
+  const stats2Y = statsY + statsH + 16;
   const stats2Cols = 2;
   const stats2W = (gridW - statsGap * (stats2Cols - 1)) / stats2Cols;
   const stats2H = 120;
@@ -600,7 +621,7 @@ export function drawWrappedShareImage(
   let afterStatsY = stats2Y + stats2H;
 
   if (communityLine) {
-    const cardTop = afterStatsY + 18;
+    const cardTop = afterStatsY + 26;
     const cardPadX = 44;
 
     ctx.font = `800 30px ${font}`;
@@ -643,7 +664,7 @@ export function drawWrappedShareImage(
 
   const pillW = ctx.measureText(url).width + 90;
   const pillX = W / 2 - pillW / 2;
-  const footY = afterStatsY + 40;
+  const footY = afterStatsY + 48;
 
   const pillGradient = ctx.createLinearGradient(pillX, 0, pillX + pillW, 0);
 
