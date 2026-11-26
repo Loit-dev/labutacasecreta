@@ -18,6 +18,7 @@ import {
   wrapLines,
   type DrawableImage,
 } from "./shareImage";
+import { yearCommunityLine } from "./wrappedExtras";
 
 export type WrappedShareOptions = {
   siteName: string;
@@ -31,6 +32,10 @@ export type WrappedShareOptions = {
   approxHours?: number;
   /** Insignias desbloqueadas de siempre (no solo este año). */
   achievementsTotalUnlocked?: number;
+  /** Datos de my_year_rank (supabase/resumen.sql) para el "dato curioso" de comparativa con la comunidad; sin los tres, se omite esa línea. */
+  communityPercentile?: number;
+  communityTotalUsers?: number;
+  communityMine?: number;
   posterUrls: string[];
   fontFamily?: string;
   logo?: DrawableImage | null;
@@ -297,6 +302,41 @@ export function drawWrappedShareImage(
     ctx.fillText(value, x + stats2W / 2, stats2Y + stats2H - 24);
   });
 
+  // ---------- Comparativa con la comunidad ----------
+  const communityLine =
+    options.communityPercentile !== undefined &&
+    options.communityTotalUsers !== undefined &&
+    options.communityMine !== undefined
+      ? yearCommunityLine(
+          options.communityPercentile,
+          options.communityTotalUsers,
+          options.communityMine
+        )
+      : undefined;
+
+  let afterStatsY = stats2Y + stats2H;
+
+  if (communityLine) {
+    ctx.fillStyle = "#fcd34d";
+    ctx.font = `700 28px ${font}`;
+
+    const lines = wrapLines(
+      (text) => ctx.measureText(text).width,
+      `📊 ${communityLine}.`,
+      gridW - 40,
+      2
+    );
+
+    const lineH = 36;
+    const blockTop = afterStatsY + 44;
+
+    lines.forEach((line, i) => {
+      ctx.fillText(line, W / 2, blockTop + i * lineH);
+    });
+
+    afterStatsY = blockTop + (lines.length - 1) * lineH + 20;
+  }
+
   // ---------- Pie ----------
   const url = options.siteUrl.replace(/^https?:\/\//, "");
 
@@ -304,7 +344,7 @@ export function drawWrappedShareImage(
 
   const pillW = ctx.measureText(url).width + 90;
   const pillX = W / 2 - pillW / 2;
-  const footY = stats2Y + stats2H + 60;
+  const footY = afterStatsY + 50;
 
   const pillGradient = ctx.createLinearGradient(pillX, 0, pillX + pillW, 0);
 

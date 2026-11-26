@@ -86,3 +86,51 @@ $$;
 -- títulos (los tmdb_id/media_type se los pasa él mismo desde el
 -- cliente) — la función no expone quién vio qué, solo un número.
 grant execute on function public.title_watch_counts(integer[], text[], integer) to authenticated;
+
+-- ─────────────────────────────────────────────────────────────────
+-- 2026-11 · Resumen Anual ("Wrapped"): comparativa con el resto de la
+-- app para TODO el año del resumen (my_month_rank, más arriba, es solo
+-- del mes en curso). Mismo patrón exacto: solo un percentil y un total
+-- de cuentas, nunca filas ni datos de nadie más. Pégalo en Supabase →
+-- SQL Editor → New query → Run.
+-- ─────────────────────────────────────────────────────────────────
+
+create or replace function public.my_year_rank(p_year integer)
+returns table (
+  mine integer,
+  percentile integer,
+  total_users integer
+)
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  with counts as (
+    select user_id, count(*) as n
+    from public.watched
+    where extract(year from seen_at) = p_year
+    group by user_id
+  ),
+  me as (
+    select coalesce(
+      (select n from counts where user_id = auth.uid()),
+      0
+    ) as n
+  )
+  select
+    me.n as mine,
+    case
+      when (select count(*) from counts) = 0 then 0
+      else (
+        100 * (select count(*) from counts where n <= me.n)
+        / (select count(*) from counts)
+      )
+    end as percentile,
+    (select count(*) from counts) as total_users
+  from me;
+$$;
+
+-- Solo la ejecuta gente logueada, y solo para su propio recuento
+-- (auth.uid() dentro de la función, nunca un id que se pueda pasar).
+grant execute on function public.my_year_rank(integer) to authenticated;

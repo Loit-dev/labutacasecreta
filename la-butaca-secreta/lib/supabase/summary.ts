@@ -128,3 +128,39 @@ export async function fetchMonthRank(): Promise<MonthRank | null> {
     return null;
   }
 }
+
+export type YearRank = {
+  mine: number;
+  percentile: number;
+  totalUsers: number;
+};
+
+/**
+ * Comparativa con el resto de la app para el Resumen Anual: cuántos
+ * títulos ha visto el usuario en el año del resumen frente al resto
+ * de cuentas (supabase/resumen.sql, my_year_rank — mismo patrón que
+ * fetchMonthRank, pero para el año entero). `null` si la función aún
+ * no existe en Supabase (despliegue sin esa migración) o si algo
+ * falla: el Resumen se muestra igual, sin ese dato.
+ */
+export async function fetchYearRank(year: number): Promise<YearRank | null> {
+  if (!supabase) return null;
+
+  try {
+    const { data, error } = await supabase
+      .rpc("my_year_rank", { p_year: year })
+      .single<{ mine: number; percentile: number; total_users: number }>();
+
+    if (error || !data) return null;
+
+    return {
+      mine: data.mine,
+      percentile: data.percentile,
+      totalUsers: data.total_users,
+    };
+  } catch (error) {
+    console.error("No se pudo calcular el ranking del año:", error);
+
+    return null;
+  }
+}

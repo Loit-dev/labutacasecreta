@@ -9,13 +9,16 @@ import { useWrapped } from "@/hooks/useWrapped";
 import { useWrappedCastHighlights } from "@/hooks/useWrappedCastHighlights";
 import { useWrappedFriendsGroup } from "@/hooks/useWrappedFriendsGroup";
 import { useWrappedTrendy } from "@/hooks/useWrappedTrendy";
+import { useWrappedYearRank } from "@/hooks/useWrappedYearRank";
 import { track } from "@/lib/analytics";
 import { posterSource } from "@/lib/share";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { recordShareEvent } from "@/lib/supabase/achievements";
 import { fetchMyProfile } from "@/lib/supabase/profiles";
+import { fetchYearRank } from "@/lib/supabase/summary";
 import type { WatchedRow } from "@/lib/supabase/summary";
 import type { WrappedStats } from "@/lib/wrapped";
+import { yearCommunityLine } from "@/lib/wrappedExtras";
 import { createWrappedShareImage } from "@/lib/wrappedShareImage";
 import {
   DiscardIcon,
@@ -186,6 +189,210 @@ function shareText(stats: WrappedStats): string {
   return lines.join("\n");
 }
 
+/**
+ * "Tu año en cifras": en su propio componente (no una función que solo
+ * arma JSX, como el resto de buildSlides) porque necesita un hook
+ * propio — la comparativa con el resto de la comunidad
+ * (useWrappedYearRank, bajo demanda igual que trendy/cara conocida).
+ */
+function TotalSlide({ stats }: { stats: WrappedStats }) {
+  const { yearRank } = useWrappedYearRank(stats.year);
+
+  const communityLine = yearRank
+    ? yearCommunityLine(yearRank.percentile, yearRank.totalUsers, yearRank.mine)
+    : undefined;
+
+  const hasPendingOrRejected =
+    stats.oldestPendingTitle || stats.rejectedThisYearCount > 0;
+  const hasStreakInfo = stats.longestStreak > 1 || stats.peakMonth;
+
+  // Pelis vs. series como barra proporcional, no solo como texto.
+  const movieSeriesTotal = stats.movieCount + stats.seriesCount;
+  const moviePercent =
+    movieSeriesTotal > 0
+      ? Math.round((stats.movieCount / movieSeriesTotal) * 100)
+      : 0;
+  const seriesPercent = movieSeriesTotal > 0 ? 100 - moviePercent : 0;
+
+  // "Dato curioso" a partir de las horas aprox. (sin pedir nada nuevo):
+  // cuántos días seguidos de pantalla, sin dormir, representan.
+  const sleeplessDays = Math.round(stats.approxHours / 24);
+
+  return (
+    <div className="flex h-full flex-col justify-center gap-3">
+      <Eyebrow>Tu año en cifras</Eyebrow>
+      <div>
+        <span
+          className="marquee-font text-[118px] leading-[0.82] text-white"
+          style={DISPLAY_TRACKING}
+        >
+          {stats.totalWatched}
+        </span>
+        <span className="ml-1 text-lg font-extrabold text-zinc-300">
+          títulos
+        </span>
+      </div>
+      <p className="text-sm text-zinc-300">
+        {stats.movieCount} pelis · {stats.seriesCount} series · ~
+        {stats.approxHours}h de pantalla (aprox)
+      </p>
+
+      {movieSeriesTotal > 0 && (
+        <div className="flex flex-col gap-1">
+          <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-white/10">
+            <div
+              className="bg-red-500"
+              style={{ width: `${moviePercent}%` }}
+            />
+            <div
+              className="bg-sky-400"
+              style={{ width: `${seriesPercent}%` }}
+            />
+          </div>
+          <div className="flex justify-between text-[11px] text-zinc-400">
+            <span>
+              <span className="font-bold text-red-400">
+                {stats.movieCount}
+              </span>{" "}
+              pelis ({moviePercent}%)
+            </span>
+            <span>
+              <span className="font-bold text-sky-300">
+                {stats.seriesCount}
+              </span>{" "}
+              series ({seriesPercent}%)
+            </span>
+          </div>
+        </div>
+      )}
+
+      {sleeplessDays >= 1 && (
+        <p className="text-xs text-zinc-400">
+          🌙 Eso son casi {sleeplessDays}{" "}
+          {sleeplessDays === 1 ? "día seguido" : "días seguidos"} de
+          pantalla, sin dormir.
+        </p>
+      )}
+
+      {communityLine && (
+        <p className="text-xs text-zinc-400">📊 {communityLine}.</p>
+      )}
+
+      {(hasStreakInfo || stats.monthlyCounts.some((m) => m.count > 0)) && (
+        <div className={`${CARD} !p-4`}>
+          {stats.longestStreak > 1 && (
+            <div className="flex items-end gap-2">
+              <span className="marquee-font text-4xl leading-none text-white">
+                {stats.longestStreak}
+              </span>
+              <span className="flex items-center gap-1 pb-0.5 text-xs font-extrabold text-zinc-300">
+                <FireIcon size={14} className="text-orange-400" />
+                días seguidos, tu racha más larga
+              </span>
+            </div>
+          )}
+          {stats.peakMonth && (
+            <p className="mt-1 text-xs text-zinc-400">
+              {stats.peakMonth.label} fue tu mes fuerte, con{" "}
+              {stats.peakMonth.count}{" "}
+              {stats.peakMonth.count === 1 ? "título" : "títulos"}.
+            </p>
+          )}
+          {stats.monthlyCounts.some((m) => m.count > 0) && (
+            <>
+              <p className="mt-0.5 text-[11px] text-zinc-500">
+                Media de {(stats.totalWatched / 12).toFixed(1)} títulos al
+                mes.
+              </p>
+              <div className="mt-2 flex h-12 items-end gap-1">
+                {stats.monthlyCounts.map((m) => {
+                  const max = Math.max(
+                    1,
+                    ...stats.monthlyCounts.map((x) => x.count)
+                  );
+                  const isPeak =
+                    stats.peakMonth?.monthIndex === m.monthIndex;
+
+                  return (
+                    <div
+                      key={m.monthIndex}
+                      className="flex h-full flex-1 flex-col items-center justify-end gap-1"
+                    >
+                      <div
+                        className={`w-full rounded-t ${
+                          isPeak
+                            ? "bg-gradient-to-t from-red-600 to-amber-400"
+                            : "bg-white/15"
+                        }`}
+                        style={{
+                          height: `${Math.max(6, (m.count / max) * 100)}%`,
+                        }}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="mt-1 flex gap-1">
+                {stats.monthlyCounts.map((m) => (
+                  <span
+                    key={m.monthIndex}
+                    className={`flex-1 text-center text-[9px] ${
+                      stats.peakMonth?.monthIndex === m.monthIndex
+                        ? "font-bold text-amber-300"
+                        : "text-zinc-500"
+                    }`}
+                  >
+                    {m.label.charAt(0).toUpperCase()}
+                  </span>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {hasPendingOrRejected && (
+        <div className="flex flex-col gap-1.5">
+          {stats.oldestPendingTitle && (
+            <div className={`${CARD} !p-3 flex items-center gap-3 border-amber-400/25 bg-amber-400/22`}>
+              {stats.oldestPendingPosterUrl ? (
+                <PosterThumb url={stats.oldestPendingPosterUrl} size="sm" />
+              ) : (
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-400/15 text-amber-300">
+                  <PinIcon size={14} />
+                </span>
+              )}
+              <div className="min-w-0">
+                <p className="truncate text-sm font-bold text-white">
+                  {stats.oldestPendingTitle}
+                </p>
+                <p className="text-xs text-zinc-400">
+                  lleva {stats.oldestPendingMonths ?? 0} meses esperando
+                  en Pendientes
+                </p>
+              </div>
+            </div>
+          )}
+
+          {stats.rejectedThisYearCount > 0 && (
+            <div className={`${CARD} !p-3 flex items-center gap-3`}>
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-zinc-300">
+                <DiscardIcon size={14} />
+              </span>
+              <p className="text-sm text-zinc-300">
+                <span className="font-extrabold text-white">
+                  {stats.rejectedThisYearCount}
+                </span>{" "}
+                descartados este año con &ldquo;No me apetece&rdquo;
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function buildSlides(stats: WrappedStats): Slide[] {
   const slides: Slide[] = [];
 
@@ -239,193 +446,9 @@ function buildSlides(stats: WrappedStats): Slide[] {
     ),
   });
 
-  const hasPendingOrRejected =
-    stats.oldestPendingTitle || stats.rejectedThisYearCount > 0;
-  const hasStreakInfo = stats.longestStreak > 1 || stats.peakMonth;
-
-  // Pelis vs. series como barra proporcional, no solo como texto.
-  const movieSeriesTotal = stats.movieCount + stats.seriesCount;
-  const moviePercent =
-    movieSeriesTotal > 0
-      ? Math.round((stats.movieCount / movieSeriesTotal) * 100)
-      : 0;
-  const seriesPercent = movieSeriesTotal > 0 ? 100 - moviePercent : 0;
-
-  // "Dato curioso" a partir de las horas aprox. (sin pedir nada nuevo):
-  // cuántos días seguidos de pantalla, sin dormir, representan.
-  const sleeplessDays = Math.round(stats.approxHours / 24);
-
   slides.push({
     id: "total",
-    node: (
-      <div className="flex h-full flex-col justify-center gap-3">
-        <Eyebrow>Tu año en cifras</Eyebrow>
-        <div>
-          <span
-            className="marquee-font text-[118px] leading-[0.82] text-white"
-            style={DISPLAY_TRACKING}
-          >
-            {stats.totalWatched}
-          </span>
-          <span className="ml-1 text-lg font-extrabold text-zinc-300">
-            títulos
-          </span>
-        </div>
-        <p className="text-sm text-zinc-300">
-          {stats.movieCount} pelis · {stats.seriesCount} series · ~
-          {stats.approxHours}h de pantalla (aprox)
-        </p>
-
-        {movieSeriesTotal > 0 && (
-          <div className="flex flex-col gap-1">
-            <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-white/10">
-              <div
-                className="bg-red-500"
-                style={{ width: `${moviePercent}%` }}
-              />
-              <div
-                className="bg-sky-400"
-                style={{ width: `${seriesPercent}%` }}
-              />
-            </div>
-            <div className="flex justify-between text-[11px] text-zinc-400">
-              <span>
-                <span className="font-bold text-red-400">
-                  {stats.movieCount}
-                </span>{" "}
-                pelis ({moviePercent}%)
-              </span>
-              <span>
-                <span className="font-bold text-sky-300">
-                  {stats.seriesCount}
-                </span>{" "}
-                series ({seriesPercent}%)
-              </span>
-            </div>
-          </div>
-        )}
-
-        {sleeplessDays >= 1 && (
-          <p className="text-xs text-zinc-400">
-            🌙 Eso son casi {sleeplessDays}{" "}
-            {sleeplessDays === 1 ? "día seguido" : "días seguidos"} de
-            pantalla, sin dormir.
-          </p>
-        )}
-
-        {(hasStreakInfo || stats.monthlyCounts.some((m) => m.count > 0)) && (
-          <div className={`${CARD} !p-4`}>
-            {stats.longestStreak > 1 && (
-              <div className="flex items-end gap-2">
-                <span className="marquee-font text-4xl leading-none text-white">
-                  {stats.longestStreak}
-                </span>
-                <span className="flex items-center gap-1 pb-0.5 text-xs font-extrabold text-zinc-300">
-                  <FireIcon size={14} className="text-orange-400" />
-                  días seguidos, tu racha más larga
-                </span>
-              </div>
-            )}
-            {stats.peakMonth && (
-              <p className="mt-1 text-xs text-zinc-400">
-                {stats.peakMonth.label} fue tu mes fuerte, con{" "}
-                {stats.peakMonth.count}{" "}
-                {stats.peakMonth.count === 1 ? "título" : "títulos"}.
-              </p>
-            )}
-            {stats.monthlyCounts.some((m) => m.count > 0) && (
-              <>
-                <p className="mt-0.5 text-[11px] text-zinc-500">
-                  Media de {(stats.totalWatched / 12).toFixed(1)} títulos al
-                  mes.
-                </p>
-                <div className="mt-2 flex h-12 items-end gap-1">
-                  {stats.monthlyCounts.map((m) => {
-                    const max = Math.max(
-                      1,
-                      ...stats.monthlyCounts.map((x) => x.count)
-                    );
-                    const isPeak =
-                      stats.peakMonth?.monthIndex === m.monthIndex;
-
-                    return (
-                      <div
-                        key={m.monthIndex}
-                        className="flex h-full flex-1 flex-col items-center justify-end gap-1"
-                      >
-                        <div
-                          className={`w-full rounded-t ${
-                            isPeak
-                              ? "bg-gradient-to-t from-red-600 to-amber-400"
-                              : "bg-white/15"
-                          }`}
-                          style={{
-                            height: `${Math.max(6, (m.count / max) * 100)}%`,
-                          }}
-                        />
-                      </div>
-                    );
-                  })}
-                </div>
-                <div className="mt-1 flex gap-1">
-                  {stats.monthlyCounts.map((m) => (
-                    <span
-                      key={m.monthIndex}
-                      className={`flex-1 text-center text-[9px] ${
-                        stats.peakMonth?.monthIndex === m.monthIndex
-                          ? "font-bold text-amber-300"
-                          : "text-zinc-500"
-                      }`}
-                    >
-                      {m.label.charAt(0).toUpperCase()}
-                    </span>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
-        )}
-
-        {hasPendingOrRejected && (
-          <div className="flex flex-col gap-1.5">
-            {stats.oldestPendingTitle && (
-              <div className={`${CARD} !p-3 flex items-center gap-3 border-amber-400/25 bg-amber-400/22`}>
-                {stats.oldestPendingPosterUrl ? (
-                  <PosterThumb url={stats.oldestPendingPosterUrl} size="sm" />
-                ) : (
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-400/15 text-amber-300">
-                    <PinIcon size={14} />
-                  </span>
-                )}
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-bold text-white">
-                    {stats.oldestPendingTitle}
-                  </p>
-                  <p className="text-xs text-zinc-400">
-                    lleva {stats.oldestPendingMonths ?? 0} meses esperando
-                    en Pendientes
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {stats.rejectedThisYearCount > 0 && (
-              <div className={`${CARD} !p-3 flex items-center gap-3`}>
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-zinc-300">
-                  <DiscardIcon size={14} />
-                </span>
-                <p className="text-sm text-zinc-300">
-                  <span className="font-extrabold text-white">
-                    {stats.rejectedThisYearCount}
-                  </span>{" "}
-                  descartados este año con &ldquo;No me apetece&rdquo;
-                </p>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    ),
+    node: <TotalSlide stats={stats} />,
   });
 
   if (stats.topGenres.length > 0 || stats.peakDay || stats.lastOfYear) {
@@ -637,6 +660,7 @@ async function shareWrappedImage(
 
   try {
     const profile = session ? await fetchMyProfile(session.user.id) : null;
+    const yearRank = await fetchYearRank(stats.year);
 
     const blob = await createWrappedShareImage({
       siteName: SITE_NAME,
@@ -648,6 +672,9 @@ async function shareWrappedImage(
       longestStreak: stats.longestStreak,
       approxHours: stats.approxHours,
       achievementsTotalUnlocked: stats.achievementsTotalUnlocked,
+      communityPercentile: yearRank?.percentile,
+      communityTotalUsers: yearRank?.totalUsers,
+      communityMine: yearRank?.mine,
       posterUrls: yearPosterUrls(watched, stats.year),
       fontFamily: siteFont(),
     });
@@ -735,6 +762,7 @@ function FinalShareCard({
     async function run() {
       const userId = session?.user.id;
       const profile = userId ? await fetchMyProfile(userId) : null;
+      const yearRank = await fetchYearRank(stats.year);
 
       const posterUrls = yearPosterUrls(watched, stats.year);
 
@@ -749,6 +777,9 @@ function FinalShareCard({
           longestStreak: stats.longestStreak,
           approxHours: stats.approxHours,
           achievementsTotalUnlocked: stats.achievementsTotalUnlocked,
+          communityPercentile: yearRank?.percentile,
+          communityTotalUsers: yearRank?.totalUsers,
+          communityMine: yearRank?.mine,
           posterUrls,
           fontFamily: siteFont(),
         });

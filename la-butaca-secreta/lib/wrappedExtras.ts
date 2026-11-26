@@ -232,3 +232,27 @@ export function summarizeGroupCompatibility(
 
   return { groupAveragePercent, readyCount: ready.length, top };
 }
+
+/**
+ * "Dato curioso" de comparativa con el resto de la app para el Resumen
+ * Anual — variante de competitiveLine (lib/summary.ts), pero para el
+ * año entero del Resumen en vez del mes en curso, y sin semilla por
+ * día (el Resumen se ve una vez al año, no a diario, así que no hace
+ * falta variar la frase). `percentile`/`totalUsers`/`mine` vienen de
+ * my_year_rank (supabase/resumen.sql, lib/supabase/summary.ts).
+ */
+export function yearCommunityLine(
+  percentile: number,
+  totalUsers: number,
+  mine: number
+): string | undefined {
+  if (mine === 0) return undefined;
+
+  if (totalUsers < 3) {
+    return "De los primeros en tener un Resumen Anual en la app";
+  }
+
+  const clamped = Math.min(99, Math.max(1, percentile));
+
+  return `Has visto más que el ${clamped}% de la comunidad este año`;
+}

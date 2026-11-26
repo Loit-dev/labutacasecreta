@@ -5,6 +5,7 @@ import {
   pickTrendyAndHiddenGem,
   summarizeGroupCompatibility,
   topCastHighlights,
+  yearCommunityLine,
   type CastCredit,
   type GroupCompatInput,
   type TitleWithCount,
@@ -238,5 +239,36 @@ describe("summarizeGroupCompatibility", () => {
 
     assert.equal(summary.groupAveragePercent, null);
     assert.deepEqual(summary.top, []);
+  });
+});
+
+describe("yearCommunityLine", () => {
+  test("sin nada visto, no hay frase", () => {
+    assert.equal(yearCommunityLine(50, 100, 0), undefined);
+  });
+
+  test("con pocas cuentas todavía, frase sin porcentaje", () => {
+    assert.equal(
+      yearCommunityLine(100, 2, 5),
+      "De los primeros en tener un Resumen Anual en la app"
+    );
+  });
+
+  test("con comunidad suficiente, incluye el percentil", () => {
+    assert.equal(
+      yearCommunityLine(82, 50, 30),
+      "Has visto más que el 82% de la comunidad este año"
+    );
+  });
+
+  test("acota el percentil entre 1 y 99", () => {
+    assert.equal(
+      yearCommunityLine(100, 50, 30),
+      "Has visto más que el 99% de la comunidad este año"
+    );
+    assert.equal(
+      yearCommunityLine(0, 50, 30),
+      "Has visto más que el 1% de la comunidad este año"
+    );
   });
 });
