@@ -67,7 +67,11 @@ export function useWrapped(year: number): WrappedResult {
       canonTotal: canonItems.length,
       achievementUnlocks,
       pendingOldest: pending
-        ? { title: pending.title, savedAt: pending.savedAt }
+        ? {
+            title: pending.title,
+            savedAt: pending.savedAt,
+            poster: pending.poster,
+          }
         : undefined,
       rejectedThisYearCount: countRejectedThisYear(year),
     });

@@ -157,12 +157,14 @@ export function clearList() {
  * (para el Resumen Anual). readList() ya va del más reciente al más
  * antiguo, así que es el último elemento.
  */
-export function oldestPending(): { title: string; savedAt: number } | undefined {
+export function oldestPending():
+  | { title: string; savedAt: number; poster?: string }
+  | undefined {
   const list = readList();
 
   if (list.length === 0) return undefined;
 
   const last = list[list.length - 1];
 
-  return { title: last.title, savedAt: last.savedAt };
+  return { title: last.title, savedAt: last.savedAt, poster: last.poster };
 }

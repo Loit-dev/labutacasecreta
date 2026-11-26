@@ -52,7 +52,7 @@ export type WrappedInput = {
   /** Todos los niveles de logro desbloqueados alguna vez (user_achievements). */
   achievementUnlocks: AchievementUnlock[];
   /** El título que lleva más tiempo en "Mi lista" ahora mismo (lib/watchlist.ts), si hay alguno. */
-  pendingOldest?: { title: string; savedAt: number };
+  pendingOldest?: { title: string; savedAt: number; poster?: string };
   /** Nº de "No me apetece" (lib/rejected.ts) descartados dentro del año del resumen. */
   rejectedThisYearCount: number;
   now?: Date;
@@ -84,6 +84,8 @@ export type WrappedStats = {
   oldestPendingTitle?: string;
   /** Meses que lleva ese título en "Mi lista" sin verse. */
   oldestPendingMonths?: number;
+  /** Póster (tal cual se guardó en "Mi lista", lib/watchlist.ts) de ese título, si lo tiene. */
+  oldestPendingPosterUrl?: string;
   rejectedThisYearCount: number;
   lastOfYear?: WatchedRow;
 };
@@ -313,6 +315,7 @@ export function buildWrapped(input: WrappedInput): WrappedStats {
     oldestPendingMonths: input.pendingOldest
       ? monthsSince(input.pendingOldest.savedAt, now)
       : undefined,
+    oldestPendingPosterUrl: input.pendingOldest?.poster,
     rejectedThisYearCount: input.rejectedThisYearCount,
     lastOfYear: lastOfYear(yearRows),
   };

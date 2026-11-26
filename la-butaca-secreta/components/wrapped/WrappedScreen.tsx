@@ -390,9 +390,13 @@ function buildSlides(stats: WrappedStats): Slide[] {
           <div className="flex flex-col gap-1.5">
             {stats.oldestPendingTitle && (
               <div className={`${CARD} !p-3 flex items-center gap-3 border-amber-400/25 bg-amber-400/22`}>
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-400/15 text-amber-300">
-                  <PinIcon size={14} />
-                </span>
+                {stats.oldestPendingPosterUrl ? (
+                  <PosterThumb url={stats.oldestPendingPosterUrl} size="sm" />
+                ) : (
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-400/15 text-amber-300">
+                    <PinIcon size={14} />
+                  </span>
+                )}
                 <div className="min-w-0">
                   <p className="truncate text-sm font-bold text-white">
                     {stats.oldestPendingTitle}
@@ -1167,11 +1171,23 @@ function CastHighlightsSlide({
   );
 }
 
-function PosterThumb({ url }: { url?: string }) {
+const POSTER_THUMB_SIZES = {
+  md: "h-20 w-14",
+  sm: "h-12 w-8",
+} as const;
+
+function PosterThumb({
+  url,
+  size = "md",
+}: {
+  url?: string;
+  size?: keyof typeof POSTER_THUMB_SIZES;
+}) {
   // Mismo motivo que los demás pósters: solo se puede pintar pasando
   // por nuestro propio dominio (/api/poster), por la política de
   // seguridad del sitio.
   const src = posterSource(url);
+  const sizeClass = POSTER_THUMB_SIZES[size];
 
   if (src) {
     return (
@@ -1179,13 +1195,15 @@ function PosterThumb({ url }: { url?: string }) {
       <img
         src={src}
         alt=""
-        className="h-20 w-14 shrink-0 rounded-lg object-cover"
+        className={`${sizeClass} shrink-0 rounded-lg object-cover`}
       />
     );
   }
 
   return (
-    <div className="h-20 w-14 shrink-0 rounded-lg bg-gradient-to-br from-zinc-700 to-zinc-900" />
+    <div
+      className={`${sizeClass} shrink-0 rounded-lg bg-gradient-to-br from-zinc-700 to-zinc-900`}
+    />
   );
 }
 
