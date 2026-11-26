@@ -765,8 +765,8 @@ async function shareWrappedImage(
       communityPercentile: yearRank?.percentile,
       communityTotalUsers: yearRank?.totalUsers,
       communityMine: yearRank?.mine,
-      monthlyCounts: stats.monthlyCounts,
-      peakMonthIndex: stats.peakMonth?.monthIndex,
+      topGenres: stats.topGenres,
+      achievementHighlights: stats.achievementsThisYear,
       spotlightPosters: shareSpotlightPosters(watched, stats.year),
       fontFamily: siteFont(),
     });
@@ -872,8 +872,8 @@ function FinalShareCard({
           communityPercentile: yearRank?.percentile,
           communityTotalUsers: yearRank?.totalUsers,
           communityMine: yearRank?.mine,
-          monthlyCounts: stats.monthlyCounts,
-          peakMonthIndex: stats.peakMonth?.monthIndex,
+          topGenres: stats.topGenres,
+          achievementHighlights: stats.achievementsThisYear,
           spotlightPosters,
           fontFamily: siteFont(),
         });

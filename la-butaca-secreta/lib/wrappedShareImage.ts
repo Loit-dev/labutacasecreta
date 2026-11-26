@@ -6,10 +6,17 @@
  * para que se reconozca de un vistazo que es de la web. En vez del
  * muro de 8 pósters, 3 "destacados" (mejor valorada, última vista,
  * primera del año) con su etiqueta encima; debajo, un gráfico de
- * barras con los meses del año; luego dos filas de cifras (títulos/
- * género/racha y horas de pantalla/logros); y el "dato curioso" de
- * comparativa con la comunidad como tarjeta (no texto suelto), con el
- * mismo tratamiento de más presencia que el resto del Resumen.
+ * barras con los géneros favoritos (no un calendario de 12 meses: con
+ * una web que lleva solo un par de meses, un gráfico mes a mes sale
+ * casi vacío y no cuenta nada; el reparto por género sí tiene sentido
+ * desde el primer día); luego hasta 3 medallas de los logros
+ * destacados del año (mismos colores de nivel que components/
+ * achievements/Medal.tsx, simplificados a un círculo — sin la gema de
+ * Diamante — para que se puedan dibujar en canvas); dos filas de
+ * cifras (títulos/género/racha y horas de pantalla/logros); y el
+ * "dato curioso" de comparativa con la comunidad como tarjeta (no
+ * texto suelto), con el mismo tratamiento de más presencia que el
+ * resto del Resumen.
  */
 
 import {
@@ -31,10 +38,16 @@ export type SpotlightPoster = {
   detail?: string;
 };
 
-export type ShareMonthCount = {
-  monthIndex: number;
-  label: string;
-  count: number;
+export type ShareGenreShare = {
+  name: string;
+  percent: number;
+};
+
+export type ShareAchievementHighlight = {
+  familyName: string;
+  tierName: string;
+  /** 1 (Bronce) a 5 (Diamante) — igual que Tier en lib/achievements/catalog.ts, sin el 0 (no empezado). */
+  level: number;
 };
 
 export type WrappedShareOptions = {
@@ -53,10 +66,10 @@ export type WrappedShareOptions = {
   communityPercentile?: number;
   communityTotalUsers?: number;
   communityMine?: number;
-  /** Los 12 meses del año (WrappedStats.monthlyCounts) para el gráfico de barras. */
-  monthlyCounts?: ShareMonthCount[];
-  /** monthIndex del mes más visto (WrappedStats.peakMonth), para resaltar su barra. */
-  peakMonthIndex?: number;
+  /** Top géneros del año (WrappedStats.topGenres), ya ordenados de más a menos, para el gráfico de barras. */
+  topGenres?: ShareGenreShare[];
+  /** Hasta 3 logros destacados del año (WrappedStats.achievementsThisYear), más reciente primero. */
+  achievementHighlights?: ShareAchievementHighlight[];
   /** Hasta 3 pósters destacados (no el muro completo), con su etiqueta. */
   spotlightPosters: SpotlightPoster[];
   fontFamily?: string;
@@ -82,6 +95,51 @@ function roundedRect(
   ctx.arcTo(x, y, x + w, y, r);
   ctx.closePath();
 }
+
+// Mismos degradados de nivel que components/achievements/Medal.tsx
+// (TIER_STYLE) — no cambiar sin actualizar ese componente también.
+// Simplificado a un círculo (sin la gema hexagonal de Diamante) por
+// ser más sencillo de dibujar en canvas.
+const TIER_MEDAL_STYLE: Record<
+  number,
+  { from: string; to: string; border: string; glyph: string; label: string }
+> = {
+  1: {
+    from: "#fb923c",
+    to: "#9a3412",
+    border: "rgba(251,146,60,0.7)",
+    glyph: "#ffffff",
+    label: "#fb923c",
+  },
+  2: {
+    from: "#f4f4f5",
+    to: "#a1a1aa",
+    border: "rgba(228,228,231,0.7)",
+    glyph: "#1c1917",
+    label: "#e4e4e7",
+  },
+  3: {
+    from: "#fde047",
+    to: "#ca8a04",
+    border: "rgba(250,204,21,0.7)",
+    glyph: "#1c1917",
+    label: "#facc15",
+  },
+  4: {
+    from: "#f0f9ff",
+    to: "#7dd3fc",
+    border: "rgba(125,211,252,0.75)",
+    glyph: "#0c4a6e",
+    label: "#7dd3fc",
+  },
+  5: {
+    from: "#f5f3ff",
+    to: "#67e8f9",
+    border: "rgba(196,181,253,0.8)",
+    glyph: "#312e81",
+    label: "#c4b5fd",
+  },
+};
 
 function glassCard(
   ctx: CanvasRenderingContext2D,
@@ -184,7 +242,7 @@ export function drawWrappedShareImage(
   // ---------- Pósters destacados (3, no el muro completo) ----------
   const gridX = 70;
   const gridW = W - 140;
-  const spotlightTop = titleBottom + 96;
+  const spotlightTop = titleBottom + 72;
   const spotlightGap = 20;
   const spotlightPosters = options.spotlightPosters;
   const spotlightCount = spotlightPosters.length;
@@ -196,7 +254,7 @@ export function drawWrappedShareImage(
   const spotlightW =
     (gridW - spotlightGap * (SPOTLIGHT_REFERENCE_COLS - 1)) /
     SPOTLIGHT_REFERENCE_COLS;
-  const posterH = spotlightCount > 0 ? spotlightW * 1.5 : 0;
+  const posterH = spotlightCount > 0 ? spotlightW * 1.4 : 0;
   const spotlightRowW =
     spotlightCount * spotlightW + (spotlightCount - 1) * spotlightGap;
   const spotlightRowX = gridX + (gridW - spotlightRowW) / 2;
@@ -275,59 +333,170 @@ export function drawWrappedShareImage(
 
   const spotlightBottom = spotlightTop + posterH;
 
-  // ---------- Gráfico: meses del año ----------
+  // ---------- Gráfico: géneros favoritos ----------
   let chartBottom = spotlightBottom;
 
-  const monthlyCounts = options.monthlyCounts ?? [];
+  // Como mucho 3 (no los 5 de la pantalla en vivo): con los pósters, el
+  // gráfico y encima las medallas, no sobra alto para más filas.
+  const topGenres = (options.topGenres ?? []).slice(0, 3);
 
-  if (monthlyCounts.length > 0) {
-    const chartTop = spotlightBottom + 64;
-    const chartH = 110;
-    const barGap = 10;
-    const barW = (gridW - barGap * (monthlyCounts.length - 1)) / monthlyCounts.length;
-    const max = Math.max(1, ...monthlyCounts.map((m) => m.count));
+  if (topGenres.length > 0) {
+    const chartTop = spotlightBottom + 36;
+    const rowH = 50;
+    const rowGap = 12;
+    const maxPercent = Math.max(...topGenres.map((g) => g.percent), 1);
 
     ctx.textAlign = "center";
     ctx.fillStyle = "#a1a1aa";
     ctx.font = `700 22px ${font}`;
-    ctx.fillText("TU AÑO MES A MES", W / 2, chartTop - 20);
+    ctx.fillText("TUS GÉNEROS FAVORITOS", W / 2, chartTop - 18);
 
-    const barLabelY = chartTop + chartH + 30;
+    topGenres.forEach((genre, i) => {
+      const y = chartTop + i * (rowH + rowGap);
 
-    monthlyCounts.forEach((m, i) => {
-      const x = gridX + i * (barW + barGap);
-      const h = Math.max(6, (m.count / max) * chartH);
-      const y = chartTop + chartH - h;
-      const isPeak = options.peakMonthIndex === m.monthIndex;
-
-      roundedRect(ctx, x, y, barW, h, 6);
-
-      if (isPeak) {
-        const barGradient = ctx.createLinearGradient(0, y, 0, y + h);
-
-        barGradient.addColorStop(0, "#dc2626");
-        barGradient.addColorStop(1, "#f59e0b");
-        ctx.fillStyle = barGradient;
-      } else {
-        ctx.fillStyle = "rgba(255,255,255,0.18)";
-      }
-
+      roundedRect(ctx, gridX, y, gridW, rowH, rowH / 2);
+      ctx.fillStyle = "rgba(255,255,255,0.08)";
       ctx.fill();
 
-      ctx.fillStyle = isPeak ? "#fcd34d" : "#71717a";
-      ctx.font = `700 18px ${font}`;
-      ctx.fillText(m.label.charAt(0).toUpperCase(), x + barW / 2, barLabelY);
+      const fillW = Math.max(rowH, (genre.percent / maxPercent) * gridW);
+
+      ctx.save();
+      roundedRect(ctx, gridX, y, gridW, rowH, rowH / 2);
+      ctx.clip();
+
+      const barGradient = ctx.createLinearGradient(gridX, 0, gridX + fillW, 0);
+
+      if (i === 0) {
+        barGradient.addColorStop(0, "#dc2626");
+        barGradient.addColorStop(1, "#f59e0b");
+      } else {
+        barGradient.addColorStop(0, "rgba(220,38,38,0.38)");
+        barGradient.addColorStop(1, "rgba(251,146,60,0.5)");
+      }
+
+      ctx.fillStyle = barGradient;
+      ctx.fillRect(gridX, y, fillW, rowH);
+      ctx.restore();
+
+      ctx.textAlign = "left";
+      ctx.fillStyle = "#ffffff";
+      ctx.font = `800 24px ${font}`;
+
+      const [genreLine = genre.name] = wrapLines(
+        (text) => ctx.measureText(text).width,
+        genre.name,
+        gridW - 150,
+        1
+      );
+
+      ctx.fillText(genreLine, gridX + 24, y + rowH / 2 + 8);
+
+      ctx.textAlign = "right";
+      ctx.fillStyle = i === 0 ? "#fde68a" : "#d4d4d8";
+      ctx.font = `800 22px ${font}`;
+      ctx.fillText(
+        `${Math.round(genre.percent)}%`,
+        gridX + gridW - 24,
+        y + rowH / 2 + 7
+      );
     });
 
-    chartBottom = barLabelY + 14;
+    ctx.textAlign = "center";
+
+    chartBottom =
+      chartTop + topGenres.length * rowH + (topGenres.length - 1) * rowGap;
+  }
+
+  // ---------- Medallas de logros destacados ----------
+  let medalsBottom = chartBottom;
+
+  const achievementHighlights = (options.achievementHighlights ?? []).slice(
+    0,
+    3
+  );
+
+  if (achievementHighlights.length > 0) {
+    const medalsTop = chartBottom + 28;
+    const medalSize = 70;
+    // Igual que los pósters: el tamaño de cada medalla se calcula
+    // siempre a 3 columnas y se centran las que haya, para que una
+    // cuenta con solo 1-2 logros este año no salga desproporcionada.
+    const MEDAL_REFERENCE_COLS = 3;
+    const colW = gridW / MEDAL_REFERENCE_COLS;
+    const rowW = achievementHighlights.length * colW;
+    const rowX = gridX + (gridW - rowW) / 2;
+
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#a1a1aa";
+    ctx.font = `700 22px ${font}`;
+    ctx.fillText("TUS LOGROS DESTACADOS", W / 2, medalsTop - 18);
+
+    const circleY = medalsTop + medalSize / 2;
+
+    achievementHighlights.forEach((highlight, i) => {
+      const cx = rowX + i * colW + colW / 2;
+      const style = TIER_MEDAL_STYLE[highlight.level] ?? TIER_MEDAL_STYLE[1];
+
+      const medalGradient = ctx.createLinearGradient(
+        cx - medalSize / 2,
+        circleY - medalSize / 2,
+        cx + medalSize / 2,
+        circleY + medalSize / 2
+      );
+
+      medalGradient.addColorStop(0, style.from);
+      medalGradient.addColorStop(1, style.to);
+
+      ctx.save();
+      ctx.shadowColor = style.border;
+      ctx.shadowBlur = 18;
+      ctx.beginPath();
+      ctx.arc(cx, circleY, medalSize / 2, 0, Math.PI * 2);
+      ctx.fillStyle = medalGradient;
+      ctx.fill();
+      ctx.restore();
+
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = style.border;
+      ctx.stroke();
+
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = style.glyph;
+      ctx.font = `800 ${Math.round(medalSize * 0.44)}px ${font}`;
+      ctx.fillText("★", cx, circleY + 2);
+      ctx.textBaseline = "alphabetic";
+
+      ctx.fillStyle = style.label;
+      ctx.font = `800 19px ${font}`;
+      ctx.fillText(
+        highlight.tierName.toUpperCase(),
+        cx,
+        circleY + medalSize / 2 + 26
+      );
+
+      ctx.fillStyle = "#d4d4d8";
+      ctx.font = `600 17px ${font}`;
+
+      const [familyLine = highlight.familyName] = wrapLines(
+        (text) => ctx.measureText(text).width,
+        highlight.familyName,
+        colW - 12,
+        1
+      );
+
+      ctx.fillText(familyLine, cx, circleY + medalSize / 2 + 46);
+    });
+
+    medalsBottom = circleY + medalSize / 2 + 46 + 12;
   }
 
   // ---------- Lo más importante: 3 cifras ----------
-  const statsY = chartBottom + 36;
+  const statsY = medalsBottom + 24;
   const statsGap = 14;
   const statsCols = 3;
   const statsW = (gridW - statsGap * (statsCols - 1)) / statsCols;
-  const statsH = 150;
+  const statsH = 140;
 
   const stats: [string, string, string][] = [
     ["TÍTULOS", String(options.totalWatched), "#ffffff"],
@@ -367,10 +536,10 @@ export function drawWrappedShareImage(
   });
 
   // ---------- Segunda fila: horas de pantalla y logros ----------
-  const stats2Y = statsY + statsH + 14;
+  const stats2Y = statsY + statsH + 10;
   const stats2Cols = 2;
   const stats2W = (gridW - statsGap * (stats2Cols - 1)) / stats2Cols;
-  const stats2H = 130;
+  const stats2H = 120;
 
   const stats2: [string, string, string][] = [
     [
@@ -427,7 +596,7 @@ export function drawWrappedShareImage(
   let afterStatsY = stats2Y + stats2H;
 
   if (communityLine) {
-    const cardTop = afterStatsY + 24;
+    const cardTop = afterStatsY + 18;
     const cardPadX = 44;
 
     ctx.font = `800 30px ${font}`;
@@ -470,7 +639,7 @@ export function drawWrappedShareImage(
 
   const pillW = ctx.measureText(url).width + 90;
   const pillX = W / 2 - pillW / 2;
-  const footY = afterStatsY + 50;
+  const footY = afterStatsY + 40;
 
   const pillGradient = ctx.createLinearGradient(pillX, 0, pillX + pillW, 0);
 
