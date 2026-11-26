@@ -216,7 +216,7 @@ export function drawWrappedShareImage(
   }
 
   const bigSize = titleSize * BIG_SCALE;
-  const titleTop = 330;
+  const titleTop = 258;
   const titleBaselineY = titleTop + bigSize * 0.8;
   const totalHeadlineWidth = measureHeadline(titleSize);
 
@@ -263,7 +263,7 @@ export function drawWrappedShareImage(
   // ---------- Pósters destacados (3, no el muro completo) ----------
   const gridX = 70;
   const gridW = W - 140;
-  const spotlightTop = titleBottom + 86;
+  const spotlightTop = titleBottom + 110;
   const spotlightGap = 20;
   const spotlightPosters = options.spotlightPosters;
   const spotlightCount = spotlightPosters.length;
@@ -366,7 +366,7 @@ export function drawWrappedShareImage(
   const topGenres = (options.topGenres ?? []).slice(0, 3);
 
   if (topGenres.length > 0) {
-    const chartTop = spotlightBottom + 50;
+    const chartTop = spotlightBottom + 70;
     const rowH = 50;
     const rowGap = 12;
     const maxPercent = Math.max(...topGenres.map((g) => g.percent), 1);
@@ -441,7 +441,7 @@ export function drawWrappedShareImage(
   );
 
   if (achievementHighlights.length > 0) {
-    const medalsTop = chartBottom + 42;
+    const medalsTop = chartBottom + 60;
     const medalSize = 70;
     // Igual que los pósters: el tamaño de cada medalla se calcula
     // siempre a 3 columnas y se centran las que haya, para que una
@@ -517,7 +517,7 @@ export function drawWrappedShareImage(
   }
 
   // ---------- Lo más importante: 3 cifras ----------
-  const statsY = medalsBottom + 34;
+  const statsY = medalsBottom + 50;
   const statsGap = 14;
   const statsCols = 3;
   const statsW = (gridW - statsGap * (statsCols - 1)) / statsCols;
@@ -561,7 +561,7 @@ export function drawWrappedShareImage(
   });
 
   // ---------- Segunda fila: horas de pantalla y logros ----------
-  const stats2Y = statsY + statsH + 16;
+  const stats2Y = statsY + statsH + 24;
   const stats2Cols = 2;
   const stats2W = (gridW - statsGap * (stats2Cols - 1)) / stats2Cols;
   const stats2H = 120;
@@ -621,7 +621,7 @@ export function drawWrappedShareImage(
   let afterStatsY = stats2Y + stats2H;
 
   if (communityLine) {
-    const cardTop = afterStatsY + 26;
+    const cardTop = afterStatsY + 36;
     const cardPadX = 44;
 
     ctx.font = `800 30px ${font}`;
@@ -664,7 +664,7 @@ export function drawWrappedShareImage(
 
   const pillW = ctx.measureText(url).width + 90;
   const pillX = W / 2 - pillW / 2;
-  const footY = afterStatsY + 48;
+  const footY = afterStatsY + 60;
 
   const pillGradient = ctx.createLinearGradient(pillX, 0, pillX + pillW, 0);
 
