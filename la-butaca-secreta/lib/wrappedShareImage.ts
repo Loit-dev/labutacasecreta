@@ -290,8 +290,11 @@ export function drawWrappedShareImage(
       ctx.fillRect(x, y, spotlightW, posterH);
     }
 
-    // Sombreado inferior para que la etiqueta se lea encima del póster.
-    const shadeH = 104;
+    // Sombreado inferior casi opaco (no solo un degradado suave) para
+    // que la etiqueta se lea bien encima de CUALQUIER póster, por
+    // claro o recargado que sea — antes se perdía contra pósters
+    // luminosos.
+    const shadeH = 132;
     const shade = ctx.createLinearGradient(
       0,
       y + posterH - shadeH,
@@ -300,7 +303,8 @@ export function drawWrappedShareImage(
     );
 
     shade.addColorStop(0, "rgba(0,0,0,0)");
-    shade.addColorStop(1, "rgba(0,0,0,0.78)");
+    shade.addColorStop(0.3, "rgba(0,0,0,0.6)");
+    shade.addColorStop(1, "rgba(0,0,0,0.94)");
     ctx.fillStyle = shade;
     ctx.fillRect(x, y + posterH - shadeH, spotlightW, shadeH);
 
@@ -312,8 +316,8 @@ export function drawWrappedShareImage(
     ctx.stroke();
 
     ctx.textAlign = "center";
-    ctx.fillStyle = "#fcd34d";
-    ctx.font = `800 19px ${font}`;
+    ctx.fillStyle = "#fde047";
+    ctx.font = `800 24px ${font}`;
 
     const [labelLine = pick.label] = wrapLines(
       (text) => ctx.measureText(text).width,
@@ -322,11 +326,11 @@ export function drawWrappedShareImage(
       1
     );
 
-    ctx.fillText(labelLine, x + spotlightW / 2, y + posterH - 56);
+    ctx.fillText(labelLine, x + spotlightW / 2, y + posterH - 62);
 
     if (pick.detail) {
-      ctx.fillStyle = "#e4e4e7";
-      ctx.font = `600 18px ${font}`;
+      ctx.fillStyle = "#ffffff";
+      ctx.font = `700 21px ${font}`;
       ctx.fillText(pick.detail, x + spotlightW / 2, y + posterH - 28);
     }
   });
