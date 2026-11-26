@@ -3,9 +3,10 @@
  * canvas: mismo formato 9:16 (1080×1920) y mismo fondo cinematográfico
  * que el resto de imágenes para compartir de la web (lib/shareImage.ts,
  * de donde se reutiliza el fondo/viñeteado y la carga de imágenes),
- * para que se reconozca de un vistazo que es de la web — resumida a
- * lo más importante (título, género y racha), no todas las cifras del
- * Resumen.
+ * para que se reconozca de un vistazo que es de la web. Dos filas de
+ * cifras: títulos/género/racha (lo primero que se ve) y, debajo, horas
+ * de pantalla y logros — más contexto sin meter todas las cifras del
+ * Resumen. El muro de pósters baja de 3 a 2 filas para hacerle sitio.
  */
 
 import {
@@ -26,6 +27,10 @@ export type WrappedShareOptions = {
   totalWatched: number;
   topGenreName?: string;
   longestStreak: number;
+  /** Horas aprox. de pantalla este año (estimación, ver lib/wrapped.ts). */
+  approxHours?: number;
+  /** Insignias desbloqueadas de siempre (no solo este año). */
+  achievementsTotalUnlocked?: number;
   posterUrls: string[];
   fontFamily?: string;
   logo?: DrawableImage | null;
@@ -149,11 +154,13 @@ export function drawWrappedShareImage(
   );
 
   // ---------- Muro de pósters del año ----------
+  // 2 filas (no 3): deja sitio para la segunda fila de cifras de más
+  // abajo sin que la imagen necesite crecer de alto.
   const gridTop = titleBottom + 110;
   const gridX = 70;
   const gridW = W - 140;
   const cols = 4;
-  const rows = 3;
+  const rows = 2;
   const gap = 14;
   const cellW = (gridW - gap * (cols - 1)) / cols;
   const cellH = cellW * 1.5;
@@ -244,6 +251,52 @@ export function drawWrappedShareImage(
     ctx.fillText(line, x + statsW / 2, statsY + 100);
   });
 
+  // ---------- Segunda fila: horas de pantalla y logros ----------
+  const stats2Y = statsY + statsH + 14;
+  const stats2Cols = 2;
+  const stats2W = (gridW - statsGap * (stats2Cols - 1)) / stats2Cols;
+  const stats2H = 130;
+
+  const stats2: [string, string, string][] = [
+    [
+      "HORAS DE PANTALLA (APROX)",
+      options.approxHours ? `~${options.approxHours}h` : "—",
+      "#93c5fd",
+    ],
+    [
+      "LOGROS DESBLOQUEADOS",
+      options.achievementsTotalUnlocked
+        ? String(options.achievementsTotalUnlocked)
+        : "—",
+      "#fde68a",
+    ],
+  ];
+
+  stats2.forEach(([label, value, color], i) => {
+    const x = gridX + i * (stats2W + statsGap);
+
+    glassCard(ctx, x, stats2Y, stats2W, stats2H);
+
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#a1a1aa";
+    ctx.font = `700 18px ${font}`;
+
+    const labelLines = wrapLines(
+      (text) => ctx.measureText(text).width,
+      label,
+      stats2W - 24,
+      2
+    );
+
+    labelLines.forEach((labelLine, li) => {
+      ctx.fillText(labelLine, x + stats2W / 2, stats2Y + 34 + li * 24);
+    });
+
+    ctx.fillStyle = color;
+    ctx.font = `800 40px ${font}`;
+    ctx.fillText(value, x + stats2W / 2, stats2Y + stats2H - 24);
+  });
+
   // ---------- Pie ----------
   const url = options.siteUrl.replace(/^https?:\/\//, "");
 
@@ -251,7 +304,7 @@ export function drawWrappedShareImage(
 
   const pillW = ctx.measureText(url).width + 90;
   const pillX = W / 2 - pillW / 2;
-  const footY = statsY + statsH + 60;
+  const footY = stats2Y + stats2H + 60;
 
   const pillGradient = ctx.createLinearGradient(pillX, 0, pillX + pillW, 0);
 

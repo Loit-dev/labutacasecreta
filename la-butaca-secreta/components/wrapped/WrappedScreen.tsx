@@ -557,6 +557,8 @@ async function shareWrappedImage(
       totalWatched: stats.totalWatched,
       topGenreName: stats.topGenres[0]?.name,
       longestStreak: stats.longestStreak,
+      approxHours: stats.approxHours,
+      achievementsTotalUnlocked: stats.achievementsTotalUnlocked,
       posterUrls: yearPosterUrls(watched, stats.year),
       fontFamily: siteFont(),
     });
@@ -656,6 +658,8 @@ function FinalShareCard({
           totalWatched: stats.totalWatched,
           topGenreName: stats.topGenres[0]?.name,
           longestStreak: stats.longestStreak,
+          approxHours: stats.approxHours,
+          achievementsTotalUnlocked: stats.achievementsTotalUnlocked,
           posterUrls,
           fontFamily: siteFont(),
         });
@@ -831,7 +835,7 @@ function HeaderShareButton({
       onClick={handleShare}
       disabled={status === "working"}
       aria-label="Compartir tu Resumen Anual"
-      className="absolute left-4 top-4 z-20 flex items-center gap-1.5 rounded-full bg-black/40 px-3 py-1.5 text-xs font-bold text-white/80 hover:text-white disabled:opacity-60"
+      className="absolute left-4 top-9 z-20 flex items-center gap-1.5 rounded-full bg-black/40 px-3 py-1.5 text-xs font-bold text-white/80 hover:text-white disabled:opacity-60"
     >
       <ShareIcon size={13} />
       {label}
@@ -1327,7 +1331,7 @@ export default function WrappedScreen({ year, onClose }: Props) {
             type="button"
             onClick={onClose}
             aria-label="Cerrar Resumen Anual"
-            className="absolute right-4 top-4 z-20 rounded-full bg-black/40 p-1.5 text-white/80 hover:text-white"
+            className="absolute right-4 top-9 z-20 rounded-full bg-black/40 p-1.5 text-white/80 hover:text-white"
           >
             ✕
           </button>
