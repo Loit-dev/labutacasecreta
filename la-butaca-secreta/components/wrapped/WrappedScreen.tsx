@@ -831,7 +831,7 @@ function HeaderShareButton({
   );
 }
 
-type TitleRef = { tmdbId: number; mediaType: "movie" | "tv" };
+type TitleRef = { tmdbId: number; mediaType: "movie" | "tv"; title: string };
 
 function initialsOf(name: string): string {
   const parts = name.trim().split(/\s+/);
@@ -860,18 +860,28 @@ function PersonAvatar({
       <img
         src={src}
         alt=""
-        className="h-12 w-12 shrink-0 rounded-full object-cover"
+        className="h-16 w-16 shrink-0 rounded-full object-cover"
       />
     );
   }
 
   return (
     <span
-      className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${gradient} text-sm font-bold text-white`}
+      className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${gradient} text-base font-bold text-white`}
     >
-      {initialsOf(name) || <PersonIcon size={20} />}
+      {initialsOf(name) || <PersonIcon size={24} />}
     </span>
   );
+}
+
+/** "Dune, Dune: Parte dos y 2 más" — como mucho 2 títulos nombrados, el resto resumido. */
+function titlesLine(titles: string[]): string {
+  const shown = titles.slice(0, 2);
+  const rest = titles.length - shown.length;
+
+  if (rest <= 0) return shown.join(" y ");
+
+  return `${shown.join(", ")} y ${rest} más`;
 }
 
 /** "Repetiste con ellos": agrega el reparto de los títulos del año bajo demanda (hooks/useWrappedCastHighlights.ts). */
@@ -902,7 +912,7 @@ function CastHighlightsSlide({ titles }: { titles: TitleRef[] }) {
       )}
 
       {highlights?.actor && (
-        <div className={`${CARD} flex items-center gap-3.5`}>
+        <div className={`${CARD} flex items-center gap-4 p-6`}>
           <PersonAvatar
             name={highlights.actor.name}
             photoPath={highlights.actor.photoPath}
@@ -913,7 +923,7 @@ function CastHighlightsSlide({ titles }: { titles: TitleRef[] }) {
               Tu actor/actriz más repetido
             </p>
             <p
-              className="marquee-font truncate text-2xl text-white"
+              className="marquee-font truncate text-3xl text-white"
               style={DISPLAY_TRACKING}
             >
               {highlights.actor.name}
@@ -921,12 +931,17 @@ function CastHighlightsSlide({ titles }: { titles: TitleRef[] }) {
             <p className="text-xs font-bold text-amber-300">
               {highlights.actor.count} títulos distintos este año
             </p>
+            {highlights.actor.titles.length > 0 && (
+              <p className="mt-1 truncate text-xs text-zinc-400">
+                En {titlesLine(highlights.actor.titles)}
+              </p>
+            )}
           </div>
         </div>
       )}
 
       {highlights?.director && (
-        <div className={`${CARD} flex items-center gap-3.5`}>
+        <div className={`${CARD} flex items-center gap-4 p-6`}>
           <PersonAvatar
             name={highlights.director.name}
             photoPath={highlights.director.photoPath}
@@ -937,7 +952,7 @@ function CastHighlightsSlide({ titles }: { titles: TitleRef[] }) {
               Tu director/a conocido
             </p>
             <p
-              className="marquee-font truncate text-2xl text-white"
+              className="marquee-font truncate text-3xl text-white"
               style={DISPLAY_TRACKING}
             >
               {highlights.director.name}
@@ -945,6 +960,11 @@ function CastHighlightsSlide({ titles }: { titles: TitleRef[] }) {
             <p className="text-xs font-bold text-amber-300">
               {highlights.director.count} títulos suyos este año
             </p>
+            {highlights.director.titles.length > 0 && (
+              <p className="mt-1 truncate text-xs text-zinc-400">
+                En {titlesLine(highlights.director.titles)}
+              </p>
+            )}
           </div>
         </div>
       )}
@@ -1213,6 +1233,7 @@ export default function WrappedScreen({ year, onClose }: Props) {
     const yearTitles: TitleRef[] = yearRows.map((row) => ({
       tmdbId: row.tmdbId,
       mediaType: row.mediaType,
+      title: row.title,
     }));
 
     // "Repetiste con ellos" y "Trendy y joya oculta" van justo después

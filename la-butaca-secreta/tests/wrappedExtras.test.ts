@@ -28,11 +28,13 @@ describe("topCastHighlights", () => {
       name: "Christopher Nolan",
       count: 2,
       photoPath: null,
+      titles: [],
     });
     assert.deepEqual(result.actor, {
       name: "Cillian Murphy",
       count: 3,
       photoPath: null,
+      titles: [],
     });
   });
 
@@ -63,7 +65,37 @@ describe("topCastHighlights", () => {
 
     const result = topCastHighlights(credits);
 
-    assert.deepEqual(result.actor, { name: "A", count: 3, photoPath: null });
+    assert.deepEqual(result.actor, {
+      name: "A",
+      count: 3,
+      photoPath: null,
+      titles: [],
+    });
+  });
+
+  test("recoge los títulos (sin repetir) en los que aparece el ganador", () => {
+    const credits: CastCredit[] = [
+      credit({
+        director: "Christopher Nolan",
+        cast: ["Cillian Murphy"],
+        title: "Oppenheimer",
+      }),
+      credit({
+        director: "Christopher Nolan",
+        cast: ["Cillian Murphy"],
+        title: "Dunkerque",
+      }),
+      credit({
+        director: "Christopher Nolan",
+        cast: ["Cillian Murphy"],
+        title: "Oppenheimer",
+      }),
+    ];
+
+    const result = topCastHighlights(credits);
+
+    assert.deepEqual(result.director?.titles, ["Oppenheimer", "Dunkerque"]);
+    assert.deepEqual(result.actor?.titles, ["Oppenheimer", "Dunkerque"]);
   });
 
   test("se queda con la primera foto que encuentra para el nombre ganador", () => {

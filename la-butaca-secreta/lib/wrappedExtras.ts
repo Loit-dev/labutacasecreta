@@ -14,6 +14,8 @@ export type PersonHighlight = {
   count: number;
   /** Foto (URL completa de TMDb) de alguno de los títulos donde apareció; null si no hay. */
   photoPath?: string | null;
+  /** Títulos (de los vistos este año) en los que aparece, en el orden en que se encontraron. */
+  titles: string[];
 };
 
 export type CastHighlights = {
@@ -30,6 +32,8 @@ export type CastHighlights = {
 export type CastCredit = TitleCredits & {
   directorPhoto?: string | null;
   castPhotos?: (string | null)[];
+  /** Título al que pertenece este crédito, para poder listar luego "en qué viste a X". */
+  title?: string;
 };
 
 // Con un solo título no significa nada que "se repita" un actor o
@@ -44,6 +48,19 @@ export function topCastHighlights(credits: CastCredit[]): CastHighlights {
   const castCounts = new Map<string, number>();
   const directorPhotos = new Map<string, string | null>();
   const castPhotos = new Map<string, string | null>();
+  const directorTitles = new Map<string, string[]>();
+  const castTitles = new Map<string, string[]>();
+
+  function addTitle(byName: Map<string, string[]>, name: string, title?: string) {
+    if (!title) return;
+
+    const list = byName.get(name) ?? [];
+
+    if (!list.includes(title)) {
+      list.push(title);
+      byName.set(name, list);
+    }
+  }
 
   for (const credit of credits) {
     if (credit.director) {
@@ -55,6 +72,8 @@ export function topCastHighlights(credits: CastCredit[]): CastHighlights {
       if (!directorPhotos.get(credit.director) && credit.directorPhoto) {
         directorPhotos.set(credit.director, credit.directorPhoto);
       }
+
+      addTitle(directorTitles, credit.director, credit.title);
     }
 
     credit.cast.forEach((name, i) => {
@@ -65,6 +84,8 @@ export function topCastHighlights(credits: CastCredit[]): CastHighlights {
       if (!castPhotos.get(name) && photo) {
         castPhotos.set(name, photo);
       }
+
+      addTitle(castTitles, name, credit.title);
     });
   }
 
@@ -82,6 +103,7 @@ export function topCastHighlights(credits: CastCredit[]): CastHighlights {
           name: bestActor[0],
           count: bestActor[1],
           photoPath: castPhotos.get(bestActor[0]) ?? null,
+          titles: castTitles.get(bestActor[0]) ?? [],
         }
       : undefined,
     director: bestDirector
@@ -89,6 +111,7 @@ export function topCastHighlights(credits: CastCredit[]): CastHighlights {
           name: bestDirector[0],
           count: bestDirector[1],
           photoPath: directorPhotos.get(bestDirector[0]) ?? null,
+          titles: directorTitles.get(bestDirector[0]) ?? [],
         }
       : undefined,
   };

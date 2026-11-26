@@ -5,23 +5,20 @@ import { useEffect, useRef, useState } from "react";
 import { topCastHighlights, type CastCredit } from "@/lib/wrappedExtras";
 import type { CastHighlights } from "@/lib/wrappedExtras";
 
-type TitleRef = { tmdbId: number; mediaType: "movie" | "tv" };
+type TitleRef = { tmdbId: number; mediaType: "movie" | "tv"; title: string };
 
 // /api/credits limita a 60 peticiones/min por IP (ver app/api/credits/route.ts):
 // con esto de margen, ni la cuenta más activa del año se pasa.
 export const MAX_TITLES = 50;
 const CONCURRENCY = 5;
 
-async function fetchTitleCredits(
-  tmdbId: number,
-  mediaType: "movie" | "tv"
-): Promise<CastCredit> {
+async function fetchTitleCredits(ref: TitleRef): Promise<CastCredit> {
   try {
     const response = await fetch(
-      `/api/credits?id=${tmdbId}&type=${mediaType}`
+      `/api/credits?id=${ref.tmdbId}&type=${ref.mediaType}`
     );
 
-    if (!response.ok) return { director: null, cast: [] };
+    if (!response.ok) return { director: null, cast: [], title: ref.title };
 
     const data = await response.json();
 
@@ -31,9 +28,10 @@ async function fetchTitleCredits(
         typeof data.directorPhoto === "string" ? data.directorPhoto : null,
       cast: Array.isArray(data.cast) ? data.cast : [],
       castPhotos: Array.isArray(data.castPhotos) ? data.castPhotos : [],
+      title: ref.title,
     };
   } catch {
-    return { director: null, cast: [] };
+    return { director: null, cast: [], title: ref.title };
   }
 }
 
@@ -92,7 +90,7 @@ export function useWrappedCastHighlights(titles: TitleRef[]): {
 
       const sample = titles.slice(0, MAX_TITLES);
       const credits = await mapWithConcurrency(sample, CONCURRENCY, (t) =>
-        fetchTitleCredits(t.tmdbId, t.mediaType)
+        fetchTitleCredits(t)
       );
 
       if (cancelledRef.current) return;
