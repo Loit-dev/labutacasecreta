@@ -68,7 +68,7 @@ async function wikiFetch<T>(params: Record<string, string>): Promise<T> {
     headers: {
       // La propia Wikimedia pide identificarse con un user-agent
       // descriptivo en vez del genérico por defecto.
-      "User-Agent": "LaButacaSecreta/1.0 (labutacasecreta.vercel.app)",
+      "User-Agent": "LaButacaSecreta/1.0 (labutacasecreta.es)",
     },
   });
 

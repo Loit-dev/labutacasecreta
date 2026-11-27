@@ -11,7 +11,7 @@ export const SITE_NAME = "La Butaca Secreta";
 
 export const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ??
-  "https://labutacasecreta.vercel.app";
+  "https://labutacasecreta.es";
 
 export const SITE_TAGLINE =
   "Tres películas o series para decidir qué ver";
@@ -20,7 +20,7 @@ export const SITE_DESCRIPTION =
   "Cuéntame qué te apetece y te recomiendo solo tres películas o series disponibles en Netflix, Prime Video, Disney+, Max y Filmin. Sin listas infinitas: te ayudo a decidir.";
 
 export const CONTACT_EMAIL =
-  process.env.NEXT_PUBLIC_CONTACT_EMAIL;
+  process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "contacto@labutacasecreta.es";
 
 // Fecha de la última revisión de los textos legales
 export const LEGAL_UPDATED = "26 de octubre de 2026";

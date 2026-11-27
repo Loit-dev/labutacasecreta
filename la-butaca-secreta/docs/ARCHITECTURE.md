@@ -138,7 +138,7 @@ nunca los descartados, que no tienen ese espejo.
   (entorno de CI, no la app), así que no bloquea los despliegues.
 
 Vercel despliega automáticamente cada push a `main` a producción
-(`labutacasecreta.vercel.app`).
+(`labutacasecreta.es`).
 
 ## Límites conocidos
 
