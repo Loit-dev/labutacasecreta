@@ -1,8 +1,25 @@
 import Image from "next/image";
 
+/**
+ * Fondo de la web. Dos variantes, elegidas con data-fondo en <html>
+ * (lo pone un script en app/layout.tsx antes de pintar, para que no
+ * parpadee):
+ *   - "posters" (por defecto): pósters inclinados a los lados.
+ *   - "luces": sin pósters, solo luces degradadas de sala de cine.
+ * Se prueba con ?fondo=luces (y se vuelve con ?fondo=posters); la
+ * elección se recuerda en este navegador. Estilos en globals.css.
+ */
 export default function PosterWall() {
   return (
     <>
+      <div aria-hidden="true" className="glow-lights pointer-events-none fixed inset-0 overflow-hidden">
+        <div className="glow-light glow-light--amber" />
+        <div className="glow-light glow-light--red" />
+        <div className="glow-light glow-light--crimson" />
+        <div className="glow-light glow-light--beam" />
+      </div>
+
+      <div className="poster-wall-posters">
       {/* DESKTOP */}
       <div className="hidden lg:block">
         {/* IZQUIERDA */}
@@ -100,6 +117,8 @@ export default function PosterWall() {
     }}
   />
 </div>
+
+      </div>
 
       {/* Glow cinematográfico */}
       <div className="pointer-events-none fixed inset-0 bg-black/20" />

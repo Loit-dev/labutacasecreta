@@ -93,11 +93,9 @@ export default function ListsFeed() {
   }
 
   return (
-    <div className="flex flex-col gap-8">
-      <section className="flex flex-col gap-6">
-        <h2 className="marquee-font text-2xl text-white sm:text-3xl">
-          Listas oficiales
-        </h2>
+    <div className="flex flex-col gap-10 sm:gap-12">
+      <section className="flex flex-col gap-4">
+        <SectionHeader title="Listas oficiales" />
 
         {showTop && top && (
           <ListCard
@@ -137,19 +135,18 @@ export default function ListsFeed() {
       ) : (
         <>
           {popular.length > 0 && (
-            <section className="flex flex-col gap-6">
-              <h2 className="marquee-font text-2xl text-white sm:text-3xl">
-                Popular esta semana
-              </h2>
+            <section className="flex flex-col gap-4">
+              <SectionHeader title="Popular esta semana" count={popular.length} />
               {popular.map(card)}
             </section>
           )}
 
           {recent.length > 0 && (
-            <section className="flex flex-col gap-6">
-              <h2 className="marquee-font text-2xl text-white sm:text-3xl">
-                {popular.length > 0 ? "Más listas" : "Listas de la comunidad"}
-              </h2>
+            <section className="flex flex-col gap-4">
+              <SectionHeader
+                title={popular.length > 0 ? "Más listas" : "Listas de la comunidad"}
+                count={recent.length}
+              />
               {recent.map(card)}
             </section>
           )}
@@ -181,13 +178,13 @@ function ListCard({
   onToggleLike?: () => void;
 }) {
   return (
-    <article className="border-b border-white/10 pb-6 last:border-b-0">
+    <article className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 transition-colors hover:border-white/20 hover:bg-white/[0.05] sm:p-5">
       <Link
         href={href}
         className="group block w-full text-left focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
       >
         <div className="flex items-start justify-between gap-3">
-          <h3 className="text-lg font-bold leading-snug text-zinc-100 group-hover:text-white sm:text-xl">
+          <h3 className="text-base font-semibold leading-snug text-zinc-100 group-hover:text-white sm:text-lg">
             {title}
           </h3>
           <AuthorBadge author={author} official={official} />
@@ -196,7 +193,7 @@ function ListCard({
         <PosterStrip posters={posters} />
 
         {description && (
-          <p className="mt-3 text-sm text-zinc-400">{description}</p>
+          <p className="mt-3 text-xs text-zinc-400 sm:text-sm">{description}</p>
         )}
       </Link>
 
@@ -209,5 +206,27 @@ function ListCard({
         />
       )}
     </article>
+  );
+}
+
+/**
+ * Cabecera de sección (Listas oficiales, Popular esta semana…): rótulo
+ * de marquesina en dorado con una barra a la izquierda y una línea que
+ * cierra la fila, para que no se confunda con el título de una lista.
+ */
+function SectionHeader({ title, count }: { title: string; count?: number }) {
+  return (
+    <div className="flex items-center gap-3">
+      <span aria-hidden="true" className="h-6 w-1 shrink-0 rounded-full bg-gradient-to-b from-amber-300 to-red-600" />
+      <h2 className="marquee-font shrink-0 text-xl leading-none text-amber-200 sm:text-2xl">
+        {title}
+      </h2>
+      {count !== undefined && (
+        <span className="shrink-0 rounded-full bg-white/10 px-2 py-0.5 text-xs font-semibold text-zinc-300">
+          {count}
+        </span>
+      )}
+      <span aria-hidden="true" className="h-px flex-1 bg-gradient-to-r from-white/20 to-transparent" />
+    </div>
   );
 }

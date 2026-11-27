@@ -164,3 +164,85 @@ section {
 .animate-fade-in {
   animation: fadeInCard 0.35s ease;
 }
+/* ─────────────────────────────────────────────────────────────────
+   Fondo "luces" (ver components/layout/PosterWall.tsx): sin pósters,
+   solo focos de color difuminados que se mueven muy despacio.
+   ───────────────────────────────────────────────────────────────── */
+
+.glow-lights {
+  display: none;
+}
+
+html[data-fondo="luces"] .glow-lights {
+  display: block;
+}
+
+html[data-fondo="luces"] .poster-wall-posters {
+  display: none;
+}
+
+.glow-light {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(80px);
+  will-change: transform;
+}
+
+.glow-light--amber {
+  left: -15vmax;
+  top: -12vmax;
+  width: 55vmax;
+  height: 55vmax;
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.42), transparent 65%);
+  animation: glow-drift-a 26s ease-in-out infinite alternate;
+}
+
+.glow-light--red {
+  right: -18vmax;
+  top: 18vh;
+  width: 60vmax;
+  height: 60vmax;
+  background: radial-gradient(circle, rgba(239, 68, 68, 0.45), transparent 65%);
+  animation: glow-drift-b 32s ease-in-out infinite alternate;
+}
+
+.glow-light--crimson {
+  left: 10vw;
+  bottom: -25vmax;
+  width: 65vmax;
+  height: 65vmax;
+  background: radial-gradient(circle, rgba(185, 28, 28, 0.5), transparent 65%);
+  animation: glow-drift-c 38s ease-in-out infinite alternate;
+}
+
+/* Haz de proyector desde arriba, muy tenue */
+.glow-light--beam {
+  left: 50%;
+  top: -20vh;
+  width: 70vw;
+  height: 90vh;
+  border-radius: 0;
+  filter: blur(40px);
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at top, rgba(255, 237, 213, 0.16), transparent 70%);
+  clip-path: polygon(40% 0, 60% 0, 100% 100%, 0 100%);
+  will-change: auto;
+}
+
+@keyframes glow-drift-a {
+  to { transform: translate(12vw, 10vh) scale(1.1); }
+}
+
+@keyframes glow-drift-b {
+  to { transform: translate(-10vw, 14vh) scale(0.95); }
+}
+
+@keyframes glow-drift-c {
+  to { transform: translate(14vw, -10vh) scale(1.08); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glow-light {
+    animation: none;
+  }
+}

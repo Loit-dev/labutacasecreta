@@ -28,12 +28,16 @@ export function AuthorBadge({
   author: string;
   official?: boolean;
 }) {
+  if (official) {
+    return (
+      <span className="shrink-0 rounded-full border border-amber-300/40 bg-amber-300/10 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-amber-300">
+        {author}
+      </span>
+    );
+  }
+
   return (
-    <span
-      className={`shrink-0 text-sm font-semibold ${
-        official ? "text-amber-300" : "text-zinc-400"
-      }`}
-    >
+    <span className="shrink-0 pt-0.5 text-xs font-semibold text-zinc-400 sm:text-sm">
       {author}
     </span>
   );
