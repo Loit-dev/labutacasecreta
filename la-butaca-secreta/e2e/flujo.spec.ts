@@ -52,6 +52,13 @@ test.describe("Flujo completo", () => {
       .first()
       .click();
 
+    // Ahora pregunta qué te pareció; sin valorar, se marca como vista
+    const rating = page.getByRole("dialog", { name: `Valorar ${first}` });
+
+    await expect(rating).toBeVisible();
+    await rating.getByRole("button", { name: "Marcar como vista" }).click();
+    await expect(rating).toBeHidden();
+
     await expect
       .poll(async () => visibleTitles(page))
       .not.toContain(first);

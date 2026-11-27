@@ -62,3 +62,36 @@ export async function supabaseSelect<T>(
     return null;
   }
 }
+
+/**
+ * Llama a una función de Supabase con la sesión de quien hace la
+ * petición (su token), para que auth.uid() sea esa persona. Sin caché.
+ */
+export async function supabaseRpcAsUser<T>(
+  fn: string,
+  args: Record<string, unknown>,
+  accessToken: string
+): Promise<T | null> {
+  if (!url || !anonKey) return null;
+
+  try {
+    const response = await fetch(`${url}/rest/v1/rpc/${fn}`, {
+      method: "POST",
+      headers: {
+        apikey: anonKey,
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(args),
+      cache: "no-store",
+    });
+
+    if (!response.ok) return null;
+
+    const text = await response.text();
+
+    return (text ? JSON.parse(text) : null) as T;
+  } catch {
+    return null;
+  }
+}

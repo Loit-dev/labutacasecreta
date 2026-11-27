@@ -2,15 +2,14 @@ import { expect, test } from "@playwright/test";
 
 import { completeQuiz, mockApi, visibleTitles } from "./helpers";
 
+// «Mi lista» (guardar para luego): ya no hay botón «Mi lista (n)» en la
+// portada — lo guardado se ve en Mi cuenta → Pendientes —, así que aquí
+// se comprueba que guardar/quitar funciona y se recuerda en el
+// dispositivo.
 test.describe("Mi lista", () => {
-  test("guardar, ver la lista, recordarla y quitar", async ({ page }) => {
+  test("guardar, recordarlo al volver y quitar", async ({ page }) => {
     await mockApi(page);
     await completeQuiz(page);
-
-    // Sin nada guardado, el botón no aparece
-    await expect(
-      page.getByRole("button", { name: /^Mi lista/ })
-    ).toHaveCount(0);
 
     const [title] = await visibleTitles(page);
 
@@ -19,48 +18,29 @@ test.describe("Mi lista", () => {
       .first()
       .click();
 
-    // La tarjeta lo refleja y aparece «Mi lista (1)»
+    const saved = page
+      .getByRole("button", { name: `Guardada, quitar de mi lista: ${title}` })
+      .first();
+
+    await expect(saved).toHaveAttribute("aria-pressed", "true");
+
+    // Queda guardado en el navegador
+    await expect
+      .poll(() =>
+        page.evaluate(() =>
+          (localStorage.getItem("lbs:list") ?? "").length > 2
+        )
+      )
+      .toBe(true);
+
+    // Y se puede quitar
+    await saved.click();
+
     await expect(
       page
-        .getByRole("button", {
-          name: `Guardada, quitar de mi lista: ${title}`,
-        })
+        .getByRole("button", { name: `Guardar en mi lista: ${title}` })
         .first()
-    ).toHaveAttribute("aria-pressed", "true");
-
-    const listButton = page.getByRole("button", { name: /^Mi lista/ });
-
-    await expect(listButton).toContainText("(1)");
-
-    // La lista se abre y enseña el título
-    await listButton.click();
-
-    const dialog = page.getByRole("dialog", { name: "Mi lista" });
-
-    await expect(dialog).toBeVisible();
-    await expect(dialog.getByText(title)).toBeVisible();
-
-    await page.keyboard.press("Escape");
-
-    await expect(dialog).toBeHidden();
-
-    // Sigue ahí tras recargar la página
-    await page.goto("/");
-
-    await expect(
-      page.getByRole("button", { name: /^Mi lista/ })
-    ).toContainText("(1)");
-
-    // Quitar desde la lista
-    await page.getByRole("button", { name: /^Mi lista/ }).click();
-
-    await page
-      .getByRole("button", { name: `Quitar de mi lista: ${title}` })
-      .click();
-
-    await expect(
-      page.getByText("Tu lista está vacía")
-    ).toBeVisible();
+    ).toHaveAttribute("aria-pressed", "false");
   });
 
   test("también se puede guardar desde los detalles", async ({ page }) => {
@@ -90,8 +70,11 @@ test.describe("Mi lista", () => {
 
     await page.keyboard.press("Escape");
 
+    // La tarjeta lo refleja también
     await expect(
-      page.getByRole("button", { name: /^Mi lista/ })
-    ).toContainText("(1)");
+      page
+        .getByRole("button", { name: `Guardada, quitar de mi lista: ${title}` })
+        .first()
+    ).toHaveAttribute("aria-pressed", "true");
   });
 });

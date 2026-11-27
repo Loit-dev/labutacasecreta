@@ -6,6 +6,7 @@ import Image from "next/image";
 
 import { HeartIcon } from "@/components/icons/Icons";
 import { useDialog } from "@/hooks/useDialog";
+import PushToggle from "./PushToggle";
 import {
   fetchNotifications,
   markNotificationsSeenOnServer,
@@ -105,6 +106,8 @@ export default function NotificacionesDialog({ userId, onClose }: Props) {
             <span aria-hidden="true">✕</span>
           </button>
         </div>
+
+        <PushToggle userId={userId} />
 
         {nudge && (
           <div className="rounded-2xl border border-amber-300/30 bg-amber-300/[0.06] p-3">

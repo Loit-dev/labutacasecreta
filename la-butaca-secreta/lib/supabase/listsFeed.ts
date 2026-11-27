@@ -1,5 +1,7 @@
 "use client";
 
+import { notifyListOwner } from "@/lib/push/client";
+
 import { supabase } from "./client";
 
 /**
@@ -48,6 +50,8 @@ export async function setListLike(
           .delete()
           .eq("user_id", userId)
           .eq("list_id", listId);
+
+    if (!error && liked) notifyListOwner("like", listId);
 
     return !error;
   } catch {
@@ -104,6 +108,9 @@ export async function addListComment(
     const { error } = await supabase
       .from("list_comments")
       .insert({ user_id: userId, list_key: listKey, body });
+
+    // Las oficiales ("canon", "top") no tienen dueño a quien avisar.
+    if (!error && listKey.includes("-")) notifyListOwner("comment", listKey);
 
     return !error;
   } catch {

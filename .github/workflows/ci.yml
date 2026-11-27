@@ -78,8 +78,17 @@ jobs:
       - name: Instalar el navegador
         run: npx playwright install --with-deps chromium
 
+      # NEXT_PUBLIC_SITE_URL apunta a la propia web de prueba: la portada trae el
+      # calendario del mes desde SITE_URL en el servidor, y sin esto lo
+      # pediría a la web de producción (datos reales que las pruebas no
+      # controlan). Durante el build la web aún no está arrancada, así
+      # que esa petición falla y el calendario lo pide el navegador, donde
+      # las pruebas lo simulan. Los enlaces de compartir también apuntan
+      # así a la web de prueba.
       - name: Construir la web
         run: npm run build
+        env:
+          NEXT_PUBLIC_SITE_URL: http://localhost:3000
 
       - name: Pruebas de interfaz
         run: npm run test:e2e
