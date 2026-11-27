@@ -612,11 +612,13 @@ function buildSlides(stats: WrappedStats): Slide[] {
                   key={`${a.key}-${a.level}`}
                   className={`${CARD} flex items-center gap-3 !p-3`}
                 >
-                  <Medal
-                    icon={familyByKey(a.key)?.icon ?? "star"}
-                    tier={a.level}
-                    size={38}
-                  />
+                  <div className="shrink-0">
+                    <Medal
+                      icon={familyByKey(a.key)?.icon ?? "star"}
+                      tier={a.level}
+                      size={38}
+                    />
+                  </div>
                   <div>
                     <p className="text-sm font-extrabold text-white">
                       {a.familyName}
