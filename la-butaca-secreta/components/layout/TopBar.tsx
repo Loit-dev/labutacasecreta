@@ -35,6 +35,23 @@ export default function TopBar() {
           className="block h-auto w-full"
           aria-hidden="true"
         >
+          {/* Mismo degradado que "empieza aquí." del titular
+              (from-amber-300 via-red-500 to-red-700), solo sobre
+              "SECRETA" (x ≈ 607 → 955 dentro del viewBox). */}
+          <defs>
+            <linearGradient
+              id="topbar-secreta"
+              gradientUnits="userSpaceOnUse"
+              x1="607"
+              y1="0"
+              x2="955"
+              y2="0"
+            >
+              <stop offset="0%" style={{ stopColor: "var(--color-amber-300)" }} />
+              <stop offset="50%" style={{ stopColor: "var(--color-red-500)" }} />
+              <stop offset="100%" style={{ stopColor: "var(--color-red-700)" }} />
+            </linearGradient>
+          </defs>
           <image href="/butaca-icon.png" x="0" y="0" width="135" height="100" />
           <text
             x="155"
@@ -45,7 +62,7 @@ export default function TopBar() {
             style={{ fontFamily: "var(--font-marquee)" }}
             fill="#ffffff"
           >
-            LA BUTACA <tspan fill="#ef4444">SECRETA</tspan>
+            LA BUTACA <tspan fill="url(#topbar-secreta)">SECRETA</tspan>
           </text>
         </svg>
       </Link>
