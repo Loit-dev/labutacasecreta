@@ -295,10 +295,10 @@ export function PersonIcon({ size = 16, className }: IconProps) {
   );
 }
 
-export function HeartIcon({ size = 16, className }: IconProps) {
+export function HeartIcon({ size = 16, filled = false, className }: IconProps & { filled?: boolean }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
-      <path d="M12 20.3S3.5 15 3.5 9.1C3.5 6 5.9 3.8 8.6 3.8c1.5 0 2.8.7 3.4 1.9.6-1.2 1.9-1.9 3.4-1.9 2.7 0 5.1 2.2 5.1 5.3 0 5.9-8.5 11.2-8.5 11.2z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+      <path d="M12 20.3S3.5 15 3.5 9.1C3.5 6 5.9 3.8 8.6 3.8c1.5 0 2.8.7 3.4 1.9.6-1.2 1.9-1.9 3.4-1.9 2.7 0 5.1 2.2 5.1 5.3 0 5.9-8.5 11.2-8.5 11.2z" stroke="currentColor" fill={filled ? "currentColor" : "none"} strokeWidth="1.6" strokeLinejoin="round" />
     </svg>
   );
 }

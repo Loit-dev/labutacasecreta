@@ -10,10 +10,13 @@ import {
   addListComment,
   deleteListComment,
   fetchListComments,
+  fetchOfficialLikes,
   fetchPopularLists,
   fetchPublicListItems,
   fetchTopTitles,
   setListLike,
+  setOfficialLike,
+  type OfficialKey,
   type ListComment,
   type PopularList,
   type PublicListItem,
@@ -38,6 +41,10 @@ type Poster = {
   href: string | null;
   note?: string;
 };
+
+type LikeState = { count: number; liked: boolean };
+
+const OFFICIAL_KEYS: readonly string[] = ["canon", "top"];
 
 type Detail = {
   // Clave para los comentarios: id de la lista, o "canon" / "top".
@@ -92,6 +99,9 @@ export default function ListsFeed() {
   const [canon, setCanon] = useState<CanonResult[] | null>(null);
   const [lists, setLists] = useState<PopularList[] | null>(null);
   const [detail, setDetail] = useState<Detail | null>(null);
+  const [officialLikes, setOfficialLikes] = useState<
+    Record<string, LikeState>
+  >({});
 
   useEffect(() => {
     let cancelled = false;
@@ -123,6 +133,10 @@ export default function ListsFeed() {
 
     fetchPopularLists().then((rows) => {
       if (!cancelled) setLists(rows);
+    });
+
+    fetchOfficialLikes().then((rows) => {
+      if (!cancelled) setOfficialLikes(rows);
     });
 
     return () => {
@@ -177,16 +191,60 @@ export default function ListsFeed() {
     if (!ok) apply(list);
   }
 
+  async function toggleOfficialLike(key: OfficialKey) {
+    if (!userId) return;
+
+    const before = officialLikes[key] ?? { count: 0, liked: false };
+    const after: LikeState = {
+      liked: !before.liked,
+      count: Math.max(0, before.count + (before.liked ? -1 : 1)),
+    };
+
+    setOfficialLikes((current) => ({ ...current, [key]: after }));
+
+    const ok = await setOfficialLike(userId, key, after.liked);
+
+    if (!ok) setOfficialLikes((current) => ({ ...current, [key]: before }));
+  }
+
+  // Estado de "me gusta" de cualquier lista (oficial o de usuario).
+  function likeFor(key: string, fallback?: PopularList): LikeState {
+    if (OFFICIAL_KEYS.includes(key)) {
+      return officialLikes[key] ?? { count: 0, liked: false };
+    }
+
+    const list = lists?.find((row) => row.id === key) ?? fallback;
+
+    return {
+      count: list?.likesTotal ?? 0,
+      liked: Boolean(list?.likedByMe),
+    };
+  }
+
+  function toggleLikeFor(key: string, fallback?: PopularList) {
+    if (OFFICIAL_KEYS.includes(key)) {
+      toggleOfficialLike(key as OfficialKey);
+      return;
+    }
+
+    const list = lists?.find((row) => row.id === key) ?? fallback;
+
+    if (list) toggleLike(list);
+  }
+
+  const canLike = Boolean(userId);
+
   const showTop = (top?.length ?? 0) >= TOP_MIN_TITLES;
 
   if (detail) {
     return (
       <ListDetail
         detail={detail}
-        canLike={Boolean(userId)}
+        like={likeFor(detail.key, detail.list)}
+        canLike={canLike}
         userId={userId}
         onBack={() => setDetail(null)}
-        onToggleLike={toggleLike}
+        onToggleLike={() => toggleLikeFor(detail.key, detail.list)}
       />
     );
   }
@@ -203,6 +261,9 @@ export default function ListsFeed() {
           author="Oficial"
           official
           posters={fromTop(top)}
+          like={likeFor("top")}
+          canLike={canLike}
+          onToggleLike={() => toggleLikeFor("top")}
           description={`Las ${top.length} películas y series mejor valoradas por la comunidad de La Butaca Secreta, ordenadas por nota media (mínimo 3 votos).`}
           onOpen={() =>
             setDetail({
@@ -223,6 +284,9 @@ export default function ListsFeed() {
         author="Oficial"
         official
         posters={canon ? fromCanon(canon) : null}
+        like={likeFor("canon")}
+        canLike={canLike}
+        onToggleLike={() => toggleLikeFor("canon")}
         description="250 películas imprescindibles de la historia del cine, de los años 20 a hoy."
         onOpen={() =>
           setDetail({
@@ -261,8 +325,9 @@ export default function ListsFeed() {
               href: null,
             }))}
             description={`${list.itemsCount} ${list.itemsCount === 1 ? "título" : "títulos"}`}
-            likes={list.likesTotal}
-            likedByMe={list.likedByMe}
+            like={likeFor(list.id, list)}
+            canLike={canLike}
+            onToggleLike={() => toggleLike(list)}
             onOpen={() => openUserList(list)}
           />
         ))
@@ -289,8 +354,9 @@ function ListCard({
   official,
   posters,
   description,
-  likes,
-  likedByMe,
+  like,
+  canLike,
+  onToggleLike,
   onOpen,
 }: {
   title: string;
@@ -298,11 +364,14 @@ function ListCard({
   official?: boolean;
   posters: Poster[] | null;
   description?: string;
-  likes?: number;
-  likedByMe?: boolean;
+  like: LikeState;
+  canLike: boolean;
+  onToggleLike: () => void;
   onOpen: () => void;
 }) {
-  const strip = (posters ?? []).slice(0, 7);
+  const strip = (posters ?? [])
+    .filter((item) => item.poster && canOptimize(item.poster))
+    .slice(0, 7);
 
   return (
     <article className="border-b border-white/10 pb-6 last:border-b-0">
@@ -318,60 +387,50 @@ function ListCard({
           <AuthorBadge author={author} official={official} />
         </div>
 
-        <div className="mt-3 flex overflow-hidden rounded-lg border border-white/15 bg-zinc-900">
-          {Array.from({ length: 7 }).map((_, index) => {
-            const item = strip[index];
-
-            return (
+        {/* Solo los pósters que hay (si la lista tiene 2, se ven 2),
+            cada uno a 1/7 del ancho, como en Letterboxd. */}
+        {strip.length > 0 && (
+          <div className="mt-3 flex">
+            {strip.map((item) => (
               <div
-                key={item?.key ?? `empty-${index}`}
-                className="relative aspect-[2/3] w-[14.2857%] shrink-0 border-r border-black/40 bg-zinc-800 last:border-r-0"
+                key={item.key}
+                className="relative aspect-[2/3] w-[14.2857%] shrink-0 overflow-hidden border border-white/15 bg-zinc-800 first:rounded-l-lg last:rounded-r-lg"
               >
-                {item?.poster && (
-                  <PosterImage src={item.poster} alt="" sizes="(min-width: 896px) 128px, 15vw" />
-                )}
+                <PosterImage src={item.poster!} alt="" sizes="(min-width: 896px) 128px, 15vw" />
               </div>
-            );
-          })}
-        </div>
+            ))}
+          </div>
+        )}
 
         {description && (
           <p className="mt-3 text-sm text-zinc-400">{description}</p>
         )}
       </button>
 
-      {likes !== undefined && (
-        <p
-          className={`mt-2 flex items-center gap-1.5 text-xs ${
-            likedByMe ? "text-red-400" : "text-zinc-500"
-          }`}
-        >
-          <HeartIcon size={14} />
-          {likes} me gusta
-        </p>
-      )}
+      <LikeButton like={like} canLike={canLike} onToggle={onToggleLike} compact />
     </article>
   );
 }
 
 function ListDetail({
   detail,
+  like,
   canLike,
   userId,
   onBack,
   onToggleLike,
 }: {
   detail: Detail;
+  like: LikeState;
   canLike: boolean;
   userId: string | null;
   onBack: () => void;
-  onToggleLike: (list: PopularList) => void;
+  onToggleLike: () => void;
 }) {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
-  const list = detail.list;
   const [section, setSection] = useState<"titles" | "comments">("titles");
   const [commentCount, setCommentCount] = useState<number | null>(null);
 
@@ -410,36 +469,7 @@ function ListDetail({
         )}
       </div>
 
-      {list && (
-        <div className="flex items-center gap-3 text-sm">
-          {canLike ? (
-            <button
-              type="button"
-              onClick={() => onToggleLike(list)}
-              aria-pressed={list.likedByMe}
-              className={`flex items-center gap-2 rounded-full border px-3 py-1.5 font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
-                list.likedByMe
-                  ? "border-red-400/60 bg-red-500/15 text-red-300"
-                  : "border-white/15 bg-black/20 text-zinc-200 hover:bg-white/5"
-              }`}
-            >
-              <HeartIcon size={16} />
-              {list.likedByMe ? "Te gusta" : "¿Te gusta?"}
-            </button>
-          ) : (
-            <a
-              href="/entrar"
-              className="flex items-center gap-2 rounded-full border border-white/15 bg-black/20 px-3 py-1.5 font-semibold text-zinc-200 hover:bg-white/5"
-            >
-              <HeartIcon size={16} />
-              Entra para darle me gusta
-            </a>
-          )}
-          <span className="text-zinc-400">
-            {list.likesTotal} me gusta
-          </span>
-        </div>
-      )}
+      <LikeButton like={like} canLike={canLike} onToggle={onToggleLike} />
 
       <div role="tablist" aria-label="Contenido de la lista" className="flex border-b border-white/10">
         {(
@@ -721,5 +751,50 @@ function ListComments({
         </ul>
       )}
     </div>
+  );
+}
+
+function LikeButton({
+  like,
+  canLike,
+  onToggle,
+  compact,
+}: {
+  like: LikeState;
+  canLike: boolean;
+  onToggle: () => void;
+  compact?: boolean;
+}) {
+  const size = compact ? "mt-2 px-2.5 py-1 text-xs" : "px-3 py-1.5 text-sm";
+  const count = `${like.count} me gusta`;
+
+  if (!canLike) {
+    return (
+      <a
+        href="/entrar"
+        title="Entra para darle me gusta"
+        className={`flex w-fit items-center gap-1.5 rounded-full border border-white/15 bg-black/20 font-semibold text-zinc-300 hover:bg-white/5 ${size}`}
+      >
+        <HeartIcon size={compact ? 14 : 16} />
+        {count}
+      </a>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-pressed={like.liked}
+      aria-label={like.liked ? "Quitar me gusta" : "Me gusta"}
+      className={`flex w-fit items-center gap-1.5 rounded-full border font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${size} ${
+        like.liked
+          ? "border-red-400/60 bg-red-500/15 text-red-300"
+          : "border-white/15 bg-black/20 text-zinc-200 hover:bg-white/5"
+      }`}
+    >
+      <HeartIcon size={compact ? 14 : 16} filled={like.liked} />
+      {count}
+    </button>
   );
 }
