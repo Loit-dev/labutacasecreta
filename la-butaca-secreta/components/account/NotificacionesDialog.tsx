@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 
+import { HeartIcon } from "@/components/icons/Icons";
 import { useDialog } from "@/hooks/useDialog";
 import {
   fetchNotifications,
@@ -125,8 +126,8 @@ export default function NotificacionesDialog({ userId, onClose }: Props) {
             role="status"
             className="rounded-2xl bg-black/40 px-4 py-10 text-center text-sm text-zinc-300"
           >
-            Sin novedades por aquí. Las solicitudes, invitaciones y
-            recomendaciones que recibas aparecerán aquí.
+            Sin novedades por aquí. Las solicitudes, invitaciones,
+            recomendaciones y «me gusta» en tus listas aparecerán aquí.
           </p>
         )}
 
@@ -226,6 +227,26 @@ export default function NotificacionesDialog({ userId, onClose }: Props) {
                       + Añadir a pendientes
                     </button>
                   </div>
+                </div>
+              );
+            }
+
+            if (item.kind === "list_like") {
+              return (
+                <div
+                  key={`like-${item.listId}-${item.createdAt}-${index}`}
+                  className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-3"
+                >
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-500/15 text-red-400">
+                    <HeartIcon size={20} filled />
+                  </div>
+                  <p className="text-sm text-white">
+                    <span className="font-bold">
+                      {item.from?.displayName ?? item.from?.username ?? "Alguien"}
+                    </span>{" "}
+                    le ha dado me gusta a tu lista{" "}
+                    <span className="font-bold">«{item.listName}»</span>
+                  </p>
                 </div>
               );
             }

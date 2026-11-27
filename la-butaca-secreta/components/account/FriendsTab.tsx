@@ -123,6 +123,15 @@ function FriendsContent({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
+  // /mi-cuenta?tab=amigos&notificaciones=1 (desde la bolita del botón
+  // de la barra superior) abre directamente las notificaciones.
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("notificaciones") === "1") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setShowNotificaciones(true);
+    }
+  }, []);
+
   function closeNotificaciones() {
     setShowNotificaciones(false);
     setBadge(0);

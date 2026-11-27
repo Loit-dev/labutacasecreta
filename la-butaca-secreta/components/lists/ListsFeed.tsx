@@ -10,13 +10,10 @@ import {
   addListComment,
   deleteListComment,
   fetchListComments,
-  fetchOfficialLikes,
   fetchPopularLists,
   fetchPublicListItems,
   fetchTopTitles,
   setListLike,
-  setOfficialLike,
-  type OfficialKey,
   type ListComment,
   type PopularList,
   type PublicListItem,
@@ -43,8 +40,6 @@ type Poster = {
 };
 
 type LikeState = { count: number; liked: boolean };
-
-const OFFICIAL_KEYS: readonly string[] = ["canon", "top"];
 
 type Detail = {
   // Clave para los comentarios: id de la lista, o "canon" / "top".
@@ -99,9 +94,6 @@ export default function ListsFeed() {
   const [canon, setCanon] = useState<CanonResult[] | null>(null);
   const [lists, setLists] = useState<PopularList[] | null>(null);
   const [detail, setDetail] = useState<Detail | null>(null);
-  const [officialLikes, setOfficialLikes] = useState<
-    Record<string, LikeState>
-  >({});
 
   useEffect(() => {
     let cancelled = false;
@@ -133,10 +125,6 @@ export default function ListsFeed() {
 
     fetchPopularLists().then((rows) => {
       if (!cancelled) setLists(rows);
-    });
-
-    fetchOfficialLikes().then((rows) => {
-      if (!cancelled) setOfficialLikes(rows);
     });
 
     return () => {
@@ -191,28 +179,9 @@ export default function ListsFeed() {
     if (!ok) apply(list);
   }
 
-  async function toggleOfficialLike(key: OfficialKey) {
-    if (!userId) return;
-
-    const before = officialLikes[key] ?? { count: 0, liked: false };
-    const after: LikeState = {
-      liked: !before.liked,
-      count: Math.max(0, before.count + (before.liked ? -1 : 1)),
-    };
-
-    setOfficialLikes((current) => ({ ...current, [key]: after }));
-
-    const ok = await setOfficialLike(userId, key, after.liked);
-
-    if (!ok) setOfficialLikes((current) => ({ ...current, [key]: before }));
-  }
-
-  // Estado de "me gusta" de cualquier lista (oficial o de usuario).
+  // Estado de "me gusta" de una lista de usuario (las oficiales, El
+  // Canon y el Top, no llevan "me gusta").
   function likeFor(key: string, fallback?: PopularList): LikeState {
-    if (OFFICIAL_KEYS.includes(key)) {
-      return officialLikes[key] ?? { count: 0, liked: false };
-    }
-
     const list = lists?.find((row) => row.id === key) ?? fallback;
 
     return {
@@ -222,11 +191,6 @@ export default function ListsFeed() {
   }
 
   function toggleLikeFor(key: string, fallback?: PopularList) {
-    if (OFFICIAL_KEYS.includes(key)) {
-      toggleOfficialLike(key as OfficialKey);
-      return;
-    }
-
     const list = lists?.find((row) => row.id === key) ?? fallback;
 
     if (list) toggleLike(list);
@@ -240,7 +204,7 @@ export default function ListsFeed() {
     return (
       <ListDetail
         detail={detail}
-        like={likeFor(detail.key, detail.list)}
+        like={detail.official ? null : likeFor(detail.key, detail.list)}
         canLike={canLike}
         userId={userId}
         onBack={() => setDetail(null)}
@@ -261,9 +225,9 @@ export default function ListsFeed() {
           author="Oficial"
           official
           posters={fromTop(top)}
-          like={likeFor("top")}
+          like={null}
           canLike={canLike}
-          onToggleLike={() => toggleLikeFor("top")}
+          onToggleLike={() => {}}
           description={`Las ${top.length} películas y series mejor valoradas por la comunidad de La Butaca Secreta, ordenadas por nota media (mínimo 3 votos).`}
           onOpen={() =>
             setDetail({
@@ -284,9 +248,9 @@ export default function ListsFeed() {
         author="Oficial"
         official
         posters={canon ? fromCanon(canon) : null}
-        like={likeFor("canon")}
+        like={null}
         canLike={canLike}
-        onToggleLike={() => toggleLikeFor("canon")}
+        onToggleLike={() => {}}
         description="250 películas imprescindibles de la historia del cine, de los años 20 a hoy."
         onOpen={() =>
           setDetail({
@@ -364,7 +328,7 @@ function ListCard({
   official?: boolean;
   posters: Poster[] | null;
   description?: string;
-  like: LikeState;
+  like: LikeState | null;
   canLike: boolean;
   onToggleLike: () => void;
   onOpen: () => void;
@@ -407,7 +371,9 @@ function ListCard({
         )}
       </button>
 
-      <LikeButton like={like} canLike={canLike} onToggle={onToggleLike} compact />
+      {like && (
+        <LikeButton like={like} canLike={canLike} onToggle={onToggleLike} compact />
+      )}
     </article>
   );
 }
@@ -421,7 +387,7 @@ function ListDetail({
   onToggleLike,
 }: {
   detail: Detail;
-  like: LikeState;
+  like: LikeState | null;
   canLike: boolean;
   userId: string | null;
   onBack: () => void;
@@ -469,7 +435,9 @@ function ListDetail({
         )}
       </div>
 
-      <LikeButton like={like} canLike={canLike} onToggle={onToggleLike} />
+      {like && (
+        <LikeButton like={like} canLike={canLike} onToggle={onToggleLike} />
+      )}
 
       <div role="tablist" aria-label="Contenido de la lista" className="flex border-b border-white/10">
         {(

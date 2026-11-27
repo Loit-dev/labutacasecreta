@@ -1,9 +1,11 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
 import { AccountIcon } from "@/components/conversation/TabIcons";
 import { useAuth } from "@/hooks/useAuth";
+import { countBadge, fetchNotifications } from "@/lib/supabase/notifications";
 
 /**
  * Barra superior de la portada: logo + nombre centrados y, a la
@@ -14,8 +16,33 @@ import { useAuth } from "@/hooks/useAuth";
 export default function TopBar() {
   const { session, loading, available } = useAuth();
 
+  const userId = session?.user.id ?? null;
+
+  // Avisos pendientes (solicitudes, "me gusta" en tus listas…): se
+  // marca el botón con una bolita y lleva directo a Notificaciones.
+  const [badge, setBadge] = useState(0);
+
+  useEffect(() => {
+    if (!userId) return;
+
+    let cancelled = false;
+
+    fetchNotifications(userId).then((items) => {
+      if (!cancelled) setBadge(countBadge(items));
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
   const showButton = available && !loading;
-  const href = session ? "/mi-cuenta" : "/entrar";
+  const pending = userId ? badge : 0;
+  const href = !session
+    ? "/entrar"
+    : pending > 0
+      ? "/mi-cuenta?tab=amigos&notificaciones=1"
+      : "/mi-cuenta";
   const label = session ? "Mi cuenta" : "Entrar";
 
   return (
@@ -71,11 +98,16 @@ export default function TopBar() {
         {showButton && (
           <a
             href={href}
-            aria-label={label}
-            className="flex items-center gap-1.5 rounded-full border border-white/25 bg-black/40 px-2 py-1.5 text-sm font-semibold text-white backdrop-blur-md transition-colors hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:px-4"
+            aria-label={pending > 0 ? `${label}, ${pending} notificaciones` : label}
+            className="relative flex items-center gap-1.5 rounded-full border border-white/25 bg-black/40 px-2 py-1.5 text-sm font-semibold text-white backdrop-blur-md transition-colors hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:px-4"
           >
             <AccountIcon />
             <span className="text-xs sm:text-sm">{label}</span>
+            {pending > 0 && (
+              <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[11px] font-bold leading-none text-white">
+                {pending > 9 ? "9+" : pending}
+              </span>
+            )}
           </a>
         )}
       </div>
