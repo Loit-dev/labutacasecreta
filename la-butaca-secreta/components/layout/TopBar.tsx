@@ -19,27 +19,38 @@ export default function TopBar() {
   const label = session ? "Mi cuenta" : "Entrar";
 
   return (
-    <header className="relative z-40 mx-auto grid w-full max-w-4xl grid-cols-[1fr_auto_1fr] items-center gap-2 px-4 pt-4 md:px-6 md:pt-6">
-      <div aria-hidden="true" />
-
+    <header className="relative z-40 w-full px-4 pt-4 md:px-6 md:pt-6">
+      <div className="mx-auto flex w-full max-w-4xl items-center gap-3 md:gap-5">
+      {/* Logo + nombre: ocupan todo el ancho desde el borde de la
+          tarjeta hasta el botón, con el mismo margen a cada lado (pl-3
+          a la izquierda = gap-3 hasta el botón). Es un SVG con
+          textLength para que el texto se estire justo a ese ancho. */}
       <Link
         href="/"
-        className="flex items-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white sm:gap-3"
+        aria-label="La Butaca Secreta"
+        className="block min-w-0 flex-1 pl-3 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white md:pl-5"
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/butaca-icon.png"
-          alt=""
-          width={422}
-          height={313}
-          className="h-6 w-auto min-[400px]:h-7 sm:h-10"
-        />
-        <span className="marquee-font whitespace-nowrap text-lg leading-none text-white min-[400px]:text-xl sm:text-3xl">
-          La Butaca <span className="text-red-500">Secreta</span>
-        </span>
+        <svg
+          viewBox="0 0 955 100"
+          className="block h-auto w-full"
+          aria-hidden="true"
+        >
+          <image href="/butaca-icon.png" x="0" y="0" width="135" height="100" />
+          <text
+            x="155"
+            y="92"
+            textLength="800"
+            lengthAdjust="spacingAndGlyphs"
+            fontSize="120"
+            style={{ fontFamily: "var(--font-marquee)" }}
+            fill="#ffffff"
+          >
+            LA BUTACA <tspan fill="#ef4444">SECRETA</tspan>
+          </text>
+        </svg>
       </Link>
 
-      <div className="flex justify-end">
+      <div className="flex shrink-0 justify-end">
         {showButton && (
           <a
             href={href}
@@ -50,6 +61,7 @@ export default function TopBar() {
             <span className="text-xs sm:text-sm">{label}</span>
           </a>
         )}
+      </div>
       </div>
     </header>
   );
