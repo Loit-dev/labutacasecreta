@@ -225,6 +225,27 @@ describe("summarizeGroupCompatibility", () => {
     );
   });
 
+  test("a los que aún no tienen datos los añade detrás, con percent null (valor simbólico en vez de ocultarlos)", () => {
+    const entries = [
+      entry({ userId: "a", name: "Laura", percent: 64 }),
+      entry({ userId: "b", name: "Marcos", percent: null }),
+      entry({ userId: "c", name: "Elena", percent: 86 }),
+      entry({ userId: "d", name: "David", percent: null }),
+    ];
+
+    const summary = summarizeGroupCompatibility(entries, 6);
+
+    assert.deepEqual(
+      summary.top.map((t) => [t.name, t.percent]),
+      [
+        ["Elena", 86],
+        ["Laura", 64],
+        ["Marcos", null],
+        ["David", null],
+      ]
+    );
+  });
+
   test("sin nadie con compatibilidad lista, no rompe", () => {
     const summary = summarizeGroupCompatibility([
       entry({ userId: "a", name: "Laura", percent: null }),

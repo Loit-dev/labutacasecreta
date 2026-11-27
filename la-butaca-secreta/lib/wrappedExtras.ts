@@ -205,7 +205,13 @@ export type GroupCompatSummary = {
   groupAveragePercent: number | null;
   /** Cuántos amigos entraron en la media (status "ready"). */
   readyCount: number;
-  top: { userId: string; name: string; percent: number }[];
+  /**
+   * Los de compatibilidad lista van primero (de mayor a menor);
+   * detrás, los que aún no tienen suficientes valoraciones en común
+   * (percent null) — se siguen mostrando (con un valor simbólico en
+   * vez de ocultarlos), solo que sin poder ordenarlos entre sí.
+   */
+  top: { userId: string; name: string; percent: number | null }[];
 };
 
 /** Resume la compatibilidad 1:1 con cada amigo en una media de grupo + el top. */
@@ -216,6 +222,7 @@ export function summarizeGroupCompatibility(
   const ready = entries.filter(
     (e): e is GroupCompatInput & { percent: number } => e.percent !== null
   );
+  const notReady = entries.filter((e) => e.percent === null);
 
   if (ready.length === 0) {
     return { groupAveragePercent: null, readyCount: 0, top: [] };
@@ -225,8 +232,10 @@ export function summarizeGroupCompatibility(
     ready.reduce((sum, e) => sum + e.percent, 0) / ready.length
   );
 
-  const top = [...ready]
-    .sort((a, b) => b.percent - a.percent)
+  const top: { userId: string; name: string; percent: number | null }[] = [
+    ...ready.slice().sort((a, b) => b.percent - a.percent),
+    ...notReady,
+  ]
     .slice(0, limit)
     .map((e) => ({ userId: e.userId, name: e.name, percent: e.percent }));
 

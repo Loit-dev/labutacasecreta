@@ -1435,39 +1435,65 @@ function FriendsGroupSlide({
           <p className="text-xs font-bold uppercase tracking-wide text-zinc-400">
             Tus mejores coincidencias
           </p>
-          {summary.top[0].percent > summary.groupAveragePercent && (
-            <p className={FACT_PILL_COMPACT}>
-              🤝 Con {summary.top[0].name},{" "}
-              {summary.top[0].percent - summary.groupAveragePercent} puntos
-              por encima de tu media de grupo.
+          {/* top[0] siempre es de compatibilidad lista (nunca null): los
+              listos van primero y summary.top solo existe si hay al menos
+              uno, ver summarizeGroupCompatibility en lib/wrappedExtras.ts */}
+          {summary.top[0].percent !== null &&
+            summary.top[0].percent > summary.groupAveragePercent && (
+              <p className={FACT_PILL_COMPACT}>
+                🤝 Con {summary.top[0].name},{" "}
+                {summary.top[0].percent - summary.groupAveragePercent} puntos
+                por encima de tu media de grupo.
+              </p>
+            )}
+          {summary.top.map((entry, i) => {
+            const percent = entry.percent;
+            const isReady = percent !== null;
+
+            return (
+              <div
+                key={entry.userId}
+                className={`relative h-10 overflow-hidden rounded-xl border bg-white/[0.06] ${
+                  isReady ? "border-white/10" : "border-dashed border-white/15"
+                }`}
+              >
+                {percent !== null && (
+                  <div
+                    className={`absolute inset-y-0 left-0 rounded-xl ${
+                      i === 0
+                        ? "bg-gradient-to-r from-red-600 to-amber-400"
+                        : "bg-gradient-to-r from-red-600/40 to-amber-400/55"
+                    }`}
+                    style={{ width: `${Math.max(10, percent)}%` }}
+                  />
+                )}
+                <div className="relative flex h-full items-center gap-2 px-3">
+                  <span className="marquee-font w-4 text-sm text-zinc-300">
+                    {i + 1}
+                  </span>
+                  <span
+                    className={`flex-1 truncate text-sm font-bold ${
+                      isReady ? "text-white" : "text-zinc-400"
+                    }`}
+                  >
+                    {entry.name}
+                  </span>
+                  <span
+                    className={`marquee-font text-base ${
+                      isReady ? "text-white" : "text-zinc-500"
+                    }`}
+                  >
+                    {isReady ? `${entry.percent}%` : "—"}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+          {summary.top.some((entry) => entry.percent === null) && (
+            <p className="text-[11px] text-zinc-500">
+              — = todavía sin suficientes valoraciones en común.
             </p>
           )}
-          {summary.top.map((entry, i) => (
-            <div
-              key={entry.userId}
-              className="relative h-10 overflow-hidden rounded-xl border border-white/10 bg-white/[0.06]"
-            >
-              <div
-                className={`absolute inset-y-0 left-0 rounded-xl ${
-                  i === 0
-                    ? "bg-gradient-to-r from-red-600 to-amber-400"
-                    : "bg-gradient-to-r from-red-600/40 to-amber-400/55"
-                }`}
-                style={{ width: `${Math.max(10, entry.percent)}%` }}
-              />
-              <div className="relative flex h-full items-center gap-2 px-3">
-                <span className="marquee-font w-4 text-sm text-zinc-300">
-                  {i + 1}
-                </span>
-                <span className="flex-1 truncate text-sm font-bold text-white">
-                  {entry.name}
-                </span>
-                <span className="marquee-font text-base text-white">
-                  {entry.percent}%
-                </span>
-              </div>
-            </div>
-          ))}
         </div>
       )}
     </div>
