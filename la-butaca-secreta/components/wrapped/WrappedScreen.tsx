@@ -1480,10 +1480,10 @@ function FriendsGroupSlide({
                   </span>
                   <span
                     className={`marquee-font text-base ${
-                      isReady ? "text-white" : "text-zinc-500"
+                      isReady ? "text-white" : "text-amber-300"
                     }`}
                   >
-                    {isReady ? `${entry.percent}%` : "—"}
+                    {isReady ? `${entry.percent}%` : "¿?"}
                   </span>
                 </div>
               </div>
@@ -1491,7 +1491,7 @@ function FriendsGroupSlide({
           })}
           {summary.top.some((entry) => entry.percent === null) && (
             <p className="text-[11px] text-zinc-500">
-              — = todavía sin suficientes valoraciones en común.
+              ¿? = todavía sin suficientes valoraciones en común para saberlo.
             </p>
           )}
         </div>
