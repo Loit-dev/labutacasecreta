@@ -136,3 +136,74 @@ export async function setListLike(
     return false;
   }
 }
+
+// ─── Comentarios de una lista (list_comments) ───────────────────────
+// listKey: id de la lista pública, o "canon" / "top" para las oficiales.
+
+export type ListComment = {
+  id: string;
+  body: string;
+  createdAt: string;
+  username: string | null;
+  isMine: boolean;
+  canDelete: boolean;
+};
+
+export async function fetchListComments(
+  listKey: string
+): Promise<ListComment[] | null> {
+  if (!supabase) return null;
+
+  try {
+    const { data, error } = await supabase.rpc("list_comments_for", {
+      p_list_key: listKey,
+    });
+
+    // null = la función aún no existe en Supabase (SQL sin ejecutar).
+    if (error || !Array.isArray(data)) return null;
+
+    return data.map((row) => ({
+      id: row.id,
+      body: row.body,
+      createdAt: row.created_at,
+      username: row.username ?? null,
+      isMine: Boolean(row.is_mine),
+      canDelete: Boolean(row.can_delete),
+    }));
+  } catch {
+    return null;
+  }
+}
+
+export async function addListComment(
+  userId: string,
+  listKey: string,
+  body: string
+): Promise<boolean> {
+  if (!supabase) return false;
+
+  try {
+    const { error } = await supabase
+      .from("list_comments")
+      .insert({ user_id: userId, list_key: listKey, body });
+
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+export async function deleteListComment(commentId: string): Promise<boolean> {
+  if (!supabase) return false;
+
+  try {
+    const { error } = await supabase
+      .from("list_comments")
+      .delete()
+      .eq("id", commentId);
+
+    return !error;
+  } catch {
+    return false;
+  }
+}
