@@ -5,7 +5,10 @@ import { useEffect, useRef, useState } from "react";
 import { computeCompatibility } from "@/lib/compatibility";
 import { fetchFollowingIds } from "@/lib/supabase/follows";
 import { fetchProfilesByUserIds } from "@/lib/supabase/profiles";
-import { fetchWatchedHistory, type WatchedRow } from "@/lib/supabase/summary";
+import {
+  fetchWatchedHistoriesByUserIds,
+  type WatchedRow,
+} from "@/lib/supabase/summary";
 import {
   summarizeGroupCompatibility,
   type GroupCompatSummary,
@@ -44,20 +47,26 @@ export async function fetchGroupCompatSummary(
     };
   }
 
-  const people = await fetchProfilesByUserIds(followingIds);
+  // Antes: una consulta a Supabase POR persona seguida (N+1 — con
+  // bastante gente seguida, N peticiones en paralelo solo para esta
+  // pantalla). Ahora: el perfil de todos a la vez (ya lo hacía) y el
+  // historial de todos a la vez también, así que esto es siempre 2
+  // consultas, siga a quien siga.
+  const [people, historiesByUser] = await Promise.all([
+    fetchProfilesByUserIds(followingIds),
+    fetchWatchedHistoriesByUserIds(followingIds),
+  ]);
 
-  const entries = await Promise.all(
-    people.map(async (person) => {
-      const theirHistory = await fetchWatchedHistory(person.userId);
-      const compat = computeCompatibility(myHistory, theirHistory);
+  const entries = people.map((person) => {
+    const theirHistory = historiesByUser.get(person.userId) ?? [];
+    const compat = computeCompatibility(myHistory, theirHistory);
 
-      return {
-        userId: person.userId,
-        name: person.displayName ?? person.username,
-        percent: compat.status === "ready" ? compat.percent : null,
-      };
-    })
-  );
+    return {
+      userId: person.userId,
+      name: person.displayName ?? person.username,
+      percent: compat.status === "ready" ? compat.percent : null,
+    };
+  });
 
   return {
     summary: summarizeGroupCompatibility(entries, GROUP_LIMIT),

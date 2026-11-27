@@ -55,6 +55,73 @@ export async function fetchWatchedHistory(
 }
 
 /**
+ * Igual que fetchWatchedHistory, pero para varias personas A LA VEZ:
+ * una sola consulta con "user_id in (...)" en vez de una por persona.
+ *
+ * La usa "Tu grupo de cine" (hooks/useWrappedFriendsGroup.ts) para
+ * calcular la compatibilidad con todo lo que sigues sin disparar N
+ * peticiones a Supabase en paralelo (N = cuánta gente sigas, que no
+ * tiene por qué ser poca) — con esto siempre es 1, pase lo que pase.
+ *
+ * El límite por persona (HISTORY_LIMIT) se aplica DESPUÉS, en el
+ * cliente, porque Postgres no tiene forma de decir "las 400 más
+ * recientes de cada user_id" en una sola consulta sin una window
+ * function que Supabase-js no expone. Para no perder justo lo más
+ * reciente de alguien muy activo si al grupo entero le tocara ir
+ * recortado, se pide el conjunto SIN límite en la consulta (RLS ya
+ * acota a quien sigues) y se corta a HISTORY_LIMIT por persona ya
+ * agrupado — una sola consulta grande en vez de muchas pequeñas sigue
+ * siendo más barato en round-trips, que es lo que de verdad pesa.
+ */
+export async function fetchWatchedHistoriesByUserIds(
+  userIds: string[]
+): Promise<Map<string, WatchedRow[]>> {
+  const byUser = new Map<string, WatchedRow[]>();
+
+  if (!supabase || userIds.length === 0) return byUser;
+
+  try {
+    const { data, error } = await supabase
+      .from("watched")
+      .select(
+        "user_id, tmdb_id, media_type, title, rating, genres, seen_at, poster_url, review"
+      )
+      .in("user_id", userIds)
+      .order("seen_at", { ascending: false });
+
+    if (error || !data) return byUser;
+
+    for (const row of data) {
+      const rows = byUser.get(row.user_id) ?? [];
+
+      if (rows.length >= HISTORY_LIMIT) continue; // ya tiene de sobra (viene ordenado por fecha)
+
+      rows.push({
+        tmdbId: row.tmdb_id,
+        mediaType: row.media_type,
+        title: row.title,
+        rating: row.rating ?? undefined,
+        genres: row.genres ?? [],
+        seenAt: row.seen_at,
+        posterUrl: row.poster_url ?? undefined,
+        review: row.review ?? undefined,
+      });
+
+      byUser.set(row.user_id, rows);
+    }
+
+    return byUser;
+  } catch (error) {
+    console.error(
+      "No se pudieron leer varios historiales (watched) a la vez:",
+      error
+    );
+
+    return byUser;
+  }
+}
+
+/**
  * Igual que fetchWatchedHistory pero SIN el límite de 400 filas, para
  * el Resumen Anual: El Canon y Logros son progreso acumulado de
  * siempre, así que una cuenta con mucho historial no puede quedarse

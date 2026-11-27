@@ -12,7 +12,20 @@ type TitleRef = { tmdbId: number; mediaType: "movie" | "tv"; title: string };
 export const MAX_TITLES = 50;
 const CONCURRENCY = 5;
 
+// El reparto de un título no cambia mientras dura la sesión, y esta
+// pantalla se desmonta y remonta cada vez que se navega fuera de
+// "Repetiste y descubriste" y se vuelve (el carrusel del Resumen solo
+// mantiene montada la diapositiva actual) — sin esto, ir y venir
+// repetía las mismas peticiones a /api/credits una y otra vez. Con un
+// caché de módulo (vive mientras dure la pestaña, se comparte entre
+// todas las veces que se monte el hook) ese ir y venir es gratis.
+const creditsCache = new Map<string, CastCredit>();
+
 async function fetchTitleCredits(ref: TitleRef): Promise<CastCredit> {
+  const cacheKey = `${ref.mediaType}-${ref.tmdbId}`;
+  const cached = creditsCache.get(cacheKey);
+  if (cached) return cached;
+
   try {
     const response = await fetch(
       `/api/credits?id=${ref.tmdbId}&type=${ref.mediaType}`
@@ -22,7 +35,7 @@ async function fetchTitleCredits(ref: TitleRef): Promise<CastCredit> {
 
     const data = await response.json();
 
-    return {
+    const credit: CastCredit = {
       director: typeof data.director === "string" ? data.director : null,
       directorPhoto:
         typeof data.directorPhoto === "string" ? data.directorPhoto : null,
@@ -30,6 +43,10 @@ async function fetchTitleCredits(ref: TitleRef): Promise<CastCredit> {
       castPhotos: Array.isArray(data.castPhotos) ? data.castPhotos : [],
       title: ref.title,
     };
+
+    creditsCache.set(cacheKey, credit);
+
+    return credit;
   } catch {
     return { director: null, cast: [], title: ref.title };
   }
