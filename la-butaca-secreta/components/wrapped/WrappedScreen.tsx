@@ -1579,6 +1579,9 @@ function FriendsGroupSlide({
           todavía no hay suficientes valoraciones en común para calcular la
           compatibilidad.
         </p>
+        <p className="max-w-[30ch] text-[11px] text-zinc-500">
+          Incluye a quien sigues, no solo a tus amigos confirmados.
+        </p>
       </div>
     );
   }
@@ -1673,6 +1676,10 @@ function FriendsGroupSlide({
           )}
         </div>
       )}
+
+      <p className="text-[11px] text-zinc-500">
+        Incluye a quien sigues, no solo a tus amigos confirmados.
+      </p>
     </div>
   );
 }
@@ -1745,7 +1752,19 @@ export default function WrappedScreen({ year, onClose }: Props) {
     }
   }
 
-  const total = slides.length + (stats ? 2 : 0); // +2: la tarjeta de compartir y su "parte 2"
+  // La "parte 2" solo merece la pena si trae algo que la primera tarjeta
+  // no tiene ya: progreso en El Canon, un día pico, o un pendiente de
+  // hace tiempo. Para una cuenta nueva (el sitio lleva solo ~2 meses)
+  // puede que no haya nada de eso todavía, y entonces no la ofrecemos
+  // -una tarjeta casi vacía resta más de lo que suma-, no pasa nada: se
+  // puede añadir el año que viene cuando haya más datos acumulados.
+  const hasExtraData =
+    !!stats &&
+    (stats.canonTotalProgress > 0 ||
+      !!stats.peakDay ||
+      (!!stats.oldestPendingTitle && stats.oldestPendingMonths !== undefined));
+
+  const total = slides.length + (stats ? (hasExtraData ? 2 : 1) : 0); // +1/+2: la tarjeta de compartir y, si hay suficientes datos, su "parte 2"
 
   const currentWrapId =
     index < slides.length ? slides[index]?.id : "final";
@@ -1790,7 +1809,7 @@ export default function WrappedScreen({ year, onClose }: Props) {
           {!loading &&
             stats &&
             index !== slides.length &&
-            index !== slides.length + 1 && (
+            (!hasExtraData || index !== slides.length + 1) && (
               <HeaderShareButton stats={stats} watched={watched} />
             )}
 
@@ -1831,7 +1850,7 @@ export default function WrappedScreen({ year, onClose }: Props) {
               <FinalShareCard stats={stats} watched={watched} />
             )}
 
-            {!loading && stats && index === slides.length + 1 && (
+            {!loading && stats && hasExtraData && index === slides.length + 1 && (
               <FinalShareCardExtra stats={stats} />
             )}
 
