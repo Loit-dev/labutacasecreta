@@ -23,6 +23,7 @@ import type { WatchedRow } from "@/lib/supabase/summary";
 import type { WrappedStats } from "@/lib/wrapped";
 import { yearCommunityLine } from "@/lib/wrappedExtras";
 import { createWrappedShareImage } from "@/lib/wrappedShareImage";
+import { createWrappedShareImageExtra } from "@/lib/wrappedShareImage2";
 import {
   DiscardIcon,
   FireIcon,
@@ -1032,6 +1033,182 @@ function FinalShareCard({
   );
 }
 
+/**
+ * Segunda tarjeta final ("parte 2"): mismo patrón que FinalShareCard,
+ * pero con lib/wrappedShareImage2.ts — los datos del Resumen que no
+ * caben en la primera imagen (El Canon, películas/series, día pico,
+ * descartados, pendiente desde hace tiempo).
+ */
+function FinalShareCardExtra({
+  stats,
+}: {
+  stats: WrappedStats;
+}) {
+  const { session } = useAuth();
+  const [state, setState] = useState<FinalCardState>({ status: "loading" });
+  const [message, setMessage] = useState("");
+
+  const fileName = `wrapped-${stats.year}-parte2-la-butaca-secreta.png`;
+
+  useEffect(() => {
+    let cancelled = false;
+    let objectUrl = "";
+
+    async function run() {
+      const userId = session?.user.id;
+      const profile = userId ? await fetchMyProfile(userId) : null;
+
+      try {
+        const blob = await createWrappedShareImageExtra({
+          siteName: SITE_NAME,
+          siteUrl: SITE_URL,
+          year: stats.year,
+          displayName: profile?.displayName ?? undefined,
+          movieCount: stats.movieCount,
+          seriesCount: stats.seriesCount,
+          canonTotalProgress: stats.canonTotalProgress,
+          canonTotal: stats.canonTotal,
+          canonThisYear: stats.canonThisYear,
+          longestStreak: stats.longestStreak,
+          peakDay: stats.peakDay,
+          rejectedThisYearCount: stats.rejectedThisYearCount,
+          oldestPendingTitle: stats.oldestPendingTitle,
+          oldestPendingMonths: stats.oldestPendingMonths,
+          fontFamily: siteFont(),
+        });
+
+        if (cancelled) return;
+
+        objectUrl = URL.createObjectURL(blob);
+        setState({
+          status: "ready",
+          url: objectUrl,
+          file: new File([blob], fileName, { type: "image/png" }),
+        });
+      } catch {
+        if (!cancelled) setState({ status: "error" });
+      }
+    }
+
+    run();
+
+    return () => {
+      cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stats.year]);
+
+  const file = state.status === "ready" ? state.file : null;
+
+  const canShareFiles =
+    !!file &&
+    typeof navigator !== "undefined" &&
+    typeof navigator.canShare === "function" &&
+    navigator.canShare({ files: [file] });
+
+  async function share() {
+    if (!file) return;
+
+    try {
+      await navigator.share({
+        files: [file],
+        title: `${SITE_NAME} · Resumen ${stats.year} · Parte 2`,
+        text: shareText(stats),
+      });
+
+      track("share_done", { method: "native", screen: "wrapped_extra" });
+      if (session) recordShareEvent(session.user.id, "wrapped");
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+
+      setMessage(
+        "No he podido abrir el menú de compartir. Descarga la imagen y envíala tú."
+      );
+    }
+  }
+
+  function download() {
+    if (state.status !== "ready") return;
+
+    const link = document.createElement("a");
+
+    link.href = state.url;
+    link.download = fileName;
+
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    setMessage("Imagen descargada. Ya puedes enviarla o subirla.");
+    track("share_done", { method: "download", screen: "wrapped_extra" });
+    if (session) recordShareEvent(session.user.id, "wrapped");
+  }
+
+  return (
+    <div className="flex h-full flex-col items-center gap-3 text-center">
+      <Eyebrow>Más datos de tu {stats.year}</Eyebrow>
+
+      <div
+        className="flex w-full flex-1 items-center justify-center overflow-hidden rounded-2xl bg-black/30"
+        aria-live="polite"
+      >
+        {state.status === "loading" && (
+          <p className="px-4 text-sm text-zinc-300">
+            Preparando tu imagen…
+          </p>
+        )}
+
+        {state.status === "error" && (
+          <p role="alert" className="px-4 text-sm text-red-300">
+            No he podido crear la imagen. Inténtalo de nuevo en unos
+            segundos.
+          </p>
+        )}
+
+        {state.status === "ready" && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={state.url}
+            alt={`Más datos de tu ${stats.year} en ${SITE_NAME}`}
+            className="max-h-full w-auto max-w-full rounded-2xl"
+          />
+        )}
+      </div>
+
+      <div className="flex w-full shrink-0 gap-2">
+        {canShareFiles && (
+          <button
+            type="button"
+            onClick={share}
+            className="flex-1 rounded-full bg-red-600 px-4 py-3 text-sm font-bold text-white hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          >
+            Compartir
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={download}
+          disabled={state.status !== "ready"}
+          className={`flex-1 rounded-full px-4 py-3 text-sm font-bold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:cursor-not-allowed disabled:opacity-50 ${
+            canShareFiles
+              ? "border border-white/20 hover:bg-white/10"
+              : "bg-red-600 hover:bg-red-500"
+          }`}
+        >
+          Descargar imagen
+        </button>
+      </div>
+
+      {message && (
+        <p role="status" className="shrink-0 text-xs text-zinc-400">
+          {message}
+        </p>
+      )}
+    </div>
+  );
+}
+
 /** Botón discreto en la cabecera: comparte el texto del resumen completo desde cualquier pantalla, no solo la última. */
 function HeaderShareButton({
   stats,
@@ -1568,7 +1745,7 @@ export default function WrappedScreen({ year, onClose }: Props) {
     }
   }
 
-  const total = slides.length + (stats ? 1 : 0); // +1 por la pantalla de compartir
+  const total = slides.length + (stats ? 2 : 0); // +2: la tarjeta de compartir y su "parte 2"
 
   const currentWrapId =
     index < slides.length ? slides[index]?.id : "final";
@@ -1610,9 +1787,12 @@ export default function WrappedScreen({ year, onClose }: Props) {
             ))}
           </div>
 
-          {!loading && stats && index !== slides.length && (
-            <HeaderShareButton stats={stats} watched={watched} />
-          )}
+          {!loading &&
+            stats &&
+            index !== slides.length &&
+            index !== slides.length + 1 && (
+              <HeaderShareButton stats={stats} watched={watched} />
+            )}
 
           <button
             type="button"
@@ -1649,6 +1829,10 @@ export default function WrappedScreen({ year, onClose }: Props) {
 
             {!loading && stats && index === slides.length && (
               <FinalShareCard stats={stats} watched={watched} />
+            )}
+
+            {!loading && stats && index === slides.length + 1 && (
+              <FinalShareCardExtra stats={stats} />
             )}
 
             {!loading && !stats && (
