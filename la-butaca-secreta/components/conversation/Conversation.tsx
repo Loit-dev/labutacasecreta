@@ -167,7 +167,7 @@ export default function Conversation({ initialCalendar }: Props) {
 
   return (
     <>
-      <PosterWall />
+      <PosterWall posters />
 
       <TopBar />
 

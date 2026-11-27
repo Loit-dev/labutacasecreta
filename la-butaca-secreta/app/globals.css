@@ -165,21 +165,9 @@ section {
   animation: fadeInCard 0.35s ease;
 }
 /* ─────────────────────────────────────────────────────────────────
-   Fondo "luces" (ver components/layout/PosterWall.tsx): sin pósters,
-   solo focos de color difuminados que se mueven muy despacio.
+   Fondo de luces (ver components/layout/PosterWall.tsx): focos de
+   color difuminados que se mueven muy despacio.
    ───────────────────────────────────────────────────────────────── */
-
-.glow-lights {
-  display: none;
-}
-
-html[data-fondo="luces"] .glow-lights {
-  display: block;
-}
-
-html[data-fondo="luces"] .poster-wall-posters {
-  display: none;
-}
 
 .glow-light {
   position: absolute;

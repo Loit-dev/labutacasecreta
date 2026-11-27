@@ -117,8 +117,6 @@ export default function RootLayout({
   return (
     <html
       lang="es"
-      // data-fondo lo pone el script del <head> antes de hidratar
-      suppressHydrationWarning
       className={`
         ${geistSans.variable}
         ${manrope.variable}
@@ -127,16 +125,6 @@ export default function RootLayout({
         antialiased
       `}
     >
-      <head>
-        {/* Fondo de prueba: ?fondo=luces / ?fondo=posters, recordado en
-            este navegador. Va antes de pintar para que no parpadee (ver
-            components/layout/PosterWall.tsx). */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `try{var f=new URLSearchParams(location.search).get("fondo");if(f==="luces"||f==="posters")localStorage.setItem("lbs:fondo",f);var v=localStorage.getItem("lbs:fondo");if(v)document.documentElement.dataset.fondo=v}catch(e){}`,
-          }}
-        />
-      </head>
       <body className="min-h-full flex flex-col">
         <script
           type="application/ld+json"
