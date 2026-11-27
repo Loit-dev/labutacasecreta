@@ -28,6 +28,8 @@ import {
   PinIcon,
   ShareIcon,
 } from "@/components/icons/Icons";
+import Medal from "@/components/achievements/Medal";
+import { familyByKey } from "@/lib/achievements/catalog";
 
 type Props = {
   year: number;
@@ -610,6 +612,11 @@ function buildSlides(stats: WrappedStats): Slide[] {
                   key={`${a.key}-${a.level}`}
                   className={`${CARD} flex items-center gap-3 !p-3`}
                 >
+                  <Medal
+                    icon={familyByKey(a.key)?.icon ?? "star"}
+                    tier={a.level}
+                    size={38}
+                  />
                   <div>
                     <p className="text-sm font-extrabold text-white">
                       {a.familyName}
