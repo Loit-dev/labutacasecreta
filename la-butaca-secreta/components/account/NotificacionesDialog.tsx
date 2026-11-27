@@ -8,6 +8,7 @@ import { HeartIcon } from "@/components/icons/Icons";
 import { useDialog } from "@/hooks/useDialog";
 import {
   fetchNotifications,
+  markNotificationsSeenOnServer,
   type NotificationItem,
 } from "@/lib/supabase/notifications";
 import { respondFriendRequest } from "@/lib/supabase/friends";
@@ -36,6 +37,7 @@ export default function NotificacionesDialog({ userId, onClose }: Props) {
   useEffect(() => {
     fetchNotifications(userId).then(setItems);
     markNotificationsSeenNow();
+    markNotificationsSeenOnServer();
   }, [userId]);
 
   useEffect(() => {
@@ -234,9 +236,10 @@ export default function NotificacionesDialog({ userId, onClose }: Props) {
 
             if (item.kind === "list_like") {
               return (
-                <div
+                <a
                   key={`like-${item.listId}-${item.createdAt}-${index}`}
-                  className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-3"
+                  href={`/lista/${item.listId}`}
+                  className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-3 transition-colors hover:bg-white/[0.06] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                 >
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-500/15 text-red-400">
                     <HeartIcon size={20} filled />
@@ -248,15 +251,16 @@ export default function NotificacionesDialog({ userId, onClose }: Props) {
                     le ha dado me gusta a tu lista{" "}
                     <span className="font-bold">«{item.listName}»</span>
                   </p>
-                </div>
+                </a>
               );
             }
 
             if (item.kind === "list_comment") {
               return (
-                <div
+                <a
                   key={`com-${item.id}`}
-                  className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-3"
+                  href={`/lista/${item.listId}#comentarios`}
+                  className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-3 transition-colors hover:bg-white/[0.06] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                 >
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-300/15 text-amber-300">
                     <CommentIcon />
@@ -273,7 +277,7 @@ export default function NotificacionesDialog({ userId, onClose }: Props) {
                       «{item.body}»
                     </p>
                   </div>
-                </div>
+                </a>
               );
             }
 

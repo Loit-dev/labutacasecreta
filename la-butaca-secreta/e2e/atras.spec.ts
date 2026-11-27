@@ -10,7 +10,7 @@ test.describe("Volver a la pregunta anterior", () => {
 
     await page.goto("/");
 
-    await page.getByRole("button", { name: /^Solo/ }).click();
+    await page.getByRole("button", { name: /^Butaca 1 · Solo/ }).click();
 
     const log = page.locator('[role="log"] > div');
 

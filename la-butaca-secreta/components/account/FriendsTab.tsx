@@ -11,7 +11,11 @@ import { fetchFeed, groupFeedItems, type FeedGroup, type FeedItem } from "@/lib/
 import { fetchFollowingIds, fetchFollowerIds } from "@/lib/supabase/follows";
 import { fetchFriends } from "@/lib/supabase/friends";
 import { fetchProfilesByUserIds, type ProfileRow } from "@/lib/supabase/profiles";
-import { fetchNotifications, countBadge } from "@/lib/supabase/notifications";
+import {
+  countBadge,
+  fetchNotifications,
+  lastSeenAt,
+} from "@/lib/supabase/notifications";
 import { fetchWatchedHistory, type WatchedRow } from "@/lib/supabase/summary";
 
 import UsernameSetup from "./UsernameSetup";
@@ -96,7 +100,7 @@ function FriendsContent({
       ]);
 
     setFeed(feedResult);
-    setBadge(countBadge(notifications));
+    setBadge(countBadge(notifications, await lastSeenAt()));
     setMyHistory(myHistoryRows);
 
     const [followingProfiles, followerProfiles] = await Promise.all([

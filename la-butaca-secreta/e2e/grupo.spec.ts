@@ -47,7 +47,7 @@ test.describe("Modo acompañado", () => {
     await page.goto("/");
 
     await expect(
-      page.getByRole("button", { name: /^Solo/ })
+      page.getByRole("button", { name: /^Butaca 1 · Solo/ })
     ).toBeVisible();
     await expect(
       page.getByRole("button", { name: /Acompañado/ })
@@ -67,7 +67,7 @@ test.describe("Modo acompañado", () => {
     const requests = await mockApi(page);
 
     await page.goto("/");
-    await page.getByRole("button", { name: /^Solo/ }).click();
+    await page.getByRole("button", { name: /^Butaca 1 · Solo/ }).click();
 
     for (let step = 0; step < 15; step++) {
       if ((await page.locator("#recommendations").count()) > 0) break;

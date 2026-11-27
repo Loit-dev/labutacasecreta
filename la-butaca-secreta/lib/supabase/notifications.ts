@@ -187,9 +187,10 @@ export async function fetchNotifications(
  * y comentarios en tus listas desde la última vez que se abrió la pantalla de
  * notificaciones.
  */
-export function countBadge(items: NotificationItem[]): number {
-  const lastSeen = getNotificationsLastSeenAt();
-
+export function countBadge(
+  items: NotificationItem[],
+  lastSeen: number = getNotificationsLastSeenAt()
+): number {
   return items.filter((item) => {
     if (
       item.kind === "new_follower" ||
@@ -201,4 +202,64 @@ export function countBadge(items: NotificationItem[]): number {
 
     return true;
   }).length;
+}
+
+// ─── "Visto" guardado en la cuenta (supabase/listas_v2.sql) ─────────
+// Antes solo se guardaba en cada dispositivo (lib/notificationsSeen.ts),
+// así que lo visto en el móvil seguía saliendo como nuevo en el
+// ordenador. Ahora se guarda también en la cuenta y se usa lo más
+// reciente de las dos marcas.
+
+/** Última vez que la cuenta abrió Notificaciones (ms), o 0. */
+export async function fetchServerLastSeen(): Promise<number> {
+  if (!supabase) return 0;
+
+  try {
+    const { data, error } = await supabase.rpc("my_notifications_last_seen");
+
+    if (error || !data) return 0;
+
+    const time = new Date(data as string).getTime();
+
+    return Number.isFinite(time) ? time : 0;
+  } catch {
+    return 0;
+  }
+}
+
+/** Marca las notificaciones como vistas en la cuenta. */
+export async function markNotificationsSeenOnServer(): Promise<void> {
+  if (!supabase) return;
+
+  try {
+    await supabase.rpc("mark_notifications_seen");
+  } catch {
+    // Si falla, queda la marca del dispositivo; no pasa nada.
+  }
+}
+
+/** Marca más reciente entre la del dispositivo y la de la cuenta. */
+export async function lastSeenAt(): Promise<number> {
+  const server = await fetchServerLastSeen();
+
+  return Math.max(getNotificationsLastSeenAt(), server);
+}
+
+/**
+ * Número de la bolita en una sola consulta (my_notification_badge).
+ * null si la función aún no existe: entonces se calcula como antes,
+ * leyendo todas las notificaciones.
+ */
+export async function fetchBadgeCount(): Promise<number | null> {
+  if (!supabase) return null;
+
+  try {
+    const { data, error } = await supabase.rpc("my_notification_badge");
+
+    if (error || typeof data !== "number") return null;
+
+    return data;
+  } catch {
+    return null;
+  }
 }

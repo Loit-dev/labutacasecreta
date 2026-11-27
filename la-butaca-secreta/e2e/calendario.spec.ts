@@ -115,7 +115,7 @@ test.describe("Calendario de estrenos", () => {
     await expect(dialog).toBeHidden();
 
     await expect(
-      page.getByRole("button", { name: /^Solo/ })
+      page.getByRole("button", { name: /^Butaca 1 · Solo/ })
     ).toBeVisible();
   });
 
@@ -189,7 +189,7 @@ test.describe("Calendario de estrenos", () => {
 
     await page.goto("/");
 
-    await page.getByRole("button", { name: /^Solo/ }).click();
+    await page.getByRole("button", { name: /^Butaca 1 · Solo/ }).click();
 
     const first = page.locator("[data-options] button").first();
 

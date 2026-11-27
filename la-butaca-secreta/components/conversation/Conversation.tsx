@@ -43,6 +43,14 @@ const TABS = [
 
 type TabId = (typeof TABS)[number][0];
 
+// Valor de ?tab= de cada pestaña (el Recomendador es la portada sin más).
+const TAB_PARAMS: Record<TabId, string | null> = {
+  recommender: null,
+  calendar: "calendario",
+  search: "buscar",
+  lists: "listas",
+};
+
 type Props = {
   // Calendario de hoy, ya traído en el servidor (ver app/page.tsx) para
   // que la pestaña Calendario no dependa de una petición desde el
@@ -81,12 +89,11 @@ export default function Conversation({ initialCalendar }: Props) {
     if (param === "calendario") {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setTab("calendar");
-       
       setCalendarOpened(true);
+    } else if (param === "buscar") {
+      setTab("search");
     } else if (param === "listas") {
-       
       setTab("lists");
-       
       setListsOpened(true);
     }
   }, []);
@@ -117,6 +124,17 @@ export default function Conversation({ initialCalendar }: Props) {
       track("lists_open");
       setListsOpened(true);
     }
+
+    // La pestaña queda en la dirección (sin añadir entradas al
+    // historial): al volver con "atrás" desde una lista (/lista/[id])
+    // se abre otra vez Listas en vez del Recomendador.
+    const url = new URL(window.location.href);
+    const param = TAB_PARAMS[id];
+
+    if (param) url.searchParams.set("tab", param);
+    else url.searchParams.delete("tab");
+
+    window.history.replaceState(window.history.state, "", url);
 
     setTab(id);
   }

@@ -5,7 +5,12 @@ import Link from "next/link";
 
 import { AccountIcon } from "@/components/conversation/TabIcons";
 import { useAuth } from "@/hooks/useAuth";
-import { countBadge, fetchNotifications } from "@/lib/supabase/notifications";
+import {
+  countBadge,
+  fetchBadgeCount,
+  fetchNotifications,
+  lastSeenAt,
+} from "@/lib/supabase/notifications";
 
 /**
  * Barra superior de la portada: logo + nombre centrados y, a la
@@ -27,9 +32,16 @@ export default function TopBar() {
 
     let cancelled = false;
 
-    fetchNotifications(userId).then((items) => {
-      if (!cancelled) setBadge(countBadge(items));
-    });
+    (async () => {
+      // Una sola consulta (supabase/listas_v2.sql); si aún no existe,
+      // como antes: leer todas las notificaciones y contarlas aquí.
+      const quick = await fetchBadgeCount();
+      const count =
+        quick ??
+        countBadge(await fetchNotifications(userId), await lastSeenAt());
+
+      if (!cancelled) setBadge(count);
+    })();
 
     return () => {
       cancelled = true;
