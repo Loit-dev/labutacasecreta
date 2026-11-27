@@ -32,6 +32,15 @@ export type NotificationItem =
       listId: string;
       listName: string;
       from: ProfileRow | null;
+    }
+  | {
+      kind: "list_comment";
+      id: string;
+      createdAt: string;
+      listId: string;
+      listName: string;
+      body: string;
+      from: ProfileRow | null;
     };
 
 /** Todo lo pendiente, ya combinado y ordenado, para la pantalla de Notificaciones. */
@@ -41,7 +50,7 @@ export async function fetchNotifications(
   if (!supabase) return [];
 
   try {
-    const [friendReqRes, listInviteRes, recRes, followerRes, listLikesRes] = await Promise.all([
+    const [friendReqRes, listInviteRes, recRes, followerRes, listLikesRes, listCommentsRes] = await Promise.all([
       supabase
         .from("friend_requests")
         .select("id, requester_id, created_at")
@@ -68,7 +77,22 @@ export async function fetchNotifications(
       // "Me gusta" en mis listas (supabase/notificaciones_likes.sql). Si
       // la función aún no existe, devuelve error y simplemente no hay.
       supabase.rpc("my_list_likes", { p_limit: 30 }),
+      // Comentarios en mis listas (supabase/notificaciones_comentarios.sql).
+      supabase.rpc("my_list_comments", { p_limit: 30 }),
     ]);
+
+    const listComments = Array.isArray(listCommentsRes.data)
+      ? (listCommentsRes.data as {
+          comment_id: string;
+          list_id: string;
+          list_name: string;
+          author_id: string;
+          username: string | null;
+          display_name: string | null;
+          body: string;
+          created_at: string;
+        }[])
+      : [];
 
     const listLikes = Array.isArray(listLikesRes.data)
       ? (listLikesRes.data as {
@@ -135,6 +159,17 @@ export async function fetchNotifications(
           ? { userId: r.liker_id, username: r.username, displayName: r.display_name }
           : null,
       })),
+      ...listComments.map((r) => ({
+        kind: "list_comment" as const,
+        id: r.comment_id,
+        createdAt: r.created_at,
+        listId: r.list_id,
+        listName: r.list_name,
+        body: r.body,
+        from: r.username
+          ? { userId: r.author_id, username: r.username, displayName: r.display_name }
+          : null,
+      })),
     ];
 
     return items.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
@@ -148,15 +183,19 @@ export async function fetchNotifications(
 /**
  * Número para la bolita del icono: solicitudes de amistad +
  * invitaciones a listas + recomendaciones (siempre cuentan, se
- * "consumen" al responder/descartar) + seguidores nuevos y "me gusta"
- * en tus listas desde la última vez que se abrió la pantalla de
+ * "consumen" al responder/descartar) + seguidores nuevos, "me gusta"
+ * y comentarios en tus listas desde la última vez que se abrió la pantalla de
  * notificaciones.
  */
 export function countBadge(items: NotificationItem[]): number {
   const lastSeen = getNotificationsLastSeenAt();
 
   return items.filter((item) => {
-    if (item.kind === "new_follower" || item.kind === "list_like") {
+    if (
+      item.kind === "new_follower" ||
+      item.kind === "list_like" ||
+      item.kind === "list_comment"
+    ) {
       return new Date(item.createdAt).getTime() > lastSeen;
     }
 

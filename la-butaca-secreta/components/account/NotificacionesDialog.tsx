@@ -127,7 +127,8 @@ export default function NotificacionesDialog({ userId, onClose }: Props) {
             className="rounded-2xl bg-black/40 px-4 py-10 text-center text-sm text-zinc-300"
           >
             Sin novedades por aquí. Las solicitudes, invitaciones,
-            recomendaciones y «me gusta» en tus listas aparecerán aquí.
+            recomendaciones, «me gusta» y comentarios en tus listas
+            aparecerán aquí.
           </p>
         )}
 
@@ -251,6 +252,31 @@ export default function NotificacionesDialog({ userId, onClose }: Props) {
               );
             }
 
+            if (item.kind === "list_comment") {
+              return (
+                <div
+                  key={`com-${item.id}`}
+                  className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-3"
+                >
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-300/15 text-amber-300">
+                    <CommentIcon />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm text-white">
+                      <span className="font-bold">
+                        {item.from?.displayName ?? item.from?.username ?? "Alguien"}
+                      </span>{" "}
+                      ha comentado en tu lista{" "}
+                      <span className="font-bold">«{item.listName}»</span>
+                    </p>
+                    <p className="mt-0.5 line-clamp-3 break-words text-xs italic text-zinc-400">
+                      «{item.body}»
+                    </p>
+                  </div>
+                </div>
+              );
+            }
+
             // new_follower: solo informativa.
             return (
               <div
@@ -273,5 +299,18 @@ export default function NotificacionesDialog({ userId, onClose }: Props) {
       </div>
     </div>,
     document.body
+  );
+}
+
+function CommentIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M4.5 5.5h15a1 1 0 011 1v9a1 1 0 01-1 1H10l-4.5 3.5V16.5h-1a1 1 0 01-1-1v-9a1 1 0 011-1z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
