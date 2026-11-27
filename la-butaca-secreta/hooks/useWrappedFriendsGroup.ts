@@ -68,7 +68,9 @@ export function useWrappedFriendsGroup(
 
       if (cancelledRef.current) return;
 
-      setSummary(summarizeGroupCompatibility(entries));
+      // 6 (no 3): con barras en vez de filas de texto caben más sin
+      // apelotonar la pantalla, y así se ve a más amigos del grupo.
+      setSummary(summarizeGroupCompatibility(entries, 6));
       setLoading(false);
     }
 

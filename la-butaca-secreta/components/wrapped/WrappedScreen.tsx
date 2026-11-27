@@ -1385,33 +1385,31 @@ function FriendsGroupSlide({
   }
 
   return (
-    <div className="flex h-full flex-col justify-center gap-4">
+    <div className="flex h-full flex-col justify-center gap-3">
       <Eyebrow>Tu grupo de cine</Eyebrow>
       <h2
-        className="marquee-font text-[42px] leading-[0.95] text-white"
+        className="marquee-font text-[32px] leading-[0.95] text-white"
         style={DISPLAY_TRACKING}
       >
-        {friendCount} {friendCount === 1 ? "amigo" : "amigos"}.
-        <br />
-        ¿Mismo gusto?
+        {friendCount} {friendCount === 1 ? "amigo" : "amigos"}. ¿Mismo gusto?
       </h2>
       <div
-        className={`${CARD} flex items-center gap-4 border-amber-400/25 bg-amber-400/22`}
+        className={`${CARD} !p-3 flex items-center gap-3 border-amber-400/25 bg-amber-400/22`}
       >
         <p
-          className="marquee-font text-[40px] text-amber-300"
+          className="marquee-font text-[32px] text-amber-300"
           style={DISPLAY_TRACKING}
         >
           {summary.groupAveragePercent}%
         </p>
-        <p className="text-sm text-zinc-300">
+        <p className="text-xs text-zinc-300">
           Compatibilidad media con tu grupo ({summary.readyCount} de{" "}
           {friendCount})
         </p>
       </div>
 
       {summary.top.length > 0 && (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-1.5">
           <p className="text-xs font-bold uppercase tracking-wide text-zinc-400">
             Tus mejores coincidencias
           </p>
@@ -1425,21 +1423,27 @@ function FriendsGroupSlide({
           {summary.top.map((entry, i) => (
             <div
               key={entry.userId}
-              className={`flex items-center gap-3 rounded-xl border px-3 py-2 ${
-                i === 0
-                  ? "border-amber-400/40 bg-amber-400/10"
-                  : "border-white/10 bg-white/[0.1]"
-              }`}
+              className="relative h-10 overflow-hidden rounded-xl border border-white/10 bg-white/[0.06]"
             >
-              <span className="marquee-font w-5 text-base text-zinc-400">
-                {i + 1}
-              </span>
-              <span className="flex-1 truncate text-sm font-bold text-white">
-                {entry.name}
-              </span>
-              <span className="marquee-font text-lg text-amber-300">
-                {entry.percent}%
-              </span>
+              <div
+                className={`absolute inset-y-0 left-0 rounded-xl ${
+                  i === 0
+                    ? "bg-gradient-to-r from-red-600 to-amber-400"
+                    : "bg-gradient-to-r from-red-600/40 to-amber-400/55"
+                }`}
+                style={{ width: `${Math.max(10, entry.percent)}%` }}
+              />
+              <div className="relative flex h-full items-center gap-2 px-3">
+                <span className="marquee-font w-4 text-sm text-zinc-300">
+                  {i + 1}
+                </span>
+                <span className="flex-1 truncate text-sm font-bold text-white">
+                  {entry.name}
+                </span>
+                <span className="marquee-font text-base text-white">
+                  {entry.percent}%
+                </span>
+              </div>
             </div>
           ))}
         </div>
