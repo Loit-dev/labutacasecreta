@@ -1,4 +1,6 @@
-import Image from "next/image";
+
+import AfterLoad from "./AfterLoad";
+import MobilePosterCanvas from "./MobilePosterCanvas";
 
 /**
  * Fondo de la web: luces degradadas de sala de cine (focos ámbar y
@@ -21,97 +23,63 @@ export default function PosterWall({ posters = false }: { posters?: boolean }) {
       </div>
 
       {posters && (
-        <div className="opacity-45">
-          {/* DESKTOP */}
-          <div className="hidden lg:block">
-            {/* IZQUIERDA */}
-            <div className="pointer-events-none fixed left-0 top-0 h-screen w-[800px] overflow-hidden">
-              <div
-                className="absolute left-[-20px] top-[-20px] h-[700px] w-[500px] rotate-[-10deg] rounded-2xl bg-cover bg-center opacity-18"
-                style={{
-                  backgroundImage: "url('/posters/dune.jpg')",
-                }}
-              />
+        <AfterLoad>
+          <div className="opacity-45">
+            {/* DESKTOP */}
+            <div className="hidden lg:block">
+              {/* IZQUIERDA */}
+              <div className="pointer-events-none fixed left-0 top-0 h-screen w-[800px] overflow-hidden">
+                <div
+                  className="absolute left-[-20px] top-[-20px] h-[700px] w-[500px] rotate-[-10deg] rounded-2xl bg-cover bg-center opacity-18"
+                  style={{
+                    backgroundImage: "url('/posters/dune.jpg')",
+                  }}
+                />
 
-              <div
-                className="absolute left-[90px] top-[620px] h-[620px] w-[450px] rotate-[6deg] rounded-2xl bg-cover bg-center opacity-15"
-                style={{
-                  backgroundImage: "url('/posters/dark.jpg')",
-                }}
-              />
+                <div
+                  className="absolute left-[90px] top-[620px] h-[620px] w-[450px] rotate-[6deg] rounded-2xl bg-cover bg-center opacity-15"
+                  style={{
+                    backgroundImage: "url('/posters/dark.jpg')",
+                  }}
+                />
 
-              <div
-                className="absolute left-[10px] top-[1280px] h-[650px] w-[480px] rotate-[-6deg] rounded-2xl bg-cover bg-center opacity-16"
-                style={{
-                  backgroundImage: "url('/posters/thebear.jpg')",
-                }}
-              />
+                <div
+                  className="absolute left-[10px] top-[1280px] h-[650px] w-[480px] rotate-[-6deg] rounded-2xl bg-cover bg-center opacity-16"
+                  style={{
+                    backgroundImage: "url('/posters/thebear.jpg')",
+                  }}
+                />
+              </div>
+
+              {/* DERECHA */}
+              <div className="pointer-events-none fixed right-0 top-0 h-screen w-[800px] overflow-hidden">
+                <div
+                  className="absolute right-[-20px] top-[-20px] h-[700px] w-[500px] rotate-[10deg] rounded-2xl bg-cover bg-center opacity-18"
+                  style={{
+                    backgroundImage: "url('/posters/interstellar.jpg')",
+                  }}
+                />
+
+                <div
+                  className="absolute right-[90px] top-[620px] h-[620px] w-[450px] rotate-[-6deg] rounded-2xl bg-cover bg-center opacity-15"
+                  style={{
+                    backgroundImage: "url('/posters/lastofus.jpg')",
+                  }}
+                />
+
+                <div
+                  className="absolute right-[10px] top-[1280px] h-[650px] w-[480px] rotate-[6deg] rounded-2xl bg-cover bg-center opacity-16"
+                  style={{
+                    backgroundImage: "url('/posters/shogun.jpg')",
+                  }}
+                />
+              </div>
             </div>
 
-            {/* DERECHA */}
-            <div className="pointer-events-none fixed right-0 top-0 h-screen w-[800px] overflow-hidden">
-              <div
-                className="absolute right-[-20px] top-[-20px] h-[700px] w-[500px] rotate-[10deg] rounded-2xl bg-cover bg-center opacity-18"
-                style={{
-                  backgroundImage: "url('/posters/interstellar.jpg')",
-                }}
-              />
-
-              <div
-                className="absolute right-[90px] top-[620px] h-[620px] w-[450px] rotate-[-6deg] rounded-2xl bg-cover bg-center opacity-15"
-                style={{
-                  backgroundImage: "url('/posters/lastofus.jpg')",
-                }}
-              />
-
-              <div
-                className="absolute right-[10px] top-[1280px] h-[650px] w-[480px] rotate-[6deg] rounded-2xl bg-cover bg-center opacity-16"
-                style={{
-                  backgroundImage: "url('/posters/shogun.jpg')",
-                }}
-              />
-            </div>
+            {/* MÓVIL Y TABLET: en un canvas (ver MobilePosterCanvas) */}
+            <MobilePosterCanvas />
           </div>
-
-          {/* MÓVIL Y TABLET */}
-          <div className="fixed inset-0 lg:hidden overflow-hidden pointer-events-none">
-            <div className="absolute left-[-120px] top-0 h-[420px] w-[280px] overflow-hidden rotate-[-15deg] rounded-2xl opacity-35 blur-[1px]">
-              <Image
-                src="/posters/dune.jpg"
-                alt=""
-                fill
-                priority
-                sizes="280px"
-                className="object-cover"
-              />
-            </div>
-
-            <div className="absolute right-[-120px] top-[80px] h-[420px] w-[280px] overflow-hidden rotate-[15deg] rounded-2xl opacity-35 blur-[1px]">
-              <Image
-                src="/posters/interstellar.jpg"
-                alt=""
-                fill
-                priority
-                sizes="280px"
-                className="object-cover"
-              />
-            </div>
-
-            <div
-              className="absolute left-[-80px] bottom-[120px] h-[380px] w-[260px] rotate-[12deg] rounded-2xl bg-cover bg-center opacity-30 blur-[1px]"
-              style={{
-                backgroundImage: "url('/posters/shogun.jpg')",
-              }}
-            />
-
-            <div
-              className="absolute right-[-80px] bottom-0 h-[380px] w-[260px] rotate-[-12deg] rounded-2xl bg-cover bg-center opacity-30 blur-[1px]"
-              style={{
-                backgroundImage: "url('/posters/thebear.jpg')",
-              }}
-            />
-          </div>
-        </div>
+        </AfterLoad>
       )}
 
       {/* Glow cinematográfico */}

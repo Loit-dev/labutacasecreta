@@ -70,7 +70,16 @@ test.describe("Modo acompañado", () => {
     await page.getByRole("button", { name: /^Butaca 1 · Solo/ }).click();
 
     for (let step = 0; step < 15; step++) {
-      if ((await page.locator("#recommendations").count()) > 0) break;
+      // Esperar a que salgan las opciones del paso (o ya los resultados)
+      // antes de buscar «Infantil y familiar»: si no, a veces se miraba
+      // antes de tiempo y se elegía otra opción.
+      const results = page.locator("#recommendations");
+
+      await expect(
+        page.locator("[data-options] button").first().or(results)
+      ).toBeVisible();
+
+      if ((await results.count()) > 0) break;
 
       const kids = page
         .locator("[data-options] button")
@@ -83,7 +92,6 @@ test.describe("Modo acompañado", () => {
       const log = page.locator('[role="log"] > div');
       const before = await log.count();
 
-      await options.first().waitFor();
       await options.first().click();
 
       await expect

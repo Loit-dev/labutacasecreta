@@ -9,6 +9,7 @@ import {
 
 import GroupQuiz from "@/components/group/GroupQuiz";
 import TopBar from "@/components/layout/TopBar";
+import { useSwipeTabs } from "@/hooks/useSwipeTabs";
 import ListsFeed from "@/components/lists/ListsFeed";
 import PosterWall from "@/components/layout/PosterWall";
 import CalendarView, {
@@ -110,6 +111,14 @@ export default function Conversation({ initialCalendar }: Props) {
     setMode(next);
   }
 
+  // Deslizar el dedo a los lados cambia de pestaña (como en Mi cuenta)
+  const swipe = useSwipeTabs((direction) => {
+    const index = TABS.findIndex(([id]) => id === tab);
+    const next = TABS[index + direction];
+
+    if (next) selectTab(next[0]);
+  });
+
   function selectTab(id: TabId) {
     if (id === "calendar") {
       track("calendar_open");
@@ -176,6 +185,7 @@ export default function Conversation({ initialCalendar }: Props) {
         className="relative flex justify-center px-4 pb-4 pt-6 md:px-6 md:pb-4 md:pt-10"
       >
         <section
+          {...swipe}
           className="
             relative
             z-30
