@@ -9,6 +9,12 @@ type WatchedKey = {
   mediaType: "movie" | "tv";
 };
 
+// Una crítica larga no debería poder reventar la fila ni la tarjeta:
+// se corta por si acaso, tanto si se escribe al marcar "Ya la vi"
+// (saveWatched) como si se edita luego desde el Diario
+// (updateWatchedReview) — un textarea ya limita, esto es el cinturón.
+const MAX_REVIEW_LENGTH = 2000;
+
 type SaveWatchedArgs = {
   userId: string;
   tmdbId: number;
@@ -21,6 +27,12 @@ type SaveWatchedArgs = {
   seenAt?: string;
   /** Media de TMDb (0-10) en este momento, para el logro "Nota media". */
   tmdbVoteAverage?: number;
+  /**
+   * Reseña escrita de una tacada al marcar "Ya la vi" (RatingPrompt),
+   * en vez de tener que ir luego al Diario a escribirla aparte. Mismo
+   * límite que updateWatchedReview (MAX_REVIEW_LENGTH, más abajo).
+   */
+  review?: string;
 };
 
 /**
@@ -39,8 +51,11 @@ export async function saveWatched({
   posterUrl,
   seenAt,
   tmdbVoteAverage,
+  review,
 }: SaveWatchedArgs) {
   if (!supabase) return;
+
+  const trimmedReview = review?.trim().slice(0, MAX_REVIEW_LENGTH);
 
   try {
     await supabase.from("watched").upsert(
@@ -54,6 +69,11 @@ export async function saveWatched({
         seen_at: seenAt ?? new Date().toISOString(),
         poster_url: posterUrl ?? null,
         tmdb_vote_average: tmdbVoteAverage ?? null,
+        // Solo se manda si se ha escrito algo: así volver a abrir "Ya
+        // la vi" para solo tocar la nota (el campo de reseña empieza
+        // en blanco, no se precarga con lo que ya hubiera) nunca borra
+        // sin querer una reseña ya guardada antes desde el Diario.
+        ...(trimmedReview ? { review: trimmedReview } : {}),
       },
       { onConflict: "user_id,tmdb_id,media_type" }
     );
@@ -117,10 +137,6 @@ export async function updateWatchedSeenAt(
     return false;
   }
 }
-
-// Una crítica larga en el diario no debería poder reventar la fila ni
-// la tarjeta: se corta por si acaso, aunque el textarea ya limite.
-const MAX_REVIEW_LENGTH = 2000;
 
 /**
  * Cambia solo la reseña escrita de un "visto" ya guardado (el Diario

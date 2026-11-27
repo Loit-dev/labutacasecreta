@@ -76,7 +76,11 @@ export default function TitleActions({ type, title }: Props) {
     setShowRating(true);
   };
 
-  const confirmRating = (value: Rating | undefined, seenAt?: string) => {
+  const confirmRating = (
+    value: Rating | undefined,
+    seenAt?: string,
+    review?: string
+  ) => {
     addSeen(type, title.id);
     setSeen(true);
 
@@ -104,6 +108,7 @@ export default function TitleActions({ type, title }: Props) {
         posterUrl: title.poster,
         seenAt: seenAt ? dateInputToISO(seenAt) : undefined,
         tmdbVoteAverage: title.rating,
+        review,
       });
       notifyWatchedAction(title.genres);
     }

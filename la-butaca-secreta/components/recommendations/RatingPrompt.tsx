@@ -29,11 +29,17 @@ type Props = {
   /**
    * `seenAt` es la fecha elegida (YYYY-MM-DD, huso horario local), hoy
    * por defecto; se omite al editar una nota ya puesta, porque ahí no
-   * se toca la fecha (ver lib/supabase/watched.ts). Se llama como
+   * se toca la fecha (ver lib/supabase/watched.ts). `review` es la
+   * crítica escrita en el mismo diálogo (también se omite al editar:
+   * esa reseña se edita aparte, desde el Diario). Se llama como
    * mucho una vez por apertura del diálogo, sea cual sea la acción
    * que lo dispare (guardar, compartir, descargar...).
    */
-  onConfirm: (rating: Rating | undefined, seenAt?: string) => void;
+  onConfirm: (
+    rating: Rating | undefined,
+    seenAt?: string,
+    review?: string
+  ) => void;
   /** Cierra y desmonta el diálogo (botón "Guardar", la X, Escape o click fuera). */
   onClose: () => void;
   /**
@@ -59,6 +65,11 @@ const STAR_PATH =
   "M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z";
 
 const FILE_NAME = "ya-la-he-visto-la-butaca-secreta.png";
+
+// Mismo tope que EditReviewDialog.tsx / updateWatchedReview
+// (lib/supabase/watched.ts): es la misma reseña, solo que escrita
+// aquí mismo al marcar "Ya la vi" en vez de aparte desde el Diario.
+const MAX_REVIEW_LENGTH = 2000;
 
 // Tipografía de la web (la expone next/font como variable CSS), igual
 // que en ShareDialog.tsx / ShareProfileDialog.tsx.
@@ -89,6 +100,7 @@ export default function RatingPrompt({
   const [selected, setSelected] = useState<Rating | null>(initial ?? null);
 
   const [seenAt, setSeenAt] = useState(todayDateInput);
+  const [review, setReview] = useState("");
   const [confirmed, setConfirmed] = useState(false);
 
   const [copied, setCopied] = useState(false);
@@ -105,8 +117,12 @@ export default function RatingPrompt({
     if (confirmed) return;
 
     setConfirmed(true);
-    onConfirm(selected ?? undefined, editing ? undefined : seenAt);
-  }, [confirmed, onConfirm, selected, editing, seenAt]);
+    onConfirm(
+      selected ?? undefined,
+      editing ? undefined : seenAt,
+      editing ? undefined : review.trim() || undefined
+    );
+  }, [confirmed, onConfirm, selected, editing, seenAt, review]);
 
   const finish = useCallback(() => {
     ensureConfirmed();
@@ -362,6 +378,22 @@ export default function RatingPrompt({
               max={todayDateInput()}
               onChange={(event) => setSeenAt(event.target.value)}
               className="rounded-lg border border-zinc-700/80 bg-black/40 px-2 py-1 text-white [color-scheme:dark] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            />
+          </label>
+        )}
+
+        {!editing && (
+          <label className="mt-4 block text-left">
+            <span className="text-sm text-zinc-300">
+              Tu crítica <span className="text-zinc-500">(opcional)</span>
+            </span>
+            <textarea
+              value={review}
+              maxLength={MAX_REVIEW_LENGTH}
+              onChange={(event) => setReview(event.target.value)}
+              rows={3}
+              placeholder="¿Qué te ha parecido? Unas líneas bastan…"
+              className="mt-1.5 w-full resize-none rounded-xl border border-zinc-700/80 bg-black/40 px-3 py-2 text-sm text-white placeholder:text-zinc-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             />
           </label>
         )}

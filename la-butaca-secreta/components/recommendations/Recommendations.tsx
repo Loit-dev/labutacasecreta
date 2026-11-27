@@ -382,7 +382,11 @@ export default function Recommendations({
   // Confirma (o salta) la valoración al marcar "Ya la vi": guarda en
   // local y, si hay sesión, también en Supabase; luego marca como
   // vista como siempre.
-  const confirmRating = (rating: Rating | undefined, seenAt?: string) => {
+  const confirmRating = (
+    rating: Rating | undefined,
+    seenAt?: string,
+    review?: string
+  ) => {
     const movie = ratingFor;
 
     if (!movie) return;
@@ -410,6 +414,7 @@ export default function Recommendations({
         posterUrl: movie.poster,
         seenAt: seenAt ? dateInputToISO(seenAt) : undefined,
         tmdbVoteAverage: movie.rating,
+        review,
       });
       notifyWatchedAction(movie.genres);
     }
