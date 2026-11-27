@@ -7,7 +7,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { useDialog } from "@/hooks/useDialog";
 import { useWrapped } from "@/hooks/useWrapped";
 import { useWrappedCastHighlights } from "@/hooks/useWrappedCastHighlights";
-import { useWrappedFriendsGroup } from "@/hooks/useWrappedFriendsGroup";
+import {
+  fetchGroupCompatSummary,
+  useWrappedFriendsGroup,
+} from "@/hooks/useWrappedFriendsGroup";
 import { useWrappedTrendy } from "@/hooks/useWrappedTrendy";
 import { useWrappedYearRank } from "@/hooks/useWrappedYearRank";
 import { track } from "@/lib/analytics";
@@ -760,6 +763,9 @@ async function shareWrappedImage(
   try {
     const profile = session ? await fetchMyProfile(session.user.id) : null;
     const yearRank = await fetchYearRank(stats.year);
+    const groupCompat = session
+      ? await fetchGroupCompatSummary(session.user.id, watched)
+      : null;
 
     const blob = await createWrappedShareImage({
       siteName: SITE_NAME,
@@ -777,6 +783,8 @@ async function shareWrappedImage(
       topGenres: stats.topGenres,
       achievementHighlights: stats.achievementsThisYear,
       spotlightPosters: shareSpotlightPosters(watched, stats.year),
+      groupCompatibilityPercent:
+        groupCompat?.summary.groupAveragePercent ?? undefined,
       fontFamily: siteFont(),
     });
 
@@ -864,6 +872,9 @@ function FinalShareCard({
       const userId = session?.user.id;
       const profile = userId ? await fetchMyProfile(userId) : null;
       const yearRank = await fetchYearRank(stats.year);
+      const groupCompat = userId
+        ? await fetchGroupCompatSummary(userId, watched)
+        : null;
 
       const spotlightPosters = shareSpotlightPosters(watched, stats.year);
 
@@ -884,6 +895,8 @@ function FinalShareCard({
           topGenres: stats.topGenres,
           achievementHighlights: stats.achievementsThisYear,
           spotlightPosters,
+          groupCompatibilityPercent:
+            groupCompat?.summary.groupAveragePercent ?? undefined,
           fontFamily: siteFont(),
         });
 

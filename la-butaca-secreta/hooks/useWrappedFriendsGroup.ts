@@ -11,6 +11,47 @@ import {
 } from "@/lib/wrappedExtras";
 
 /**
+ * Mismo cálculo que usa el hook de abajo, pero como función suelta:
+ * la reutiliza también lib/wrappedShareImage.ts (vía WrappedScreen.tsx)
+ * para la burbuja de compatibilidad de grupo en la tarjeta final, que
+ * se genera fuera de la pantalla "Tu grupo de cine" y por tanto no
+ * pasa por el hook.
+ */
+export async function fetchGroupCompatSummary(
+  userId: string,
+  myHistory: WatchedRow[]
+): Promise<{ summary: GroupCompatSummary; friendCount: number }> {
+  const friends = await fetchFriends(userId);
+
+  if (friends.length === 0) {
+    return {
+      summary: { groupAveragePercent: null, readyCount: 0, top: [] },
+      friendCount: 0,
+    };
+  }
+
+  const entries = await Promise.all(
+    friends.map(async (friend) => {
+      const theirHistory = await fetchWatchedHistory(friend.userId);
+      const compat = computeCompatibility(myHistory, theirHistory);
+
+      return {
+        userId: friend.userId,
+        name: friend.displayName ?? friend.username,
+        percent: compat.status === "ready" ? compat.percent : null,
+      };
+    })
+  );
+
+  // 6 (no 3): con barras en vez de filas de texto caben más sin
+  // apelotonar la pantalla, y así se ve a más amigos del grupo.
+  return {
+    summary: summarizeGroupCompatibility(entries, 6),
+    friendCount: friends.length,
+  };
+}
+
+/**
  * "Tu grupo de cine" (lib/wrappedExtras.ts): reutiliza los amigos
  * aceptados (lib/supabase/friends.ts) y la compatibilidad 1:1 ya
  * existente (lib/compatibility.ts, igual que en FriendsTab) para
@@ -41,36 +82,15 @@ export function useWrappedFriendsGroup(
 
       setLoading(true);
 
-      const friends = await fetchFriends(userId);
-
-      if (cancelledRef.current) return;
-
-      setFriendCount(friends.length);
-
-      if (friends.length === 0) {
-        setSummary({ groupAveragePercent: null, readyCount: 0, top: [] });
-        setLoading(false);
-        return;
-      }
-
-      const entries = await Promise.all(
-        friends.map(async (friend) => {
-          const theirHistory = await fetchWatchedHistory(friend.userId);
-          const compat = computeCompatibility(myHistory, theirHistory);
-
-          return {
-            userId: friend.userId,
-            name: friend.displayName ?? friend.username,
-            percent: compat.status === "ready" ? compat.percent : null,
-          };
-        })
+      const { summary, friendCount } = await fetchGroupCompatSummary(
+        userId,
+        myHistory
       );
 
       if (cancelledRef.current) return;
 
-      // 6 (no 3): con barras en vez de filas de texto caben más sin
-      // apelotonar la pantalla, y así se ve a más amigos del grupo.
-      setSummary(summarizeGroupCompatibility(entries, 6));
+      setFriendCount(friendCount);
+      setSummary(summary);
       setLoading(false);
     }
 

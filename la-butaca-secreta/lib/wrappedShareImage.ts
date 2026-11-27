@@ -13,7 +13,9 @@
  * destacados del año (mismos colores de nivel que components/
  * achievements/Medal.tsx, simplificados a un círculo — sin la gema de
  * Diamante — para que se puedan dibujar en canvas); dos filas de
- * cifras (títulos/género/racha y horas de pantalla/logros); y el
+ * cifras (títulos/género/racha, y horas de pantalla/logros — con una
+ * 3ª cifra de compatibilidad de grupo si hay amigos con compatibilidad
+ * calculable, hooks/useWrappedFriendsGroup.ts); y el
  * "dato curioso" de comparativa con la comunidad como tarjeta (no
  * texto suelto), con el mismo tratamiento de más presencia que el
  * resto del Resumen.
@@ -62,6 +64,8 @@ export type WrappedShareOptions = {
   approxHours?: number;
   /** Insignias desbloqueadas de siempre (no solo este año). */
   achievementsTotalUnlocked?: number;
+  /** Media de compatibilidad con el grupo de amigos (hooks/useWrappedFriendsGroup.ts); sin amigos con compatibilidad calculable, se omite la cifra. */
+  groupCompatibilityPercent?: number;
   /** Datos de my_year_rank (supabase/resumen.sql) para el "dato curioso" de comparativa con la comunidad; sin los tres, se omite esa tarjeta. */
   communityPercentile?: number;
   communityTotalUsers?: number;
@@ -560,10 +564,9 @@ export function drawWrappedShareImage(
     ctx.fillText(line, x + statsW / 2, statsY + 100);
   });
 
-  // ---------- Segunda fila: horas de pantalla y logros ----------
+  // ---------- Segunda fila: horas de pantalla, logros y, si la hay,
+  // compatibilidad de grupo (3 columnas en vez de 2) ----------
   const stats2Y = statsY + statsH + 24;
-  const stats2Cols = 2;
-  const stats2W = (gridW - statsGap * (stats2Cols - 1)) / stats2Cols;
   const stats2H = 120;
 
   const stats2: [string, string, string][] = [
@@ -580,6 +583,20 @@ export function drawWrappedShareImage(
       "#fde68a",
     ],
   ];
+
+  // 3ª columna solo si hay compatibilidad de grupo calculable (no
+  // todas las cuentas tienen amigos, o amigos con suficientes
+  // valoraciones en común) — si no, se queda en 2, como antes.
+  if (options.groupCompatibilityPercent !== undefined) {
+    stats2.push([
+      "COMPATIBILIDAD GRUPO",
+      `${options.groupCompatibilityPercent}%`,
+      "#f472b6",
+    ]);
+  }
+
+  const stats2Cols = stats2.length;
+  const stats2W = (gridW - statsGap * (stats2Cols - 1)) / stats2Cols;
 
   stats2.forEach(([label, value, color], i) => {
     const x = gridX + i * (stats2W + statsGap);
