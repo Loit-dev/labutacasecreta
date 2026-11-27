@@ -672,48 +672,9 @@ export function drawWrappedShareImage(
     afterStatsY = cardTop + cardH;
   }
 
-  // ---------- Agradecimiento: cierre cálido tipo "créditos de cine",
-  // no otra tarjeta con borde más (para variar un poco el ritmo visual
-  // antes del pie) — rellena el hueco que dejó quitar la racha de
-  // arriba (ahora solo en la 2ª imagen). ----------
-  const thanksTop = afterStatsY + 44;
-
-  const ruleW = 120;
-
-  ctx.strokeStyle = "rgba(252,211,77,0.5)";
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(W / 2 - ruleW / 2, thanksTop);
-  ctx.lineTo(W / 2 + ruleW / 2, thanksTop);
-  ctx.stroke();
-
-  ctx.fillStyle = "#fde68a";
-  ctx.font = `800 32px ${font}`;
-
-  const thanksLines = wrapLines(
-    (text) => ctx.measureText(text).width,
-    options.displayName
-      ? `Gracias por estar aquí este ${options.year}, ${options.displayName}.`
-      : `Gracias por estar aquí este ${options.year}.`,
-    gridW - 40,
-    2
-  );
-
-  thanksLines.forEach((line, i) => {
-    ctx.fillText(line, W / 2, thanksTop + 54 + i * 38);
-  });
-
-  const afterThanksTextY = thanksTop + 54 + (thanksLines.length - 1) * 38;
-
-  ctx.fillStyle = "#d4d4d8";
-  ctx.font = `500 26px ${font}`;
-  ctx.fillText(
-    "Nos vemos en las próximas sesiones. 🎬",
-    W / 2,
-    afterThanksTextY + 40
-  );
-
-  afterStatsY = afterThanksTextY + 40;
+  // El agradecimiento festivo vive ahora en la 2ª imagen
+  // (lib/wrappedShareImage2.ts), más grande y con aspecto navideño —
+  // aquí se queda solo el pie, como antes de añadirlo.
 
   // ---------- Pie ----------
   const url = options.siteUrl.replace(/^https?:\/\//, "");

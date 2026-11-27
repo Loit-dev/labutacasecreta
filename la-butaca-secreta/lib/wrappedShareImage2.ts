@@ -426,6 +426,102 @@ export function drawWrappedShareImageExtra(
     afterTilesY = cardTop + cardH;
   }
 
+  // ---------- Agradecimiento festivo: aquí (no en la 1ª imagen) y a
+  // lo grande — aprovecha el hueco que suele quedar libre en esta 2ª
+  // imagen (menos secciones que la primera) para un cierre con
+  // aspecto de guirnalda de luces, antes del pie con la URL. ----------
+  const festiveTop = afterTilesY + 56;
+
+  // Guirnalda: un cable curvo con bombillas de colores navideños.
+  const wireY1 = festiveTop;
+  const wireY2 = festiveTop + 26;
+
+  ctx.strokeStyle = "rgba(255,255,255,0.25)";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(gridX, wireY1);
+  ctx.quadraticCurveTo(W / 2, wireY2 + 16, gridX + gridW, wireY1);
+  ctx.stroke();
+
+  const bulbColors = ["#ef4444", "#facc15", "#22c55e", "#ef4444", "#facc15"];
+  const bulbCount = 9;
+
+  for (let i = 0; i < bulbCount; i++) {
+    const t = i / (bulbCount - 1);
+    const bx = gridX + t * gridW;
+    // misma curva que el cable (cuadrática), para que cuelguen de él
+    const by =
+      (1 - t) * (1 - t) * wireY1 +
+      2 * (1 - t) * t * (wireY2 + 16) +
+      t * t * wireY1;
+    const color = bulbColors[i % bulbColors.length];
+
+    ctx.save();
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 12;
+    ctx.beginPath();
+    ctx.arc(bx, by + 10, 7, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.restore();
+  }
+
+  const festiveHeadlineTop = wireY2 + 60;
+
+  ctx.font = `900 46px ${font}`;
+
+  const festiveLines = wrapLines(
+    (text) => ctx.measureText(text).width,
+    options.displayName
+      ? `¡Gracias por estar aquí este ${options.year}, ${options.displayName}!`
+      : `¡Gracias por estar aquí este ${options.year}!`,
+    gridW - 20,
+    2
+  );
+
+  const festiveLineH = 54;
+  const festiveGradient = ctx.createLinearGradient(gridX, 0, gridX + gridW, 0);
+
+  festiveGradient.addColorStop(0, "#fde68a");
+  festiveGradient.addColorStop(0.5, "#fbbf24");
+  festiveGradient.addColorStop(1, "#f87171");
+
+  ctx.save();
+  ctx.shadowColor = "rgba(0,0,0,0.5)";
+  ctx.shadowBlur = 20;
+  ctx.fillStyle = festiveGradient;
+
+  festiveLines.forEach((line, i) => {
+    ctx.fillText(
+      line,
+      W / 2,
+      festiveHeadlineTop + 40 + i * festiveLineH
+    );
+  });
+
+  ctx.restore();
+
+  const afterFestiveHeadlineY =
+    festiveHeadlineTop + 40 + (festiveLines.length - 1) * festiveLineH;
+
+  ctx.fillStyle = "#bbf7d0";
+  ctx.font = `700 30px ${font}`;
+  ctx.fillText(
+    "🎄 Feliz Navidad y próspero año nuevo. ✨",
+    W / 2,
+    afterFestiveHeadlineY + 50
+  );
+
+  ctx.fillStyle = "#d4d4d8";
+  ctx.font = `500 26px ${font}`;
+  ctx.fillText(
+    "Nos vemos en las próximas sesiones. 🍿",
+    W / 2,
+    afterFestiveHeadlineY + 90
+  );
+
+  afterTilesY = afterFestiveHeadlineY + 90;
+
   // ---------- Pie ----------
   const url = options.siteUrl.replace(/^https?:\/\//, "");
 

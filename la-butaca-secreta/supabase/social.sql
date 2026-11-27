@@ -383,6 +383,14 @@ create policy "reports: crear"
 -- en sí (quién sigue a quién), solo tres números — "follows: leer lo
 -- propio" y "friend_requests: leer lo propio" no dejarían a un
 -- desconocido leer esas filas directamente.
+--
+-- friends_count cuenta personas DISTINTAS (no filas): nada impide que
+-- A pida amistad a B y, por separado, B se la pida a A antes de ver
+-- la de A — eso deja dos filas 'accepted' (una por dirección) para la
+-- misma amistad. Antes se contaban las filas tal cual, así que ese
+-- caso sumaba 2 por una sola persona — de ahí que este número pudiera
+-- ir por delante del "Amigos" de FriendsTab.tsx (fetchFriends, que sí
+-- resuelve a perfiles y por tanto ya deduplicaba sin querer).
 create or replace function public.social_counts(p_user_id uuid)
 returns table (
   following_count integer,
@@ -398,7 +406,11 @@ as $$
     (select count(*) from public.follows where follower_id = p_user_id)::integer,
     (select count(*) from public.follows where followee_id = p_user_id)::integer,
     (
-      select count(*) from public.friend_requests
+      select count(distinct case
+        when requester_id = p_user_id then addressee_id
+        else requester_id
+      end)
+      from public.friend_requests
       where status = 'accepted'
         and (requester_id = p_user_id or addressee_id = p_user_id)
     )::integer;
