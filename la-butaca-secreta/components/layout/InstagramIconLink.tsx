@@ -5,7 +5,7 @@ import { track } from "@/lib/analytics";
 /**
  * Icono (sin texto) a @labutacashhh, junto al logo de TMDb en el pie
  * de página. Antes vivía como pestaña fija en la barra de inicio,
- * pero ese hueco ahora lo usa el acceso a la cuenta (AccountTabLink).
+ * pero ese hueco ahora lo usa el acceso a la cuenta (ahora la barra superior, TopBar).
  */
 export default function InstagramIconLink() {
   return (

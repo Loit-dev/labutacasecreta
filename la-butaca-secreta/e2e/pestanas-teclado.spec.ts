@@ -63,15 +63,15 @@ test.describe("Navegación por teclado de las pestañas", () => {
     const recommenderTab = page.getByRole("tab", {
       name: /Recomendador/,
     });
-    const searchTab = page.getByRole("tab", {
-      name: /Buscar/,
+    const listsTab = page.getByRole("tab", {
+      name: /Listas/,
     });
 
     await recommenderTab.focus();
 
     await page.keyboard.press("End");
-    await expect(searchTab).toBeFocused();
-    await expect(searchTab).toHaveAttribute("aria-selected", "true");
+    await expect(listsTab).toBeFocused();
+    await expect(listsTab).toHaveAttribute("aria-selected", "true");
 
     await page.keyboard.press("Home");
     await expect(recommenderTab).toBeFocused();

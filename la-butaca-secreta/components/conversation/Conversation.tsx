@@ -8,7 +8,8 @@ import {
 } from "react";
 
 import GroupQuiz from "@/components/group/GroupQuiz";
-import AccountTabLink from "@/components/layout/AccountTabLink";
+import TopBar from "@/components/layout/TopBar";
+import ListsFeed from "@/components/lists/ListsFeed";
 import PosterWall from "@/components/layout/PosterWall";
 import CalendarView, {
   type MonthData,
@@ -26,13 +27,21 @@ import {
 import Header from "./Header";
 import ModeSelect, { type Mode } from "./ModeSelect";
 import SoloChat from "./SoloChat";
-import { CalendarIcon, RecommenderIcon, SearchIcon } from "./TabIcons";
+import {
+  CalendarIcon,
+  ListsIcon,
+  RecommenderIcon,
+  SearchIcon,
+} from "./TabIcons";
 
 const TABS = [
   ["recommender", RecommenderIcon, "Recomendador"],
   ["calendar", CalendarIcon, "Calendario"],
   ["search", SearchIcon, "Buscar"],
+  ["lists", ListsIcon, "Listas"],
 ] as const;
+
+type TabId = (typeof TABS)[number][0];
 
 type Props = {
   // Calendario de hoy, ya traído en el servidor (ver app/page.tsx) para
@@ -46,11 +55,10 @@ export default function Conversation({ initialCalendar }: Props) {
 
   // Pestañas: el Recomendador no se desmonta al ir al Calendario, así
   // que al volver todo sigue como estaba
-  const [tab, setTab] = useState<"recommender" | "calendar" | "search">(
-    "recommender"
-  );
+  const [tab, setTab] = useState<TabId>("recommender");
 
   const [calendarOpened, setCalendarOpened] = useState(false);
+  const [listsOpened, setListsOpened] = useState(false);
 
   // Para el foco con teclado (flechas/Home/End) entre pestañas
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -68,14 +76,18 @@ export default function Conversation({ initialCalendar }: Props) {
   // Enlaces como /?tab=calendario (p. ej. desde la página 404) abren
   // directamente la pestaña del calendario
   useEffect(() => {
-    if (
-      new URLSearchParams(window.location.search).get("tab") ===
-      "calendario"
-    ) {
+    const param = new URLSearchParams(window.location.search).get("tab");
+
+    if (param === "calendario") {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setTab("calendar");
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+       
       setCalendarOpened(true);
+    } else if (param === "listas") {
+       
+      setTab("lists");
+       
+      setListsOpened(true);
     }
   }, []);
 
@@ -91,7 +103,7 @@ export default function Conversation({ initialCalendar }: Props) {
     setMode(next);
   }
 
-  function selectTab(id: (typeof TABS)[number][0]) {
+  function selectTab(id: TabId) {
     if (id === "calendar") {
       track("calendar_open");
       setCalendarOpened(true);
@@ -99,6 +111,11 @@ export default function Conversation({ initialCalendar }: Props) {
 
     if (id === "search") {
       track("search_open");
+    }
+
+    if (id === "lists") {
+      track("lists_open");
+      setListsOpened(true);
     }
 
     setTab(id);
@@ -134,9 +151,11 @@ export default function Conversation({ initialCalendar }: Props) {
     <>
       <PosterWall />
 
+      <TopBar />
+
       <main
         id="contenido"
-        className="relative flex justify-center px-4 py-4 md:px-6 md:pb-4 md:pt-10"
+        className="relative flex justify-center px-4 pb-4 pt-6 md:px-6 md:pb-4 md:pt-10"
       >
         <section
           className="
@@ -162,13 +181,6 @@ export default function Conversation({ initialCalendar }: Props) {
             lg:backdrop-blur-2xl
           "
         >
-          {tab === "recommender" && (
-            <img
-              src="/Logo.png"
-              alt="La Butaca Secreta"
-              className="absolute left-4 top-20 hidden md:block md:h-12 lg:top-24 lg:h-14 w-auto opacity-90"
-            />
-          )}
           <div
             role="tablist"
             aria-label="Secciones"
@@ -203,8 +215,6 @@ export default function Conversation({ initialCalendar }: Props) {
                 </button>
               );
             })}
-
-            <AccountTabLink />
           </div>
 
           <div
@@ -269,6 +279,16 @@ export default function Conversation({ initialCalendar }: Props) {
             <div className="mt-4">
               <SearchBox />
             </div>
+          </div>
+
+          <div
+            role="tabpanel"
+            id="panel-lists"
+            aria-labelledby="tab-lists"
+            hidden={tab !== "lists"}
+            className="px-5 py-5 md:px-8 md:py-6"
+          >
+            {listsOpened && <ListsFeed />}
           </div>
         </section>
       </main>

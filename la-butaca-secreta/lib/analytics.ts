@@ -40,6 +40,7 @@ export type EventName =
   | "search_query"
   | "search_result_click"
   | "search_open"
+  | "lists_open"
   | "instagram_click"
   | "summary_open"
   | "summary_no_data";
