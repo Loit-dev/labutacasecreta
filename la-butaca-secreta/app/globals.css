@@ -137,10 +137,14 @@ section {
 
 /* Tipografía de marquesina ("entrada de cine"): solo titulares y
    rótulos cortos (ver docs/BRAND.md). Letras más separadas porque
-   Bebas Neue es condensada y, sin tracking, se aprieta demasiado. */
+   Bebas Neue es condensada y, sin tracking, se aprieta demasiado.
+   Bebas Neue solo tiene un peso real (400): font-weight no la haría
+   más gruesa. El contorno con el mismo color del texto (currentColor)
+   sí engorda el trazo de verdad, como en los mockups de referencia. */
 .marquee-font {
   font-family: var(--font-marquee);
   letter-spacing: 0.04em;
+  -webkit-text-stroke: 0.6px currentColor;
 }
 
 /* Animación tarjetas recomendaciones */
