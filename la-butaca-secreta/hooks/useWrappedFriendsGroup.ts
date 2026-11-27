@@ -3,12 +3,19 @@
 import { useEffect, useRef, useState } from "react";
 
 import { computeCompatibility } from "@/lib/compatibility";
-import { fetchFriends } from "@/lib/supabase/friends";
+import { fetchFollowingIds } from "@/lib/supabase/follows";
+import { fetchProfilesByUserIds } from "@/lib/supabase/profiles";
 import { fetchWatchedHistory, type WatchedRow } from "@/lib/supabase/summary";
 import {
   summarizeGroupCompatibility,
   type GroupCompatSummary,
 } from "@/lib/wrappedExtras";
+
+// Hasta 10 (no ilimitado): deja sitio de sobra para un grupo normal
+// sin que la pantalla ("Tu grupo de cine", sin scroll) tenga que
+// recortar a nadie, pero sin dejar que una cuenta que sigue a
+// muchísima gente reviente el alto fijo de la pantalla.
+const GROUP_LIMIT = 10;
 
 /**
  * Mismo cálculo que usa el hook de abajo, pero como función suelta:
@@ -21,42 +28,49 @@ export async function fetchGroupCompatSummary(
   userId: string,
   myHistory: WatchedRow[]
 ): Promise<{ summary: GroupCompatSummary; friendCount: number }> {
-  const friends = await fetchFriends(userId);
+  // A quién sigues (lib/supabase/follows.ts), no solo "amigos"
+  // (solicitud aceptada en los dos sentidos, lib/supabase/friends.ts):
+  // el diario de alguien ya es visible por seguirle (RLS "watched:
+  // seguidores leen", supabase/social.sql), así que la compatibilidad
+  // se puede calcular igual sin que haga falta amistad mutua — y así
+  // "Tu grupo de cine" no deja fuera a quien sigues pero todavía no te
+  // sigue de vuelta ni ha aceptado una solicitud.
+  const followingIds = await fetchFollowingIds(userId);
 
-  if (friends.length === 0) {
+  if (followingIds.length === 0) {
     return {
       summary: { groupAveragePercent: null, readyCount: 0, top: [] },
       friendCount: 0,
     };
   }
 
+  const people = await fetchProfilesByUserIds(followingIds);
+
   const entries = await Promise.all(
-    friends.map(async (friend) => {
-      const theirHistory = await fetchWatchedHistory(friend.userId);
+    people.map(async (person) => {
+      const theirHistory = await fetchWatchedHistory(person.userId);
       const compat = computeCompatibility(myHistory, theirHistory);
 
       return {
-        userId: friend.userId,
-        name: friend.displayName ?? friend.username,
+        userId: person.userId,
+        name: person.displayName ?? person.username,
         percent: compat.status === "ready" ? compat.percent : null,
       };
     })
   );
 
-  // 6 (no 3): con barras en vez de filas de texto caben más sin
-  // apelotonar la pantalla, y así se ve a más amigos del grupo.
   return {
-    summary: summarizeGroupCompatibility(entries, 6),
-    friendCount: friends.length,
+    summary: summarizeGroupCompatibility(entries, GROUP_LIMIT),
+    friendCount: people.length,
   };
 }
 
 /**
- * "Tu grupo de cine" (lib/wrappedExtras.ts): reutiliza los amigos
- * aceptados (lib/supabase/friends.ts) y la compatibilidad 1:1 ya
- * existente (lib/compatibility.ts, igual que en FriendsTab) para
- * calcular la media de grupo y el top 3. Perezoso: solo se dispara
- * cuando se llega a esta pantalla, no bloquea el resto del Resumen.
+ * "Tu grupo de cine" (lib/wrappedExtras.ts): reutiliza a quién sigues
+ * (lib/supabase/follows.ts) y la compatibilidad 1:1 ya existente
+ * (lib/compatibility.ts, igual que en FriendsTab) para calcular la
+ * media de grupo y el top. Perezoso: solo se dispara cuando se llega
+ * a esta pantalla, no bloquea el resto del Resumen.
  */
 export function useWrappedFriendsGroup(
   userId: string | undefined,

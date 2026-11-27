@@ -1564,7 +1564,7 @@ function FriendsGroupSlide({
           Todavía vas solo.
         </h2>
         <p className="max-w-[30ch] text-base text-zinc-300">
-          Añade amigos desde tu perfil para ver cuánto coincidís este año.
+          Sigue a alguien desde tu perfil para ver cuánto coincidís este año.
         </p>
       </div>
     );
