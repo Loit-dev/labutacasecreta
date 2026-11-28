@@ -24,15 +24,25 @@ export default function WrappedRibbon() {
         right-0
         top-0
         z-40
-        h-28
-        w-28
+        h-[130px]
+        w-[130px]
         overflow-hidden
-        sm:h-32
-        sm:w-32
-        md:h-40
-        md:w-40
+        sm:h-[230px]
+        sm:w-[230px]
+        md:h-[260px]
+        md:w-[260px]
       "
     >
+      {/*
+        Números afinados a mano (ver scratchpad de la sesión): para que
+        la cinta no se vea "mal puesta", las dos puntas del rectángulo
+        rotado deben quedar DENTRO de esta caja (nunca recortadas por
+        su borde inferior o izquierdo, que no son una esquina real de
+        la tarjeta) y solo los lados largos deben asomar por el borde
+        superior y derecho (que sí son la esquina real, así que ahí
+        el corte queda natural, como si la cinta siguiera fuera de la
+        tarjeta).
+      */}
       <Link
         href="/mi-resumen"
         aria-label="Ver tu Resumen Anual 2026"
@@ -40,16 +50,16 @@ export default function WrappedRibbon() {
           marquee-font
           pointer-events-auto
           absolute
-          right-[-54px]
-          top-[26px]
+          right-[-14px]
+          top-[35px]
           flex
-          w-[260px]
+          w-[175px]
           rotate-45
           flex-col
           items-center
           whitespace-nowrap
           bg-gradient-to-r from-amber-400 via-orange-500 to-red-600
-          py-2
+          py-1
           text-center
           leading-none
           text-black
@@ -62,20 +72,20 @@ export default function WrappedRibbon() {
           focus-visible:outline-2
           focus-visible:outline-offset-2
           focus-visible:outline-white
-          sm:right-[-48px]
-          sm:top-[32px]
+          sm:right-[-26px]
+          sm:top-[62px]
           sm:w-[300px]
           sm:py-2.5
-          md:right-[-42px]
-          md:top-[40px]
+          md:right-[-30px]
+          md:top-[70px]
           md:w-[340px]
           md:py-3
         "
       >
-        <span className="text-[15px] font-bold tracking-wide sm:text-[17px] md:text-[19px]">
+        <span className="text-[10px] font-bold tracking-wide sm:text-[17px] md:text-[19px]">
           WRAPPED 2026
         </span>
-        <span className="text-[10px] tracking-wide sm:text-[11px] md:text-[12px]">
+        <span className="text-[7px] tracking-wide sm:text-[11px] md:text-[12px]">
           NO TE LO PIERDAS
         </span>
       </Link>
