@@ -1,5 +1,9 @@
 "use client";
 
+import { usePathname } from "next/navigation";
+
+import { loginHref } from "@/lib/returnTo";
+
 import { useEffect, useState } from "react";
 
 import { useAuth } from "@/hooks/useAuth";
@@ -147,6 +151,7 @@ type Props = {
 };
 
 export default function MiResumenScreen({ onNavigateTab }: Props) {
+  const pathname = usePathname();
   const { session, loading, available } = useAuth();
   const { state: achievementsState } = useAchievementsContext();
 
@@ -323,7 +328,7 @@ export default function MiResumenScreen({ onNavigateTab }: Props) {
         </p>
 
         <a
-          href="/entrar"
+          href={loginHref(pathname)}
           className="inline-block rounded-xl bg-red-600 px-5 py-3 text-sm font-semibold text-white hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
           Entrar

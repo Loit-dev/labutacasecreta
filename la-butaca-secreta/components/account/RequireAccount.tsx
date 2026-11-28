@@ -1,5 +1,9 @@
 "use client";
 
+import { usePathname } from "next/navigation";
+
+import { loginHref } from "@/lib/returnTo";
+
 import type { ReactNode } from "react";
 import type { Session } from "@supabase/supabase-js";
 
@@ -17,6 +21,7 @@ type Props = {
  * repetirlos en cada pestaña.
  */
 export default function RequireAccount({ what, children }: Props) {
+  const pathname = usePathname();
   const { session, loading, available } = useAuth();
 
   if (!available) {
@@ -41,7 +46,7 @@ export default function RequireAccount({ what, children }: Props) {
         </p>
 
         <a
-          href="/entrar"
+          href={loginHref(pathname)}
           className="inline-block rounded-xl bg-red-600 px-5 py-3 text-sm font-semibold text-white hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
           Entrar

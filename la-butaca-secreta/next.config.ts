@@ -21,17 +21,19 @@ import type { NextConfig } from "next";
  */
 const csp = [
   `default-src 'self'`,
-  `script-src 'self' 'unsafe-inline'`,
-  `style-src 'self' 'unsafe-inline'`,
+  `script-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/client`,
+  `style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style`,
   `img-src 'self' blob: data:`,
   `font-src 'self'`,
   // El login (Supabase) llama a su API por fetch desde el navegador
   // (enlace mágico, sesión, etc.); sin esto, connect-src 'self' lo
   // bloquearía con "Failed to fetch".
-  `connect-src 'self' https://*.supabase.co`,
+  `connect-src 'self' https://*.supabase.co https://accounts.google.com/gsi/`,
   // El botón "Ver tráiler" embebe un <iframe> de YouTube
   // (DetailsModal.tsx); sin esto, default-src 'self' lo bloquearía.
-  `frame-src https://www.youtube-nocookie.com`,
+  // "Continuar con Google" (Google Identity Services, GoogleButton.tsx)
+  // pinta su botón en un <iframe> de accounts.google.com.
+  `frame-src https://www.youtube-nocookie.com https://accounts.google.com/gsi/`,
   `object-src 'none'`,
   `base-uri 'self'`,
   `form-action 'self'`,
@@ -63,7 +65,9 @@ const nextConfig: NextConfig = {
           { key: "X-Frame-Options", value: "DENY" },
           {
             key: "Cross-Origin-Opener-Policy",
-            value: "same-origin",
+            // "allow-popups": la ventana de "Continuar con Google" se
+            // comunica con la página que la abre (lo pide Google).
+            value: "same-origin-allow-popups",
           },
           {
             key: "X-Content-Type-Options",

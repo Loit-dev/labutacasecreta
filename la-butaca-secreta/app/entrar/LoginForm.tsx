@@ -5,7 +5,9 @@ import { useState, type FormEvent } from "react";
 import { MailIcon } from "@/components/icons/Icons";
 import { supabase } from "@/lib/supabase/client";
 import { track } from "@/lib/analytics";
-import { saveReturnTo } from "@/lib/returnTo";
+import { safePath, saveReturnTo } from "@/lib/returnTo";
+
+import GoogleButton from "./GoogleButton";
 
 type Status = "idle" | "sending" | "sent" | "error";
 
@@ -16,13 +18,14 @@ type Props = {
 
 // A dónde volver después: la página indicada (redirectTo), o
 // /entrar?volver=/ruta. Ver lib/returnTo.ts.
-function rememberReturn(redirectTo?: string) {
+function returnPath(redirectTo?: string): string | null {
   let path: string | null = null;
 
   if (redirectTo) {
     try {
       const url = new URL(redirectTo, window.location.origin);
-      if (url.origin === window.location.origin) path = url.pathname + url.search;
+      if (url.origin === window.location.origin)
+        path = url.pathname + url.search;
     } catch {
       path = null;
     }
@@ -30,7 +33,11 @@ function rememberReturn(redirectTo?: string) {
     path = new URLSearchParams(window.location.search).get("volver");
   }
 
-  saveReturnTo(path);
+  return safePath(path);
+}
+
+function rememberReturn(redirectTo?: string) {
+  saveReturnTo(returnPath(redirectTo));
 }
 
 export default function LoginForm({ redirectTo }: Props = {}) {
@@ -38,6 +45,9 @@ export default function LoginForm({ redirectTo }: Props = {}) {
   const [status, setStatus] = useState<Status>("idle");
   const [googleError, setGoogleError] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
+  // Si el botón oficial de Google no carga, se usa el de antes
+  // (redirección a Supabase).
+  const [googleFallback, setGoogleFallback] = useState(false);
 
   if (!supabase) {
     return (
@@ -60,7 +70,7 @@ export default function LoginForm({ redirectTo }: Props = {}) {
 
     if (error) {
       setGoogleError(
-        `Google no está disponible todavía en este login (${error.message}). Prueba con tu email.`
+        `Google no está disponible todavía en este login (${error.message}). Prueba con tu email.`,
       );
     }
   }
@@ -97,8 +107,9 @@ export default function LoginForm({ redirectTo }: Props = {}) {
           <MailIcon size={18} /> Revisa tu correo
         </p>
         <p className="mt-2 text-sm text-zinc-400">
-          Te hemos mandado un enlace a <strong className="text-white">{email}</strong>.
-          Ábrelo desde este mismo dispositivo para entrar.
+          Te hemos mandado un enlace a{" "}
+          <strong className="text-white">{email}</strong>. Ábrelo desde este
+          mismo dispositivo para entrar.
         </p>
       </div>
     );
@@ -106,16 +117,40 @@ export default function LoginForm({ redirectTo }: Props = {}) {
 
   return (
     <div className="flex flex-col gap-3">
-      <button
-        type="button"
-        onClick={withGoogle}
-        className="marquee-font flex items-center justify-center gap-2 rounded-2xl border border-dashed border-amber-200/25 bg-gradient-to-br from-zinc-900 via-black to-zinc-950 px-5 py-4 text-base text-white shadow-[0_8px_20px_rgba(0,0,0,0.45)] transition-all duration-300 hover:-translate-y-0.5 hover:border-amber-300/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-      >
-        <span aria-hidden="true" className="text-red-500 font-bold">
-          G
-        </span>
-        Continuar con Google
-      </button>
+      {!googleFallback && (
+        <>
+          <GoogleButton
+            onSignedIn={() => {
+              track("mode_selected", { mode: "login_google" });
+              window.location.replace(returnPath(redirectTo) ?? "/");
+            }}
+            onUnavailable={() => setGoogleFallback(true)}
+            onError={(message) =>
+              setGoogleError(`No se ha podido entrar con Google (${message}).`)
+            }
+          />
+          <button
+            type="button"
+            onClick={withGoogle}
+            className="mx-auto text-xs text-zinc-500 underline underline-offset-2 hover:text-zinc-300"
+          >
+            ¿No te funciona el botón? Prueba de esta otra forma
+          </button>
+        </>
+      )}
+
+      {googleFallback && (
+        <button
+          type="button"
+          onClick={withGoogle}
+          className="marquee-font flex items-center justify-center gap-2 rounded-2xl border border-dashed border-amber-200/25 bg-gradient-to-br from-zinc-900 via-black to-zinc-950 px-5 py-4 text-base text-white shadow-[0_8px_20px_rgba(0,0,0,0.45)] transition-all duration-300 hover:-translate-y-0.5 hover:border-amber-300/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+        >
+          <span aria-hidden="true" className="text-red-500 font-bold">
+            G
+          </span>
+          Continuar con Google
+        </button>
+      )}
 
       {googleError && (
         <p className="text-center text-xs text-amber-400" role="alert">
@@ -145,15 +180,15 @@ export default function LoginForm({ redirectTo }: Props = {}) {
           disabled={status === "sending"}
           className="marquee-font rounded-2xl bg-white px-5 py-3 text-base text-black transition-opacity hover:opacity-90 disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
-          {status === "sending"
-            ? "Enviando…"
-            : "Enviarme el enlace mágico"}
+          {status === "sending" ? "Enviando…" : "Enviarme el enlace mágico"}
         </button>
 
         {status === "error" && (
           <p className="text-center text-xs text-red-400" role="alert">
             No he podido enviar el enlace
-            {emailError ? `: ${emailError}` : ". Prueba otra vez en un momento."}
+            {emailError
+              ? `: ${emailError}`
+              : ". Prueba otra vez en un momento."}
           </p>
         )}
 

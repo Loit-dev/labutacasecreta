@@ -1,5 +1,9 @@
 "use client";
 
+import { usePathname } from "next/navigation";
+
+import { loginHref } from "@/lib/returnTo";
+
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/lib/supabase/client";
 
@@ -9,6 +13,7 @@ import { supabase } from "@/lib/supabase/client";
  * las variables de Supabase), no se muestra nada.
  */
 export default function AccountStatus() {
+  const pathname = usePathname();
   const { session, loading, available } = useAuth();
 
   if (!available || loading) return null;
@@ -17,7 +22,7 @@ export default function AccountStatus() {
     return (
       <p className="mt-2">
         <a
-          href="/entrar"
+          href={loginHref(pathname)}
           className="underline-offset-2 hover:text-zinc-300 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
           Entrar
