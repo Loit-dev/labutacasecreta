@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { Session } from "@supabase/supabase-js";
@@ -151,13 +151,16 @@ function FriendsContent({
     setVisibleCount(PEOPLE_PAGE);
   }
 
-  // Calcula la compatibilidad solo con la gente que se ve ahora mismo
-  // (según la pestaña y el "Ver más" ya desplegado), no con toda la
-  // lista: evita pedir el historial de decenas de personas de golpe.
+  // Se calcula para TODA la pestaña, no solo para lo visible con "Ver
+  // más": la lista se ordena por compatibilidad (más abajo), así que
+  // hace falta conocerla de todos antes de decidir el orden — si solo
+  // se pidiera para los primeros PEOPLE_PAGE, alguien con mejor % que
+  // aún no se ha cargado no podría subir por encima de ellos. Listas
+  // de amigos de decenas de personas (no cientos) hacen esto asumible.
   // Si yo todavía no tengo nada visto y valorado, no hace falta ni
   // pedir el historial de nadie: siempre va a salir "not_enough".
   useEffect(() => {
-    const visible = people[activeTab].slice(0, visibleCount);
+    const visible = people[activeTab];
     const pending = visible.filter(
       (p) => !compatByUser.has(p.userId) && !fetchingCompat.current.has(p.userId)
     );
@@ -208,7 +211,42 @@ function FriendsContent({
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, visibleCount, people, myHistory]);
+  }, [activeTab, people, myHistory]);
+
+  // Gente de la pestaña activa, ordenada por compatibilidad: primero
+  // quien ya tiene % calculado (de más a menos), luego quien aún no
+  // llega al mínimo de pelis valoradas en común (los que están más
+  // cerca del umbral antes, por si acaso anima a valorar una más) y al
+  // final quien todavía no tiene compatibilidad cargada. Dentro de un
+  // mismo grupo se mantiene el orden original (alfabético/por fecha),
+  // para no barajar a cada render mientras llegan los datos.
+  const sortedPeople = useMemo(() => {
+    // 0 = ya calculada ("ready"), 1 = "not_enough", 2 = aún sin cargar.
+    const rankOf = (compat: Compatibility | undefined) => {
+      if (!compat) return 2;
+      return compat.status === "ready" ? 0 : 1;
+    };
+
+    return [...people[activeTab]].sort((a, b) => {
+      const compatA = compatByUser.get(a.userId);
+      const compatB = compatByUser.get(b.userId);
+      const rankA = rankOf(compatA);
+      const rankB = rankOf(compatB);
+
+      if (rankA !== rankB) return rankA - rankB;
+
+      // Ambos "ready": de más a menos compatibles.
+      if (compatA?.status === "ready" && compatB?.status === "ready") {
+        return compatB.percent - compatA.percent;
+      }
+
+      // Ambos "not_enough" (o ambos sin cargar): más cerca del umbral
+      // primero.
+      return (
+        (compatB?.commonRatedCount ?? 0) - (compatA?.commonRatedCount ?? 0)
+      );
+    });
+  }, [people, activeTab, compatByUser]);
 
   return (
     <div className="flex flex-col gap-5">
@@ -419,7 +457,7 @@ function FriendsContent({
               {activeTab === "friends" && "Todavía no tienes amigos."}
             </p>
           )}
-          {people[activeTab].slice(0, visibleCount).map((p) => {
+          {sortedPeople.slice(0, visibleCount).map((p) => {
             const compat = compatByUser.get(p.userId);
 
             return (
