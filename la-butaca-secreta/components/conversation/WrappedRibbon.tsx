@@ -62,11 +62,17 @@ export default function WrappedRibbon() {
 
         Antes todo el texto era negro sobre el degradado naranja: con
         el stroke también negro (mismo color que el relleno) quedaba
-        totalmente plano, sin ningún contraste real. Ahora "TU
-        RESUMEN" es blanco con contorno negro y sombra (look cartel de
-        cine, con volumen) y "ANUAL 2026" es dorado, también con
-        contorno, para que las dos líneas se lean como un cartelito
-        vistoso y no como una silueta negra sólida.
+        totalmente plano, sin ningún contraste real. Después se probó
+        blanco+contorno para "TU RESUMEN" y dorado para "ANUAL 2026",
+        pero seguía sin verse como un cartel de verdad.
+
+        Ahora es rojo/granate con filo dorado (ring-amber), como un
+        cartel de cine — a juego con el sillón rojo del logo — y "TU
+        RESUMEN" lleva relleno degradado dorado (bg-clip-text,
+        text-transparent) con contorno granate oscuro y un resplandor
+        cálido además de la sombra, como letras de neón/foil de título
+        de peli. "ANUAL 2026" se queda en crema, de subtítulo, sin
+        resplandor, para no competir con el titular.
       */}
       <Link
         href="/mi-resumen"
@@ -84,14 +90,14 @@ export default function WrappedRibbon() {
           items-center
           gap-[4px]
           whitespace-nowrap
-          bg-gradient-to-r from-amber-400 via-orange-500 to-red-600
+          bg-gradient-to-br from-red-500 via-red-700 to-red-950
           py-[9px]
           text-center
           leading-none
-          shadow-[0_3px_14px_rgba(0,0,0,0.5)]
-          ring-1
+          shadow-[0_3px_14px_rgba(0,0,0,0.6)]
+          ring-[1.5px]
           ring-inset
-          ring-white/40
+          ring-amber-300/70
           transition-transform
           hover:scale-105
           focus-visible:outline-2
@@ -110,19 +116,28 @@ export default function WrappedRibbon() {
         "
       >
         <span
-          className="text-[19px] tracking-wide text-white sm:text-[26px] md:text-[30px]"
+          className="
+            bg-gradient-to-b from-yellow-100 via-amber-300 to-amber-600
+            bg-clip-text
+            text-[19px]
+            tracking-wide
+            text-transparent
+            sm:text-[26px]
+            md:text-[30px]
+          "
           style={{
-            WebkitTextStroke: "1.3px black",
-            textShadow: "0 2px 4px rgba(0,0,0,0.55)",
+            WebkitTextStroke: "1.1px #450a0a",
+            textShadow:
+              "0 1px 0 rgba(0,0,0,0.4), 0 3px 6px rgba(0,0,0,0.55), 0 0 10px rgba(255,200,120,0.45)",
           }}
         >
           TU RESUMEN
         </span>
         <span
-          className="text-[13px] tracking-[0.06em] text-amber-200 sm:text-[18px] md:text-[20px]"
+          className="text-[13px] tracking-[0.06em] text-amber-50 sm:text-[18px] md:text-[20px]"
           style={{
-            WebkitTextStroke: "0.6px black",
-            textShadow: "0 1px 3px rgba(0,0,0,0.5)",
+            WebkitTextStroke: "0.6px #450a0a",
+            textShadow: "0 1px 3px rgba(0,0,0,0.55)",
           }}
         >
           ANUAL 2026
