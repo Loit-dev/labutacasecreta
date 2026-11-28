@@ -49,11 +49,16 @@ export default function WrappedRibbon() {
         comprobación — a ojo en una captura es fácil que un extremo
         quede a 1-2px del borde sin llegar a recortarse de verdad.
 
-        "WRAPPED 2026" lleva su propio -webkit-text-stroke (no
+        "TU RESUMEN" lleva su propio -webkit-text-stroke (no
         font-bold: Bebas Neue solo tiene un peso real y el navegador
         la "engorda" sintéticamente, dejándola borrosa — ver
         app/globals.css). El stroke es la forma correcta de hacerla
         ver más gruesa sin ese efecto.
+
+        Texto en español, sin "Wrapped" (nombre interno en inglés que
+        no se usa en ningún otro sitio de la app: el resto siempre
+        dice "Mi Resumen"/"Resumen Anual") — antes decía "WRAPPED
+        2026" / "NO TE LO PIERDAS".
       */}
       <Link
         href="/mi-resumen"
@@ -101,10 +106,10 @@ export default function WrappedRibbon() {
           className="text-[19px] tracking-wide sm:text-[26px] md:text-[30px]"
           style={{ WebkitTextStroke: "1.3px black" }}
         >
-          WRAPPED 2026
+          TU RESUMEN
         </span>
-        <span className="text-[11px] tracking-[0.06em] sm:text-[15px] md:text-[17px]">
-          NO TE LO PIERDAS
+        <span className="text-[13px] tracking-[0.06em] sm:text-[18px] md:text-[20px]">
+          ANUAL 2026
         </span>
       </Link>
     </div>
