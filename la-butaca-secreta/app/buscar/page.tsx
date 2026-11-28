@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 
+import BackLink from "@/components/layout/BackLink";
 import PosterWall from "@/components/layout/PosterWall";
 import SearchBox from "@/components/search/SearchBox";
 import { SearchIcon } from "@/components/icons/Icons";
@@ -54,12 +54,7 @@ export default function BuscarPage() {
             lg:backdrop-blur-2xl
           "
         >
-          <Link
-            href="/"
-            className="mb-6 inline-block text-xs font-semibold text-zinc-300 underline underline-offset-2 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-          >
-            ← Volver
-          </Link>
+          <BackLink />
 
           <h1 className="flex items-center gap-1.5 text-xl font-bold text-white md:text-2xl">
             <SearchIcon size={18} /> Buscar una película o

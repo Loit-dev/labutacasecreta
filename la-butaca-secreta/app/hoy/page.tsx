@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 
+import BackLink from "@/components/layout/BackLink";
 import PosterWall from "@/components/layout/PosterWall";
 import QuickPicks from "@/components/recommendations/QuickPicks";
 import { SITE_NAME } from "@/lib/site";
@@ -53,12 +53,7 @@ export default function TodayPage() {
             lg:backdrop-blur-2xl
           "
         >
-          <Link
-            href="/"
-            className="mb-6 inline-block text-xs font-semibold text-zinc-300 underline underline-offset-2 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-          >
-            ← Volver
-          </Link>
+          <BackLink />
 
           <QuickPicks />
         </section>
