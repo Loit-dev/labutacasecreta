@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
+import SearchHitActions from "./SearchHitActions";
+
 import { track } from "@/lib/analytics";
 import type { SearchHit } from "@/lib/search";
 
@@ -109,7 +111,7 @@ export default function SearchBox() {
             {hits.map((hit) => (
               <li
                 key={`${hit.type}-${hit.id}`}
-                className="border-b border-zinc-800 last:border-0"
+                className="flex items-center gap-1 border-b border-zinc-800 last:border-0"
               >
                 <Link
                   href={`/${hit.type === "tv" ? "serie" : "pelicula"}/${hit.id}`}
@@ -119,7 +121,7 @@ export default function SearchBox() {
                       type: hit.type,
                     })
                   }
-                  className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                  className="flex min-w-0 flex-1 items-center gap-3 px-4 py-3 transition-colors hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                 >
                   <div className="relative h-16 w-11 shrink-0 overflow-hidden rounded-lg bg-black">
                     {hit.poster ? (
@@ -144,6 +146,10 @@ export default function SearchBox() {
                     </p>
                   </div>
                 </Link>
+
+                <div className="pr-3">
+                  <SearchHitActions hit={hit} />
+                </div>
               </li>
             ))}
           </ul>
