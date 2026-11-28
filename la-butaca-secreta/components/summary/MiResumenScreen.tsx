@@ -7,6 +7,7 @@ import { loginHref } from "@/lib/returnTo";
 import { useEffect, useState } from "react";
 
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 import { useRejected } from "@/hooks/useRejected";
 import { useWatchlist } from "@/hooks/useWatchlist";
 import { DiscardIcon, FireIcon, PinIcon } from "@/components/icons/Icons";
@@ -30,6 +31,8 @@ import ProfileAchievementsRow from "@/components/achievements/ProfileAchievement
 import CanonProfileRow from "@/components/canon/CanonProfileRow";
 
 import WrappedScreen from "@/components/wrapped/WrappedScreen";
+
+import ShareProfileDialog from "@/components/account/ShareProfileDialog";
 
 import DiscardedDialog from "./DiscardedDialog";
 import FavoriteCard from "./FavoriteCard";
@@ -154,10 +157,16 @@ export default function MiResumenScreen({ onNavigateTab }: Props) {
   const pathname = usePathname();
   const { session, loading, available } = useAuth();
   const { state: achievementsState } = useAchievementsContext();
+  // Solo para el botón "Invita a un amigo" (necesita el @usuario para
+  // el enlace de invitación) — no bloquea el resto de la pantalla si
+  // tarda o si la cuenta aún no tiene uno.
+  const { profile } = useProfile(session?.user.id ?? "");
 
   const [state, setState] = useState<State>({ status: "loading" });
 
   const [sharing, setSharing] = useState(false);
+
+  const [inviting, setInviting] = useState(false);
 
   const [picking, setPicking] = useState(false);
 
@@ -588,7 +597,7 @@ export default function MiResumenScreen({ onNavigateTab }: Props) {
         </div>
       )}
 
-      <div className="flex justify-center gap-3">
+      <div className="flex flex-wrap justify-center gap-3">
         <button
           onClick={() => setShowWrapped(true)}
           className="rounded-xl border border-amber-400/40 bg-amber-400/10 px-6 py-3 text-sm font-semibold text-amber-200 transition-colors hover:bg-amber-400/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
@@ -602,12 +611,29 @@ export default function MiResumenScreen({ onNavigateTab }: Props) {
         >
           Compartir
         </button>
+
+        {profile && (
+          <button
+            onClick={() => setInviting(true)}
+            className="rounded-xl border border-white/20 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          >
+            Invita a un amigo
+          </button>
+        )}
       </div>
 
       {showWrapped && (
         <WrappedScreen
           year={new Date().getFullYear()}
           onClose={() => setShowWrapped(false)}
+        />
+      )}
+
+      {inviting && session && profile && (
+        <ShareProfileDialog
+          userId={session.user.id}
+          username={profile.username}
+          onClose={() => setInviting(false)}
         />
       )}
 

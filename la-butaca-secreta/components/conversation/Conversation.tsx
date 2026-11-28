@@ -27,7 +27,7 @@ import {
 
 import Header from "./Header";
 import ModeSelect, { type Mode } from "./ModeSelect";
-import PromoBanner from "./PromoBanner";
+import WrappedRibbon from "./WrappedRibbon";
 import SoloChat from "./SoloChat";
 import {
   CalendarIcon,
@@ -252,14 +252,10 @@ export default function Conversation({ initialCalendar }: Props) {
             aria-labelledby="tab-recommender"
             hidden={tab !== "recommender"}
           >
-            <div className="border-b border-white/10 px-5 pt-5 pb-5 md:px-8 md:pt-8 md:pb-8">
-              <Header />
+            <div className="relative overflow-hidden border-b border-white/10 px-5 pt-5 pb-5 md:px-8 md:pt-8 md:pb-8">
+              <WrappedRibbon />
 
-              {mode === null && (
-                <div className="mt-5">
-                  <PromoBanner />
-                </div>
-              )}
+              <Header />
             </div>
 
             {mode === null && (
