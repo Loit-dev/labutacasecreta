@@ -27,6 +27,7 @@ import {
 
 import Header from "./Header";
 import ModeSelect, { type Mode } from "./ModeSelect";
+import PromoBanner from "./PromoBanner";
 import SoloChat from "./SoloChat";
 import {
   CalendarIcon,
@@ -253,6 +254,12 @@ export default function Conversation({ initialCalendar }: Props) {
           >
             <div className="border-b border-white/10 px-5 pt-5 pb-5 md:px-8 md:pt-8 md:pb-8">
               <Header />
+
+              {mode === null && (
+                <div className="mt-5">
+                  <PromoBanner />
+                </div>
+              )}
             </div>
 
             {mode === null && (
