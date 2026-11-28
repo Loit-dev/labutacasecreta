@@ -13,7 +13,7 @@ import {
   type CompatibilityShareTitle,
 } from "@/lib/compatibilityShareImage";
 import { posterSource } from "@/lib/share";
-import { SITE_NAME } from "@/lib/site";
+import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { recordShareEvent } from "@/lib/supabase/achievements";
 
 type Props = {
@@ -77,13 +77,11 @@ export default function ShareCompatibilityDialog({
     if (session) recordShareEvent(session.user.id, "compatibility");
   }
 
-  // Este diálogo solo se monta tras una interacción del usuario (nunca
-  // durante el renderizado del servidor), así que leer `window` aquí
-  // directamente es seguro: no hace falta useState/useEffect para esto.
-  const link =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/u/${theirUsername}`
-      : "";
+  // El enlace siempre apunta al dominio canónico (SITE_URL), nunca a
+  // window.location.origin: si alguien entra por un alias de Vercel
+  // (p. ej. labutacasecreta.vercel.app) en vez del dominio propio, el
+  // enlace/imagen compartidos no deben llevar ese alias.
+  const link = `${SITE_URL}/u/${theirUsername}`;
 
   // topCommon/topGenres/sharedPerson llegan como objetos nuevos en
   // cada render del padre (computeCompatibility no está memoizado):
@@ -97,7 +95,7 @@ export default function ShareCompatibilityDialog({
 
     createCompatibilityShareImage({
       siteName: SITE_NAME,
-      siteUrl: typeof window !== "undefined" ? window.location.origin : "",
+      siteUrl: SITE_URL,
       fontFamily: siteFont(),
       myUsername,
       theirUsername,

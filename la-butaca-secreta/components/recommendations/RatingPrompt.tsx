@@ -10,7 +10,7 @@ import { todayDateInput } from "@/lib/dateInput";
 import type { Rating } from "@/lib/rating";
 import { posterSource } from "@/lib/share";
 import { recordShareEvent } from "@/lib/supabase/achievements";
-import { SITE_NAME } from "@/lib/site";
+import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { createWatchedShareImage, pickSeenVerb } from "@/lib/watchedShareImage";
 
 export type RatingPromptShareContext = {
@@ -137,9 +137,12 @@ export default function RatingPrompt({
 
   const seenVerb = useMemo(() => pickSeenVerb(selected ?? undefined), [selected]);
 
+  // Dominio canónico (SITE_URL), no window.location.origin: el enlace
+  // compartido debe llevar siempre a labutacasecreta.es, aunque se
+  // comparta desde un alias de Vercel.
   const link =
-    showShare && share && typeof window !== "undefined"
-      ? `${window.location.origin}/${share.type === "tv" ? "serie" : "pelicula"}/${share.tmdbId}`
+    showShare && share
+      ? `${SITE_URL}/${share.type === "tv" ? "serie" : "pelicula"}/${share.tmdbId}`
       : "";
 
   // "4 de noviembre de 2026", a partir de YYYY-MM-DD (mediodía local,
@@ -166,7 +169,7 @@ export default function RatingPrompt({
 
     createWatchedShareImage({
       siteName: SITE_NAME,
-      siteUrl: typeof window !== "undefined" ? window.location.origin : "",
+      siteUrl: SITE_URL,
       fontFamily: siteFont(),
       title,
       kind: share.type,

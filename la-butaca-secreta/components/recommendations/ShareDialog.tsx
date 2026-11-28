@@ -105,10 +105,12 @@ export default function ShareDialog({
       }));
 
     if (entries.length === items.length && entries.length > 0) {
+      // Dominio canónico (SITE_URL), no window.location.origin: el
+      // enlace compartido debe llevar siempre a labutacasecreta.es.
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setLink(
         shareUrl(
-          window.location.origin,
+          SITE_URL,
           buildShareCode(effectiveLinkType, entries, effectiveGroup)
         )
       );

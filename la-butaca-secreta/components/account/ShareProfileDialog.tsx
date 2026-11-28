@@ -9,7 +9,7 @@ import { track } from "@/lib/analytics";
 import { createFollowInviteCode } from "@/lib/supabase/inviteCodes";
 import { createProfileShareImage } from "@/lib/profileShareImage";
 import { recordShareEvent } from "@/lib/supabase/achievements";
-import { SITE_NAME } from "@/lib/site";
+import { SITE_NAME, SITE_URL } from "@/lib/site";
 
 type Props = {
   userId: string;
@@ -57,9 +57,11 @@ export default function ShareProfileDialog({ userId, username, onClose }: Props)
 
       if (cancelled) return;
 
-      const origin =
-        typeof window !== "undefined" ? window.location.origin : "";
-      const url = `${origin}${code ? `/invitar/${code}` : `/u/${username}`}`;
+      // Siempre el dominio canónico (SITE_URL), nunca
+      // window.location.origin: el QR/enlace tiene que llevar siempre a
+      // labutacasecreta.es, aunque quien comparte esté viendo la app
+      // desde un alias de Vercel en ese momento.
+      const url = `${SITE_URL}${code ? `/invitar/${code}` : `/u/${username}`}`;
       const displayUrl = url.replace(/^https?:\/\//, "");
 
       setInviteUrl(url);
