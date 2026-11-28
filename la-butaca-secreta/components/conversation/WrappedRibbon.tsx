@@ -67,31 +67,40 @@ export default function WrappedRibbon() {
         pero seguía sin verse como un cartel de verdad.
 
         Ahora es rojo/granate con filo dorado (ring-amber), como un
-        cartel de cine — a juego con el sillón rojo del logo — y "TU
-        RESUMEN" lleva relleno degradado dorado (bg-clip-text,
+        cartel de cine — a juego con el sillón rojo del logo — y "Tu
+        Resumen" lleva relleno degradado dorado (bg-clip-text,
         text-transparent) con contorno granate oscuro y un resplandor
         cálido además de la sombra, como letras de neón/foil de título
-        de peli. "ANUAL 2026" se queda en crema, de subtítulo, sin
+        de peli. "Anual 2026" se queda en crema, de subtítulo, sin
         resplandor, para no competir con el titular.
+
+        Fuente script navideña (festive-font, Dancing Script — ver
+        app/layout.tsx), no la marquesina de cine (marquee-font) del
+        resto de la app: look de tarjeta navideña escrita a mano, a
+        petición explícita. Con mayúscula inicial solo ("Tu Resumen",
+        no "TU RESUMEN"): una script en VERSALITAS pierde los enlaces
+        entre letras y se vuelve menos legible (ver nota en
+        app/globals.css). Sin letter-spacing ampliado tampoco, por el
+        mismo motivo: una script necesita que las letras se toquen.
       */}
       <Link
         href="/mi-resumen"
         aria-label="Ver tu Resumen Anual 2026"
         className="
-          marquee-font
+          festive-font
           pointer-events-auto
           absolute
           right-[-44px]
-          top-[22px]
+          top-[16px]
           flex
           w-[185px]
           rotate-45
           flex-col
           items-center
-          gap-[4px]
+          gap-[1px]
           whitespace-nowrap
           bg-gradient-to-br from-red-500 via-red-700 to-red-950
-          py-[9px]
+          py-[5px]
           text-center
           leading-none
           shadow-[0_3px_14px_rgba(0,0,0,0.6)]
@@ -119,28 +128,27 @@ export default function WrappedRibbon() {
           className="
             bg-gradient-to-b from-yellow-100 via-amber-300 to-amber-600
             bg-clip-text
-            text-[19px]
-            tracking-wide
+            text-[22px]
             text-transparent
-            sm:text-[26px]
-            md:text-[30px]
+            sm:text-[36px]
+            md:text-[42px]
           "
           style={{
-            WebkitTextStroke: "1.1px #450a0a",
+            WebkitTextStroke: "0.6px #450a0a",
             textShadow:
               "0 1px 0 rgba(0,0,0,0.4), 0 3px 6px rgba(0,0,0,0.55), 0 0 10px rgba(255,200,120,0.45)",
           }}
         >
-          TU RESUMEN
+          Tu Resumen
         </span>
         <span
-          className="text-[13px] tracking-[0.06em] text-amber-50 sm:text-[18px] md:text-[20px]"
+          className="text-[13px] text-amber-50 sm:text-[21px] md:text-[24px]"
           style={{
-            WebkitTextStroke: "0.6px #450a0a",
+            WebkitTextStroke: "0.4px #450a0a",
             textShadow: "0 1px 3px rgba(0,0,0,0.55)",
           }}
         >
-          ANUAL 2026
+          Anual 2026
         </span>
       </Link>
     </div>

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Bebas_Neue, Geist, Manrope } from "next/font/google";
+import { Bebas_Neue, Dancing_Script, Geist, Manrope } from "next/font/google";
 
 import Analytics from "@/components/layout/Analytics";
 import Footer from "@/components/layout/Footer";
@@ -33,6 +33,17 @@ const manrope = Manrope({
 const bebasNeue = Bebas_Neue({
   variable: "--font-marquee",
   weight: "400",
+  subsets: ["latin"],
+});
+
+// Script navideña, solo para la cinta de "Mi Resumen Anual" en
+// temporada (WrappedRibbon.tsx) — look de letrero/tarjeta navideña,
+// nada que ver con la marquesina de cine de arriba. Peso 700: a los
+// tamaños pequeños de la cinta, el 400 se ve demasiado fino y se
+// pierde el trazo.
+const dancingScript = Dancing_Script({
+  variable: "--font-festive",
+  weight: "700",
   subsets: ["latin"],
 });
 
@@ -122,6 +133,7 @@ export default function RootLayout({
         ${geistSans.variable}
         ${manrope.variable}
         ${bebasNeue.variable}
+        ${dancingScript.variable}
         h-full
         antialiased
       `}

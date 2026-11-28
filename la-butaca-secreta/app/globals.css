@@ -147,6 +147,14 @@ section {
   -webkit-text-stroke: 0.6px currentColor;
 }
 
+/* Script navideña (solo WrappedRibbon.tsx): pensada para mayúscula y
+   minúscula mezcladas como una tarjeta navideña escrita a mano, no
+   para VERSALITAS (una script en mayúsculas pierde los enlaces entre
+   letras y se vuelve menos legible). */
+.festive-font {
+  font-family: var(--font-festive);
+}
+
 /* Animación tarjetas recomendaciones */
 
 @keyframes fadeInCard {
