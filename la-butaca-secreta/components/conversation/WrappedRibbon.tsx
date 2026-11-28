@@ -63,11 +63,14 @@ export default function WrappedRibbon() {
           rotate-45
           flex-col
           items-center
+          gap-[3px]
           whitespace-nowrap
           bg-gradient-to-r from-amber-400 via-orange-500 to-red-600
           py-[7px]
           text-center
           leading-none
+          sm:gap-1
+          md:gap-1.5
           text-black
           shadow-[0_3px_14px_rgba(0,0,0,0.5)]
           ring-1
@@ -88,10 +91,10 @@ export default function WrappedRibbon() {
           md:py-5
         "
       >
-        <span className="text-[11px] font-bold tracking-wide sm:text-[19px] md:text-[23px]">
+        <span className="text-[13px] tracking-wide sm:text-[20px] md:text-[24px]">
           WRAPPED 2026
         </span>
-        <span className="text-[8px] tracking-wide sm:text-[13px] md:text-[15px]">
+        <span className="text-[8px] tracking-[0.08em] sm:text-[12px] md:text-[14px]">
           NO TE LO PIERDAS
         </span>
       </Link>
