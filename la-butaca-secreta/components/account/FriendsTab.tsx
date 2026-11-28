@@ -16,7 +16,11 @@ import {
   fetchNotifications,
   lastSeenAt,
 } from "@/lib/supabase/notifications";
-import { fetchWatchedHistory, type WatchedRow } from "@/lib/supabase/summary";
+import {
+  fetchWatchedHistoriesByUserIds,
+  fetchWatchedHistory,
+  type WatchedRow,
+} from "@/lib/supabase/summary";
 
 import UsernameSetup from "./UsernameSetup";
 import BuscarAmigosDialog from "./BuscarAmigosDialog";
@@ -179,22 +183,25 @@ function FriendsContent({
 
     let cancelled = false;
 
-    Promise.all(
-      pending.map(async (p) => {
-        const theirHistory = await fetchWatchedHistory(p.userId);
-        return [p.userId, computeCompatibility(myHistory, theirHistory)] as const;
-      })
-    ).then((results) => {
-      pending.forEach((p) => fetchingCompat.current.delete(p.userId));
+    // Una sola consulta para el historial de toda la página visible,
+    // no una por persona (mismo fallo que tenía "Tu grupo de cine" en
+    // el Resumen, ya arreglado igual).
+    fetchWatchedHistoriesByUserIds(pending.map((p) => p.userId)).then(
+      (historiesByUser) => {
+        pending.forEach((p) => fetchingCompat.current.delete(p.userId));
 
-      if (cancelled) return;
+        if (cancelled) return;
 
-      setCompatByUser((prev) => {
-        const next = new Map(prev);
-        results.forEach(([id, compat]) => next.set(id, compat));
-        return next;
-      });
-    });
+        setCompatByUser((prev) => {
+          const next = new Map(prev);
+          pending.forEach((p) => {
+            const theirHistory = historiesByUser.get(p.userId) ?? [];
+            next.set(p.userId, computeCompatibility(myHistory, theirHistory));
+          });
+          return next;
+        });
+      }
+    );
 
     return () => {
       cancelled = true;

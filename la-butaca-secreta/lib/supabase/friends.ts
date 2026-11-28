@@ -168,3 +168,53 @@ export async function fetchFriendStatus(
     return { status: "none", requestId: null };
   }
 }
+
+/**
+ * Igual que fetchFriendStatus, pero para varios `otherIds` a la vez —
+ * una sola consulta en vez de una por persona. La usa el buscador de
+ * amigos (BuscarAmigosDialog.tsx), que antes pedía el estado uno a
+ * uno por cada resultado de la búsqueda (hasta 20 a la vez, en cada
+ * tecla que se escribía).
+ */
+export async function fetchFriendStatuses(
+  userId: string,
+  otherIds: string[]
+): Promise<Map<string, { status: FriendStatus; requestId: string | null }>> {
+  const byOtherId = new Map<
+    string,
+    { status: FriendStatus; requestId: string | null }
+  >();
+
+  if (!supabase || otherIds.length === 0) return byOtherId;
+
+  try {
+    const ids = otherIds.join(",");
+    const { data, error } = await supabase
+      .from("friend_requests")
+      .select("id, requester_id, addressee_id, status")
+      .or(
+        `and(requester_id.eq.${userId},addressee_id.in.(${ids})),and(addressee_id.eq.${userId},requester_id.in.(${ids}))`
+      );
+
+    if (error || !data) return byOtherId;
+
+    for (const row of data) {
+      const otherId = row.requester_id === userId ? row.addressee_id : row.requester_id;
+
+      if (row.status === "accepted") {
+        byOtherId.set(otherId, { status: "friends", requestId: row.id });
+      } else if (row.status === "pending") {
+        byOtherId.set(otherId, {
+          status: row.requester_id === userId ? "pending_sent" : "pending_received",
+          requestId: row.id,
+        });
+      }
+    }
+
+    return byOtherId;
+  } catch (error) {
+    console.error("No se pudo comprobar el estado de amistad de varios a la vez:", error);
+
+    return byOtherId;
+  }
+}

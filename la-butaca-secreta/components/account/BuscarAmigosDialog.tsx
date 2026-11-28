@@ -6,8 +6,12 @@ import Link from "next/link";
 
 import { useDialog } from "@/hooks/useDialog";
 import { searchProfiles, type ProfileRow } from "@/lib/supabase/profiles";
-import { follow, isFollowing, unfollow } from "@/lib/supabase/follows";
-import { fetchFriendStatus, sendFriendRequest, type FriendStatus } from "@/lib/supabase/friends";
+import { fetchFollowingIds, follow, unfollow } from "@/lib/supabase/follows";
+import {
+  fetchFriendStatuses,
+  sendFriendRequest,
+  type FriendStatus,
+} from "@/lib/supabase/friends";
 
 type Props = {
   userId: string;
@@ -36,24 +40,49 @@ export default function BuscarAmigosDialog({ userId, onClose }: Props) {
 
     setLoading(true);
 
-    (async () => {
+    // Un poco de espera tras la última tecla: sin esto, cada letra
+    // escrita disparaba de inmediato la búsqueda y, por cada uno de
+    // los hasta 20 resultados, dos consultas más (seguir / amistad) —
+    // podían ser más de 40 peticiones a Supabase por tecla.
+    const timeout = setTimeout(async () => {
       const profiles = await searchProfiles(query, userId);
-      const withStatus = await Promise.all(
-        profiles.map(async (profile) => ({
+
+      if (cancelled) return;
+
+      if (profiles.length === 0) {
+        setRows([]);
+        setLoading(false);
+        return;
+      }
+
+      const otherIds = profiles.map((profile) => profile.userId);
+
+      // Dos consultas para TODOS los resultados a la vez (a quién
+      // sigues, y el estado de amistad con cada uno), no dos por
+      // resultado: antes eran hasta 40 peticiones en paralelo por
+      // búsqueda, ahora son siempre 2.
+      const [followingIds, friendStatuses] = await Promise.all([
+        fetchFollowingIds(userId),
+        fetchFriendStatuses(userId, otherIds),
+      ]);
+
+      if (cancelled) return;
+
+      const followingSet = new Set(followingIds);
+
+      setRows(
+        profiles.map((profile) => ({
           profile,
-          following: await isFollowing(userId, profile.userId),
-          friendStatus: (await fetchFriendStatus(userId, profile.userId)).status,
+          following: followingSet.has(profile.userId),
+          friendStatus: friendStatuses.get(profile.userId)?.status ?? "none",
         }))
       );
-
-      if (!cancelled) {
-        setRows(withStatus);
-        setLoading(false);
-      }
-    })();
+      setLoading(false);
+    }, 300);
 
     return () => {
       cancelled = true;
+      clearTimeout(timeout);
     };
   }, [query, userId]);
 

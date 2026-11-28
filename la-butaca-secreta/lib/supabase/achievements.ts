@@ -4,7 +4,7 @@ import { supabase } from "./client";
 import type { AchievementWatchedRow } from "@/lib/achievements/compute";
 import { computeCompatibility } from "@/lib/compatibility";
 import { fetchFriends } from "./friends";
-import { fetchWatchedHistory, type WatchedRow } from "./summary";
+import { fetchWatchedHistoriesByUserIds, type WatchedRow } from "./summary";
 
 /**
  * Historial COMPLETO de "vistos" para calcular logros (sin el límite
@@ -207,9 +207,12 @@ export async function fetchListsCount(userId: string): Promise<number> {
 
 /**
  * Nº de amigos con los que la compatibilidad llega a ≥80%. Reutiliza
- * exactamente el mismo cálculo que la pestaña Amigos (lib/compatibility.ts),
- * trayendo el historial de cada amigo uno a uno — con pocos amigos
- * (lo habitual) es barato; con cientos, habría que paginar.
+ * exactamente el mismo cálculo que la pestaña Amigos (lib/compatibility.ts).
+ * El historial de todos los amigos se trae en una sola consulta
+ * (fetchWatchedHistoriesByUserIds), no uno a uno: con cientos de
+ * amigos esto era 1+N peticiones a Supabase en paralelo, igual que el
+ * mismo fallo ya arreglado en "Tu grupo de cine"
+ * (hooks/useWrappedFriendsGroup.ts) — aquí era el mismo patrón.
  */
 export async function fetchCompatibleFriendsCount(
   userId: string,
@@ -222,16 +225,18 @@ export async function fetchCompatibleFriendsCount(
 
     if (friends.length === 0) return 0;
 
-    const results = await Promise.all(
-      friends.map(async (friend) => {
-        const theirHistory = await fetchWatchedHistory(friend.userId);
-        const compat = computeCompatibility(myHistory, theirHistory);
-
-        return compat.status === "ready" && compat.percent >= 80;
-      })
+    const historiesByUser = await fetchWatchedHistoriesByUserIds(
+      friends.map((friend) => friend.userId)
     );
 
-    return results.filter(Boolean).length;
+    const compatibleCount = friends.filter((friend) => {
+      const theirHistory = historiesByUser.get(friend.userId) ?? [];
+      const compat = computeCompatibility(myHistory, theirHistory);
+
+      return compat.status === "ready" && compat.percent >= 80;
+    }).length;
+
+    return compatibleCount;
   } catch (error) {
     console.error("No se pudo calcular la compatibilidad con amigos:", error);
 

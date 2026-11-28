@@ -61,10 +61,22 @@ export function pickSharedPerson(credits: TitleCredits[]): SharedPerson | null {
   return null;
 }
 
+// El reparto de un título no cambia durante la sesión, y este dato se
+// vuelve a pedir cada vez que se abre el mismo perfil (o el de otro
+// amigo con títulos en común) — con esto, revisitar el mismo perfil
+// no repite peticiones a /api/credits. Mismo patrón que el caché de
+// hooks/useWrappedCastHighlights.ts, aquí para la tarjeta de
+// compatibilidad del perfil.
+const creditsCache = new Map<string, TitleCredits>();
+
 async function fetchTitleCredits(
   tmdbId: number,
   mediaType: "movie" | "tv"
 ): Promise<TitleCredits> {
+  const cacheKey = `${mediaType}-${tmdbId}`;
+  const cached = creditsCache.get(cacheKey);
+  if (cached) return cached;
+
   try {
     const response = await fetch(
       `/api/credits?id=${tmdbId}&type=${mediaType}`
@@ -74,10 +86,14 @@ async function fetchTitleCredits(
 
     const data = await response.json();
 
-    return {
+    const credits: TitleCredits = {
       director: typeof data.director === "string" ? data.director : null,
       cast: Array.isArray(data.cast) ? data.cast : [],
     };
+
+    creditsCache.set(cacheKey, credits);
+
+    return credits;
   } catch {
     return { director: null, cast: [] };
   }
