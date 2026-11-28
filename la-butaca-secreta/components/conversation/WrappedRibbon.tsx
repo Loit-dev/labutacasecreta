@@ -3,45 +3,82 @@
 import Link from "next/link";
 
 /**
- * Cinta diagonal en la esquina de la tarjeta principal, anunciando el
- * Resumen Anual mientras dure la temporada (diciembre). Reemplaza al
- * aviso anterior (dos botones + cerrar): esto es solo un gancho
+ * Cinta diagonal en la esquina de la tarjeta, anunciando el Resumen
+ * Anual mientras dure la temporada (diciembre). Es solo un gancho
  * visual, no un CTA que compita con el resto de la portada — por eso
  * no se puede cerrar ni hay una segunda opción al lado.
  *
- * Se apoya en que la tarjeta que lo envuelve tiene `overflow-hidden` y
- * `relative` (ver Conversation.tsx), así la cinta queda recortada en
- * la esquina en vez de sobresalir.
+ * El contenedor exterior (este componente lo coloca un padre con
+ * `relative`) solo reserva una esquina cuadrada (`h-28 w-28` en
+ * móvil, más grande en pantallas mayores) con `overflow-hidden`: es
+ * una "máscara" pensada únicamente para recortar la cinta en la
+ * esquina sin tocar el resto del contenido (p. ej. el título de
+ * Header), que vive fuera de esta máscara y no se ve afectado.
  */
 export default function WrappedRibbon() {
   return (
-    <Link
-      href="/mi-resumen"
-      aria-label="Ver tu Resumen Anual 2026"
+    <div
       className="
-        marquee-font
+        pointer-events-none
         absolute
-        right-[-62px]
-        top-[22px]
+        right-0
+        top-0
         z-40
-        w-[230px]
-        rotate-45
-        whitespace-nowrap
-        bg-gradient-to-r from-amber-400 via-orange-500 to-red-600
-        py-1.5
-        text-center
-        text-[13px]
-        tracking-wide
-        text-black
-        shadow-[0_2px_10px_rgba(0,0,0,0.45)]
-        transition-transform
-        hover:scale-105
-        focus-visible:outline-2
-        focus-visible:outline-offset-2
-        focus-visible:outline-white
+        h-28
+        w-28
+        overflow-hidden
+        sm:h-32
+        sm:w-32
+        md:h-40
+        md:w-40
       "
     >
-      WRAPPED 2026 · NO TE LO PIERDAS
-    </Link>
+      <Link
+        href="/mi-resumen"
+        aria-label="Ver tu Resumen Anual 2026"
+        className="
+          marquee-font
+          pointer-events-auto
+          absolute
+          right-[-54px]
+          top-[26px]
+          flex
+          w-[260px]
+          rotate-45
+          flex-col
+          items-center
+          whitespace-nowrap
+          bg-gradient-to-r from-amber-400 via-orange-500 to-red-600
+          py-2
+          text-center
+          leading-none
+          text-black
+          shadow-[0_3px_14px_rgba(0,0,0,0.5)]
+          ring-1
+          ring-inset
+          ring-white/40
+          transition-transform
+          hover:scale-105
+          focus-visible:outline-2
+          focus-visible:outline-offset-2
+          focus-visible:outline-white
+          sm:right-[-48px]
+          sm:top-[32px]
+          sm:w-[300px]
+          sm:py-2.5
+          md:right-[-42px]
+          md:top-[40px]
+          md:w-[340px]
+          md:py-3
+        "
+      >
+        <span className="text-[15px] font-bold tracking-wide sm:text-[17px] md:text-[19px]">
+          WRAPPED 2026
+        </span>
+        <span className="text-[10px] tracking-wide sm:text-[11px] md:text-[12px]">
+          NO TE LO PIERDAS
+        </span>
+      </Link>
+    </div>
   );
 }

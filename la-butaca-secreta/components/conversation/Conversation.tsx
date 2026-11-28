@@ -252,7 +252,7 @@ export default function Conversation({ initialCalendar }: Props) {
             aria-labelledby="tab-recommender"
             hidden={tab !== "recommender"}
           >
-            <div className="relative overflow-hidden border-b border-white/10 px-5 pt-5 pb-5 md:px-8 md:pt-8 md:pb-8">
+            <div className="relative border-b border-white/10 px-5 pt-5 pb-5 md:px-8 md:pt-8 md:pb-8">
               <WrappedRibbon />
 
               <Header />
