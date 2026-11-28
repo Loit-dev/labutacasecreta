@@ -33,17 +33,21 @@ export default function WrappedRibbon() {
       "
     >
       {/*
-        Números afinados a mano (ver scratchpad de la sesión): para que
-        la cinta no se vea "mal puesta", las dos puntas del rectángulo
-        rotado deben quedar DENTRO de esta caja (nunca recortadas por
-        su borde inferior o izquierdo, que no son una esquina real de
-        la tarjeta) y solo los lados largos deben asomar por el borde
-        superior y derecho (que sí son la esquina real, así que ahí
-        el corte queda natural, como si la cinta siguiera fuera de la
-        tarjeta). El grosor (padding vertical + tamaño de letra) se
-        subió a petición explícita ("hazla más gruesa"), así que al
-        tocarlo hay que volver a comprobar que las puntas sigan sin
-        tocar esos dos bordes.
+        Números afinados a mano (ver scratchpad de la sesión), para que
+        los DOS extremos de la cinta se corten limpios por un borde
+        real de la máscara (arriba y a la derecha, que coinciden con
+        la esquina real de la tarjeta) y ninguno quede flotando como
+        una punta suelta en mitad de la nada, ni se corte por el borde
+        inferior o izquierdo (que no son una esquina real).
+
+        Comprobado con getBoundingClientRect() del propio <Link> ya
+        rotado, comparado con el de la máscara: hay que verificar
+        rTop < maskTop y rRight > maskRight (ambos extremos
+        recortados, con margen) y rLeft > maskLeft y rBottom <
+        maskBottom (ninguno de los otros dos tocando el borde). Si se
+        retoca el ancho, el padding o la letra, hay que repetir esta
+        comprobación — a ojo en una captura es fácil que un extremo
+        quede a 1-2px del borde sin llegar a recortarse de verdad.
       */}
       <Link
         href="/mi-resumen"
@@ -52,7 +56,7 @@ export default function WrappedRibbon() {
           marquee-font
           pointer-events-auto
           absolute
-          right-[-14px]
+          right-[-36px]
           top-[27px]
           flex
           w-[168px]
