@@ -59,6 +59,14 @@ export default function WrappedRibbon() {
         no se usa en ningún otro sitio de la app: el resto siempre
         dice "Mi Resumen"/"Resumen Anual") — antes decía "WRAPPED
         2026" / "NO TE LO PIERDAS".
+
+        Antes todo el texto era negro sobre el degradado naranja: con
+        el stroke también negro (mismo color que el relleno) quedaba
+        totalmente plano, sin ningún contraste real. Ahora "TU
+        RESUMEN" es blanco con contorno negro y sombra (look cartel de
+        cine, con volumen) y "ANUAL 2026" es dorado, también con
+        contorno, para que las dos líneas se lean como un cartelito
+        vistoso y no como una silueta negra sólida.
       */}
       <Link
         href="/mi-resumen"
@@ -80,7 +88,6 @@ export default function WrappedRibbon() {
           py-[9px]
           text-center
           leading-none
-          text-black
           shadow-[0_3px_14px_rgba(0,0,0,0.5)]
           ring-1
           ring-inset
@@ -103,12 +110,21 @@ export default function WrappedRibbon() {
         "
       >
         <span
-          className="text-[19px] tracking-wide sm:text-[26px] md:text-[30px]"
-          style={{ WebkitTextStroke: "1.3px black" }}
+          className="text-[19px] tracking-wide text-white sm:text-[26px] md:text-[30px]"
+          style={{
+            WebkitTextStroke: "1.3px black",
+            textShadow: "0 2px 4px rgba(0,0,0,0.55)",
+          }}
         >
           TU RESUMEN
         </span>
-        <span className="text-[13px] tracking-[0.06em] sm:text-[18px] md:text-[20px]">
+        <span
+          className="text-[13px] tracking-[0.06em] text-amber-200 sm:text-[18px] md:text-[20px]"
+          style={{
+            WebkitTextStroke: "0.6px black",
+            textShadow: "0 1px 3px rgba(0,0,0,0.5)",
+          }}
+        >
           ANUAL 2026
         </span>
       </Link>
