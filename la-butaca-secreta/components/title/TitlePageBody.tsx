@@ -94,6 +94,15 @@ export default function TitlePageBody({ type, title, trivia }: Props) {
         </div>
       </div>
 
+      {/*
+        Guardar/Vista justo debajo del póster: son las dos acciones
+        que alguien busca nada más entrar (antes estaban al final de
+        la ficha, había que bajar del todo para llegar a ellas).
+      */}
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <TitleActions type={type} title={title} />
+      </div>
+
       <p className="mt-5 text-sm leading-relaxed text-zinc-200 sm:text-base">
         {title.overview ||
           "TMDb todavía no tiene sinopsis en español para este título."}
@@ -245,8 +254,6 @@ export default function TitlePageBody({ type, title, trivia }: Props) {
       )}
 
       <div className="mt-6 flex flex-wrap items-center gap-3">
-        <TitleActions type={type} title={title} />
-
         <a
           href={trailerHref}
           target="_blank"
