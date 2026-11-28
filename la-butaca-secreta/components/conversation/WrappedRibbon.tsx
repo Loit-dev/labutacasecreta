@@ -23,13 +23,13 @@ export default function WrappedRibbon() {
         right-0
         top-0
         z-40
-        h-[135px]
-        w-[135px]
+        h-[145px]
+        w-[145px]
         overflow-hidden
-        sm:h-[260px]
-        sm:w-[260px]
-        md:h-[300px]
-        md:w-[300px]
+        sm:h-[280px]
+        sm:w-[280px]
+        md:h-[320px]
+        md:w-[320px]
       "
     >
       {/*
@@ -48,6 +48,12 @@ export default function WrappedRibbon() {
         retoca el ancho, el padding o la letra, hay que repetir esta
         comprobación — a ojo en una captura es fácil que un extremo
         quede a 1-2px del borde sin llegar a recortarse de verdad.
+
+        "WRAPPED 2026" lleva su propio -webkit-text-stroke (no
+        font-bold: Bebas Neue solo tiene un peso real y el navegador
+        la "engorda" sintéticamente, dejándola borrosa — ver
+        app/globals.css). El stroke es la forma correcta de hacerla
+        ver más gruesa sin ese efecto.
       */}
       <Link
         href="/mi-resumen"
@@ -56,21 +62,19 @@ export default function WrappedRibbon() {
           marquee-font
           pointer-events-auto
           absolute
-          right-[-36px]
-          top-[27px]
+          right-[-44px]
+          top-[22px]
           flex
-          w-[168px]
+          w-[185px]
           rotate-45
           flex-col
           items-center
-          gap-[3px]
+          gap-[4px]
           whitespace-nowrap
           bg-gradient-to-r from-amber-400 via-orange-500 to-red-600
-          py-[7px]
+          py-[9px]
           text-center
           leading-none
-          sm:gap-1
-          md:gap-1.5
           text-black
           shadow-[0_3px_14px_rgba(0,0,0,0.5)]
           ring-1
@@ -81,20 +85,25 @@ export default function WrappedRibbon() {
           focus-visible:outline-2
           focus-visible:outline-offset-2
           focus-visible:outline-white
-          sm:right-[-30px]
-          sm:top-[55px]
-          sm:w-[260px]
-          sm:py-4
-          md:right-[-34px]
-          md:top-[65px]
-          md:w-[300px]
-          md:py-5
+          sm:right-[-36px]
+          sm:top-[60px]
+          sm:w-[280px]
+          sm:gap-1.5
+          sm:py-[18px]
+          md:right-[-40px]
+          md:top-[70px]
+          md:w-[320px]
+          md:gap-2
+          md:py-[22px]
         "
       >
-        <span className="text-[13px] tracking-wide sm:text-[20px] md:text-[24px]">
+        <span
+          className="text-[19px] tracking-wide sm:text-[26px] md:text-[30px]"
+          style={{ WebkitTextStroke: "1.3px black" }}
+        >
           WRAPPED 2026
         </span>
-        <span className="text-[8px] tracking-[0.08em] sm:text-[12px] md:text-[14px]">
+        <span className="text-[11px] tracking-[0.06em] sm:text-[15px] md:text-[17px]">
           NO TE LO PIERDAS
         </span>
       </Link>
