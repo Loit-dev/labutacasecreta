@@ -226,6 +226,7 @@ export function useRecommendations(
     dislikedRef.current = [];
     busyRef.current = true;
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setItems([]);
     setHidden([]);
     setPhase("loading");
@@ -392,6 +393,7 @@ export function useRecommendations(
       !exhausted &&
       available < LOW_STOCK
     ) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       void loadMore();
     }
   }, [

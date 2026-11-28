@@ -223,7 +223,7 @@ export default function NotificacionesDialog({ userId, onClose }: Props) {
                     </p>
                     {item.message && (
                       <p className="mt-0.5 text-xs italic text-zinc-400">
-                        "{item.message}"
+                        &quot;{item.message}&quot;
                       </p>
                     )}
                     <button

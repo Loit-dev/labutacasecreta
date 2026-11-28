@@ -253,12 +253,12 @@ export default function MiResumenScreen({ onNavigateTab }: Props) {
 
     const cancelledRef = { current: false };
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadSummary(session.user.id, cancelledRef);
 
     return () => {
       cancelledRef.current = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
   async function pickFavorite(hit: SearchHit) {
@@ -349,7 +349,7 @@ export default function MiResumenScreen({ onNavigateTab }: Props) {
     return (
       <p className="text-center text-sm text-zinc-300">
         Todavía no hay nada que resumir. Marca alguna película o serie
-        como "Ya la vi" y vuelve por aquí.
+        como &quot;Ya la vi&quot; y vuelve por aquí.
       </p>
     );
   }

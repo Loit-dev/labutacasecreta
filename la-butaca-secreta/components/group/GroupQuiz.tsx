@@ -201,8 +201,8 @@ export default function GroupQuiz({
           Poned un nombre o un mote (si lo dejáis vacío, usaré
           “Persona 1”, “Persona 2”…). Si compartís el resultado, estos
           nombres pueden quedar en el enlace: usad un mote inventado si
-          preferís no dar vuestro nombre, o elegid luego "Compartir sin
-          nombres" al compartir.
+          preferís no dar vuestro nombre, o elegid luego &quot;Compartir sin
+          nombres&quot; al compartir.
         </p>
 
         <div className="mx-auto mt-3 grid max-w-sm gap-2">

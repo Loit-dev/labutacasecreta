@@ -171,7 +171,6 @@ export default async function SharedOpenGraphImage({
               }}
             >
               {posters[index] ? (
-                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={posters[index] as string}
                   width={220}

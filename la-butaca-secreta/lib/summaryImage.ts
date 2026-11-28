@@ -155,7 +155,6 @@ export function drawSummaryImage(
     "system-ui, -apple-system, Segoe UI, Roboto, sans-serif";
 
   const W = SHARE_WIDTH;
-  const H = SHARE_HEIGHT;
 
   drawBackdrop(ctx, options);
 

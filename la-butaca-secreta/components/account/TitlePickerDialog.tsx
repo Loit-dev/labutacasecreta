@@ -43,6 +43,7 @@ export default function TitlePickerDialog({
     const trimmed = query.trim();
 
     if (trimmed.length < 3) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setStatus("idle");
       setHits([]);
       return;

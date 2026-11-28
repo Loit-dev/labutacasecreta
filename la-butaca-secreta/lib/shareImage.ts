@@ -236,7 +236,6 @@ export function drawShareImage(
     "system-ui, -apple-system, Segoe UI, Roboto, sans-serif";
 
   const W = SHARE_WIDTH;
-  const H = SHARE_HEIGHT;
 
   const spaced = ctx as CanvasRenderingContext2D & {
     letterSpacing?: string;

@@ -25,7 +25,7 @@ function createEngine() {
 }
 
 export function useConversation() {
-  const engine = useMemo(createEngine, []);
+  const engine = useMemo(() => createEngine(), []);
 
   const [messages, setMessages] = useState<
     ConversationMessage[]
@@ -57,6 +57,10 @@ export function useConversation() {
   useEffect(() => {
     engine.startConversation();
 
+    // Arranca la conversación leyendo el estado inicial del motor
+    // (mensajes, perfil, confianza, primera pregunta): no hay nada
+    // externo a lo que "suscribirse", es la sincronización inicial.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMessages([...engine.getMessages()]);
     setProfile({ ...engine.getProfile() });
     setConfidence(engine.getContext().confidence);

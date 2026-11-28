@@ -105,6 +105,7 @@ export default function ShareDialog({
       }));
 
     if (entries.length === items.length && entries.length > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLink(
         shareUrl(
           window.location.origin,

@@ -99,7 +99,6 @@ export default function ShareProfileDialog({ userId, username, onClose }: Props)
 
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, username]);
 
   const file = state.status === "ready" ? state.file : null;
@@ -248,7 +247,7 @@ export default function ShareProfileDialog({ userId, username, onClose }: Props)
 
         {canShare && (
           <p className="text-center text-[11px] text-zinc-500">
-            "Compartir…" abre el menú del móvil con la imagen adjunta:
+            &quot;Compartir…&quot; abre el menú del móvil con la imagen adjunta:
             ahí puedes mandarla a Instagram (como story), WhatsApp o
             donde quieras.
           </p>
@@ -273,7 +272,7 @@ export default function ShareProfileDialog({ userId, username, onClose }: Props)
             <p className="text-center text-[11px] text-zinc-500">
               WhatsApp no deja adjuntar imágenes desde un enlace directo:
               esto manda solo el texto con el enlace. Para mandar también
-              la imagen del QR, usa "Compartir…" y elige WhatsApp ahí.
+              la imagen del QR, usa &quot;Compartir…&quot; y elige WhatsApp ahí.
             </p>
           </>
         )}

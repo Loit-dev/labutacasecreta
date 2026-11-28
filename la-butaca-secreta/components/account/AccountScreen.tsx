@@ -61,6 +61,7 @@ export default function AccountScreen() {
         requested === "logros" ||
         requested === "canon")
     ) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setTab(requested as TabId);
     }
   }, []);

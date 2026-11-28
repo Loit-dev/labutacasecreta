@@ -17,6 +17,9 @@ const STREAMING_PROVIDERS = [
 
 export function scoreProviders(
   item: ScoredItem,
+  // No se usa: la firma la fija ScoreFn (todas las funciones de
+  // puntuación reciben el contexto, lo use cada una o no).
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _context: ScoreContext
 ): number {
   if (!item.providers?.length) {

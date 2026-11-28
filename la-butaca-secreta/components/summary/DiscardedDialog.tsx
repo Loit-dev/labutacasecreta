@@ -42,7 +42,7 @@ export default function DiscardedDialog({ onClose }: Props) {
             </h2>
 
             <p className="text-xs text-zinc-400">
-              Títulos que marcaste como "No me apetece". Quítalos de
+              Títulos que marcaste como &quot;No me apetece&quot;. Quítalos de
               aquí si cambias de idea.
             </p>
           </div>
@@ -61,8 +61,8 @@ export default function DiscardedDialog({ onClose }: Props) {
             role="status"
             className="rounded-2xl bg-black/40 px-4 py-8 text-center text-sm text-zinc-300"
           >
-            No has descartado ningún título. Cuando pulses "No me
-            apetece" en una recomendación, aparecerá aquí.
+            No has descartado ningún título. Cuando pulses &quot;No me
+            apetece&quot; en una recomendación, aparecerá aquí.
           </p>
         ) : (
           <div className="-mr-1 grid grid-cols-3 gap-3 overflow-y-auto pr-1 sm:grid-cols-4">

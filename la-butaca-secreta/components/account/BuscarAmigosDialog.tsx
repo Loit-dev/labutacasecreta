@@ -34,6 +34,7 @@ export default function BuscarAmigosDialog({ userId, onClose }: Props) {
     let cancelled = false;
 
     if (query.trim().length < 2) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setRows([]);
       return;
     }

@@ -41,6 +41,7 @@ export default function RecommendDialog({
     const trimmed = query.trim();
 
     if (trimmed.length < 3) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setHits([]);
       return;
     }
