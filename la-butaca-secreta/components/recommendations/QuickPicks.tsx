@@ -117,7 +117,7 @@ function startingProfile(): UserProfile {
 }
 
 export default function QuickPicks() {
-  const profile = useMemo(startingProfile, []);
+  const profile = useMemo(() => startingProfile(), []);
 
   const [items, setItems] = useState<Picked[]>([]);
   const [phase, setPhase] = useState<Phase>("loading");
@@ -247,7 +247,6 @@ export default function QuickPicks() {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile, type, secondaryType]);
 
   const toggleSaved = (movie: Picked) => {
