@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 
 import { HeartIcon } from "@/components/icons/Icons";
 import {
@@ -17,6 +18,7 @@ import {
   fetchListComments,
   type ListComment,
 } from "@/lib/supabase/listsFeed";
+import { loginHref } from "@/lib/returnTo";
 
 // Piezas compartidas por la pestaña Listas (ListsFeed) y la página de
 // cada lista (ListPage).
@@ -141,13 +143,14 @@ export function LikeButton({
   onToggle: () => void;
   compact?: boolean;
 }) {
+  const pathname = usePathname();
   const size = compact ? "mt-2 px-2.5 py-1 text-xs" : "px-3 py-1.5 text-sm";
   const count = `${like.count} me gusta`;
 
   if (!canLike) {
     return (
       <a
-        href="/entrar"
+        href={loginHref(pathname)}
         title="Entra para darle me gusta"
         className={`flex w-fit items-center gap-1.5 rounded-full border border-white/15 bg-black/20 font-semibold text-zinc-300 hover:bg-white/5 ${size}`}
       >
@@ -188,6 +191,7 @@ export function ListComments({
   const [comments, setComments] = useState<ListComment[] | null | undefined>(
     undefined
   );
+  const pathname = usePathname();
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -290,7 +294,7 @@ export function ListComments({
         </form>
       ) : (
         <a
-          href="/entrar"
+          href={loginHref(pathname)}
           className="w-fit rounded-full border border-white/15 bg-black/20 px-4 py-2 text-sm font-semibold text-zinc-200 hover:bg-white/5"
         >
           Entra para comentar

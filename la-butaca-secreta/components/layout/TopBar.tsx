@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import { AccountIcon } from "@/components/conversation/TabIcons";
 import { useAuth } from "@/hooks/useAuth";
+import { loginHref } from "@/lib/returnTo";
 import {
   countBadge,
   fetchBadgeCount,
@@ -20,6 +22,7 @@ import {
  */
 export default function TopBar() {
   const { session, loading, available } = useAuth();
+  const pathname = usePathname();
 
   const userId = session?.user.id ?? null;
 
@@ -51,7 +54,7 @@ export default function TopBar() {
   const showButton = available && !loading;
   const pending = userId ? badge : 0;
   const href = !session
-    ? "/entrar"
+    ? loginHref(pathname)
     : pending > 0
       ? "/mi-cuenta?tab=amigos&notificaciones=1"
       : "/mi-cuenta";

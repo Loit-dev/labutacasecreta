@@ -5,6 +5,7 @@ import { useState, type FormEvent } from "react";
 import { MailIcon } from "@/components/icons/Icons";
 import { supabase } from "@/lib/supabase/client";
 import { track } from "@/lib/analytics";
+import { saveReturnTo } from "@/lib/returnTo";
 
 type Status = "idle" | "sending" | "sent" | "error";
 
@@ -12,6 +13,25 @@ type Props = {
   /** A dónde volver tras verificar el enlace mágico (por defecto, la home). */
   redirectTo?: string;
 };
+
+// A dónde volver después: la página indicada (redirectTo), o
+// /entrar?volver=/ruta. Ver lib/returnTo.ts.
+function rememberReturn(redirectTo?: string) {
+  let path: string | null = null;
+
+  if (redirectTo) {
+    try {
+      const url = new URL(redirectTo, window.location.origin);
+      if (url.origin === window.location.origin) path = url.pathname + url.search;
+    } catch {
+      path = null;
+    }
+  } else {
+    path = new URLSearchParams(window.location.search).get("volver");
+  }
+
+  saveReturnTo(path);
+}
 
 export default function LoginForm({ redirectTo }: Props = {}) {
   const [email, setEmail] = useState("");
@@ -31,6 +51,7 @@ export default function LoginForm({ redirectTo }: Props = {}) {
     setGoogleError(null);
 
     track("mode_selected", { mode: "login_google" });
+    rememberReturn(redirectTo);
 
     const { error } = await supabase!.auth.signInWithOAuth({
       provider: "google",
@@ -54,6 +75,7 @@ export default function LoginForm({ redirectTo }: Props = {}) {
     setEmailError(null);
 
     track("mode_selected", { mode: "login_email" });
+    rememberReturn(redirectTo);
 
     const { error } = await supabase!.auth.signInWithOtp({
       email: clean,

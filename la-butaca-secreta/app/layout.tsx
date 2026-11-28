@@ -4,6 +4,7 @@ import { Bebas_Neue, Geist, Manrope } from "next/font/google";
 import Analytics from "@/components/layout/Analytics";
 import Footer from "@/components/layout/Footer";
 import SpeedInsights from "@/components/layout/SpeedInsights";
+import ReturnAfterLogin from "@/components/layout/ReturnAfterLogin";
 import AchievementsProvider from "@/components/achievements/AchievementsProvider";
 import {
   SITE_DESCRIPTION,
@@ -142,6 +143,8 @@ export default function RootLayout({
         <Analytics />
 
         <SpeedInsights />
+
+        <ReturnAfterLogin />
       </body>
     </html>
   );

@@ -64,7 +64,7 @@ export default function UsageDashboard() {
   if (!userId) {
     return (
       <p className="text-sm text-zinc-300">
-        <a href="/entrar" className="text-amber-300 hover:underline">
+        <a href="/entrar?volver=%2Fadmin%2Fuso" className="text-amber-300 hover:underline">
           Entra
         </a>{" "}
         con una cuenta de administración.
